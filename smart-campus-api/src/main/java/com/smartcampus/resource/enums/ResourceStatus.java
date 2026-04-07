@@ -1,5 +1,6 @@
 package com.smartcampus.resource.enums;
 
-public class ResourceStatus {
-    
+public enum ResourceStatus {
+    ACTIVE,
+    OUT_OF_SERVICE
 }
