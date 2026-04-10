@@ -29,12 +29,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class TicketController {
     private final TicketService ticketService;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<TicketResponseDTO> createTicket(@Valid @ModelAttribute TicketRequestDTO request) {
         try {
             TicketResponseDTO response = ticketService.createTicket(request, "jane.smith@example.com");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IOException e) {
+        } catch (IOException e)  {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -53,5 +53,8 @@ public class TicketController {
     public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,@RequestBody @NotBlank String comment) {
         return ResponseEntity.ok(ticketService.addComment(id, "guest@example.com", comment));
     }
+
+
+
 }
 

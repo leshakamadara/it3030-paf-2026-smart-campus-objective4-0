@@ -2,7 +2,7 @@
 
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     role VARCHAR(50),
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Create tickets table
 CREATE TABLE IF NOT EXISTS tickets (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     category VARCHAR(100),
     description TEXT,
@@ -27,23 +27,26 @@ CREATE TABLE IF NOT EXISTS tickets (
 
 -- Create ticket_attachments table
 CREATE TABLE IF NOT EXISTS ticket_attachments (
-    id SERIAL PRIMARY KEY,
-    file_name VARCHAR(255),
-    file_path VARCHAR(500),
+
+    id BIGSERIAL PRIMARY KEY,
+    link_url VARCHAR(500),
     ticket_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
+
 );
 
 -- Create ticket_comments table
 CREATE TABLE IF NOT EXISTS ticket_comments (
-    id SERIAL PRIMARY KEY,
+
+    id BIGSERIAL PRIMARY KEY,
     comment TEXT,
     ticket_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id)
+
 );
 
 -- Create indexes for better query performance

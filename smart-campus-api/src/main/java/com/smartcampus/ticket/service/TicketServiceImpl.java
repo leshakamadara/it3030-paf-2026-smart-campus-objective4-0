@@ -1,20 +1,16 @@
 package com.smartcampus.ticket.service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.smartcampus.ticket.dto.CommentDTO;
 import com.smartcampus.ticket.dto.TicketRequestDTO;
 import com.smartcampus.ticket.dto.TicketResponseDTO;
 import com.smartcampus.ticket.exception.TicketNotFoundException;
-import com.smartcampus.ticket.model.Priority;
+import com.smartcampus.ticket.exception.UserNotFoundException;
 import com.smartcampus.ticket.model.Status;
 import com.smartcampus.ticket.model.Ticket;
 import com.smartcampus.ticket.model.TicketAttachment;
@@ -38,17 +34,14 @@ public class TicketServiceImpl implements TicketService {
     private final TicketCommentRepository commentRepository;
     private final TicketAttachmentRepository attachmentRepository;
 
+
+    
+
     @Override
     public TicketResponseDTO createTicket(TicketRequestDTO request, String userEmail) throws IOException {
-        // Get or create user
+        // Find existing user by email
         User user = userRepository.findByEmail(userEmail)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setEmail(userEmail);
-                    newUser.setName(userEmail.split("@")[0]);
-                    newUser.setRole("USER");
-                    return userRepository.save(newUser);
-                });
+                .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found. Only existing users can create tickets."));
 
         // Create ticket entity
         Ticket ticket = new Ticket();
@@ -59,20 +52,15 @@ public class TicketServiceImpl implements TicketService {
         ticket.setStatus(Status.OPEN);
         ticket.setCreatedBy(user);
 
-        // Save ticket first
+       // Save ticket first 
         Ticket savedTicket = ticketRepository.save(ticket);
 
-        // Handle attachments
-        if (request.getAttachments() != null) {
-            for (MultipartFile file : request.getAttachments()) {
-                if (file != null && !file.isEmpty()) {
-                    TicketAttachment attachment = new TicketAttachment();
-                    attachment.setFileName(file.getOriginalFilename());
-                    attachment.setFilePath("/uploads/" + savedTicket.getId() + "/" + file.getOriginalFilename());
-                    attachment.setTicket(savedTicket);
-                    attachmentRepository.save(attachment);
-                }
-            }
+        // Handle attachment link
+        if (request.getAttachmentLink() != null && !request.getAttachmentLink().trim().isEmpty()) {
+            TicketAttachment attachment = new TicketAttachment();
+            attachment.setLinkUrl(request.getAttachmentLink().trim());
+            attachment.setTicket(savedTicket);
+            attachmentRepository.save(attachment);
         }
 
         // Convert to DTO and return
@@ -91,15 +79,9 @@ public class TicketServiceImpl implements TicketService {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
 
-        // Get or create technician user
+        // Find existing technician user
         User technician = userRepository.findByEmail(technicianEmail)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setEmail(technicianEmail);
-                    newUser.setName(technicianEmail.split("@")[0]);
-                    newUser.setRole("TECHNICIAN");
-                    return userRepository.save(newUser);
-                });
+                .orElseThrow(() -> new UserNotFoundException("Technician with email " + technicianEmail + " not found. Only existing users can update ticket status."));
 
         ticket.setStatus(newStatus);
         ticket.setTechnician(technician);
@@ -113,15 +95,9 @@ public class TicketServiceImpl implements TicketService {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
 
-        // Get or create user
+        // Find existing user
         User user = userRepository.findByEmail(userEmail)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setEmail(userEmail);
-                    newUser.setName(userEmail.split("@")[0]);
-                    newUser.setRole("USER");
-                    return userRepository.save(newUser);
-                });
+                .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found. Only existing users can add comments."));
 
         // Create comment
         TicketComment comment = new TicketComment();
@@ -144,11 +120,10 @@ public class TicketServiceImpl implements TicketService {
         dto.setCreatedBy(ticket.getCreatedBy().getEmail());
         dto.setTechnician(ticket.getTechnician() != null ? ticket.getTechnician().getEmail() : null);
 
-        // Convert attachments
-        List<String> attachmentNames = ticket.getAttachments().stream()
-                .map(TicketAttachment::getFileName)
-                .collect(Collectors.toList());
-        dto.setAttachments(attachmentNames);
+        // Convert attachment link
+        String attachmentLink = ticket.getAttachments().isEmpty() ? null :
+                ticket.getAttachments().get(0).getLinkUrl();
+        dto.setAttachmentLink(attachmentLink);
 
         // Convert comments
         List<CommentDTO> comments = ticket.getComments().stream()

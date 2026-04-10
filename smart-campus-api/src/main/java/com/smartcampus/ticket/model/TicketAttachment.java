@@ -26,8 +26,7 @@ public class TicketAttachment {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String fileName;
-    private String filePath;
+    private String linkUrl;
 
     @ManyToOne
     @JoinColumn(name = "ticket_id", nullable = false)

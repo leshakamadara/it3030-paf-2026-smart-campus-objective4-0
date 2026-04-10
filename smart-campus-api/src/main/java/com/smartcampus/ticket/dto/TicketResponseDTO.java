@@ -20,6 +20,6 @@ public class TicketResponseDTO {
     private Status status;
     private String createdBy;
     private String technician;
-    private List<String> attachments;
+    private String attachmentLink;
     private List<CommentDTO> comments;
 }

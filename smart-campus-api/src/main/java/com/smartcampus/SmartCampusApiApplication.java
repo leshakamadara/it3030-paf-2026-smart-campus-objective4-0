@@ -1,7 +1,8 @@
-package com.smartcampus.smart_campus_api;
+package com.smartcampus;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 
 @SpringBootApplication
 public class SmartCampusApiApplication {
