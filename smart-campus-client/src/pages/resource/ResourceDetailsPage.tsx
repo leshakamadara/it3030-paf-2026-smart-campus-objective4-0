@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import ResourceStatusBadge from "../../components/ui/resource/ResourceStatusBadge";
 import resourceService from "../../services/resourceService";
 import type { Resource } from "../../types/resource";
-import { getMockUser, isAdmin } from "../../lib/mockAuth";
+import { isAdmin } from "../../lib/mockAuth";
 
 const featureItems = (resource: Resource) => [
   { label: "Projector", enabled: resource.hasProjector },
