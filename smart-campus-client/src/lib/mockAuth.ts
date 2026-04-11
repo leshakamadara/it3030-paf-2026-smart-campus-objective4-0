@@ -1,4 +1,4 @@
-export type UserRole = "ADMIN" | "USER";
+import type { UserRole } from "../types/resource";
 
 export interface MockUser {
   id: number;
@@ -7,12 +7,22 @@ export interface MockUser {
   role: UserRole;
 }
 
-export const mockUser: MockUser = {
+let currentMockUser: MockUser = {
   id: 1,
   name: "Teena",
   email: "teena@example.com",
   role: "ADMIN",
 };
 
-export const isAdmin = (): boolean => mockUser.role === "ADMIN";
-export const isUser = (): boolean => mockUser.role === "USER";
+export const getMockUser = (): MockUser => currentMockUser;
+
+export const setMockRole = (role: UserRole): void => {
+  currentMockUser = {
+    ...currentMockUser,
+    role,
+  };
+};
+
+export const isAdmin = (): boolean => currentMockUser.role === "ADMIN";
+
+export const isUser = (): boolean => currentMockUser.role === "USER";

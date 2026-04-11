@@ -1,3 +1,5 @@
+export type UserRole = "ADMIN" | "USER";
+
 export type ResourceType =
   | "LECTURE_HALL"
   | "LAB"
