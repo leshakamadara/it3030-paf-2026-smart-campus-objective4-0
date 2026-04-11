@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import ResourceStatusBadge from "../../components/ui/resource/ResourceStatusBadge";
 import resourceService from "../../services/resourceService";
 import type { Resource } from "../../types/resource";
+import { getMockUser, isAdmin } from "../../lib/mockAuth";
 
 const featureItems = (resource: Resource) => [
   { label: "Projector", enabled: resource.hasProjector },
@@ -100,6 +101,14 @@ export default function ResourceDetailsPage() {
             Back to Resources
           </Link>
 
+{isAdmin() ? (
+  <Link
+    to={`/admin/resources/edit/${resource.id}`}
+    className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+  >
+    Edit Resource
+  </Link>
+) : null}
           <ResourceStatusBadge resource={resource} />
         </div>
 

@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import ResourceFilters from "../../components/ui/resource/ResourceFilters";
 import ResourceTable from "../../components/ui/resource/ResourceTable";
-import { getMockUser } from "../../lib/mockAuth";
+//import { getMockUser } from "../../lib/mockAuth";
 import resourceService from "../../services/resourceService";
+import { Link } from "react-router-dom";
+import { getMockUser, isAdmin } from "../../lib/mockAuth";
+
+
 import type {
   PaginatedResponse,
   Resource,
@@ -100,6 +104,23 @@ export default function ResourceListPage() {
             </p>
             <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
               Browse Campus Resources
+        {isAdmin() ? (
+  <div className="flex flex-wrap gap-3">
+    <Link
+      to="/admin/resources/create"
+      className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+    >
+      Add Resource
+    </Link>
+
+    <Link
+      to="/admin/resources/stats"
+      className="inline-flex rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+    >
+      View Dashboard
+    </Link>
+  </div>
+) : null}
             </h1>
             <p className="mt-2 text-sm text-slate-500">
               Search, filter, and explore facilities and assets available in the
