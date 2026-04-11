@@ -14,7 +14,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            .csrf(csrf -> csrf.disable())   // ✅ disable CSRF for APIs
+            .csrf(csrf -> csrf.disable())   //  disable CSRF for APIs
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/**").permitAll()  // allow all API calls
                 .anyRequest().authenticated()
