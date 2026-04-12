@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { Ticket, Priority } from "../types/ticketTypes";
+import type { TicketRequestDTO, Priority } from "../types/ticketTypes";
 import { CATEGORIES, PRIORITY_CONFIG } from "../constants/ticketConstants";
 
 export const CreateTicketModal = ({
@@ -7,51 +7,85 @@ export const CreateTicketModal = ({
   onSubmit,
 }: {
   onClose: () => void;
-  onSubmit: (ticket: Partial<Ticket>) => void;
+  onSubmit: (ticket: TicketRequestDTO) => void;
 }) => {
   const [form, setForm] = useState({
     title: "",
     category: "",
     description: "",
     priority: "MEDIUM" as Priority,
-    resourceLocation: "",
-    contactName: "",
-    contactEmail: "",
-    contactPhone: "",
   });
 
-  const [images, setImages] = useState<string[]>([]);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [step, setStep] = useState(1);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // ─── Image Handler ────────────────────────────────────────────────
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processFile(file);
+  };
 
-    if (images.length + files.length > 3) {
-      alert("Max 3 images allowed.");
+  const processFile = (file: File) => {
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size must be less than 10MB.");
       return;
     }
 
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImages((prev) => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+    // Check file type
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file.");
+      return;
+    }
+
+    setImageFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ─── Drag and Drop Handlers ────────────────────────────────────────
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      processFile(files[0]); // Only process the first file
+    }
   };
 
   // ─── Submit ───────────────────────────────────────────────────────
   const handleSubmit = () => {
-    if (!form.title || !form.category || !form.description || !form.resourceLocation) return;
+    if (!form.title || !form.category || !form.description) return;
 
-    onSubmit({
+    const ticketData: TicketRequestDTO = {
       ...form,
-      images,
-      status: "OPEN",
-    });
+      imageFile: imageFile || undefined,
+    };
 
+    onSubmit(ticketData);
     onClose();
   };
 
@@ -67,17 +101,17 @@ export const CreateTicketModal = ({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div>
-            <p className="text-xs text-slate-400 uppercase tracking-widest">
+            <p className="text-xs text-black uppercase tracking-widest">
               New Incident
             </p>
-            <h2 className="text-lg font-semibold text-slate-800">
+            <h2 className="text-lg font-semibold text-black">
               Create Ticket
             </h2>
           </div>
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-500"
+            className="w-8 h-8 rounded-full hover:bg-slate-100 text-black"
           >
             ✕
           </button>
@@ -85,7 +119,7 @@ export const CreateTicketModal = ({
 
         {/* Step Indicator */}
         <div className="flex px-6 pt-4 gap-2">
-          {[1, 2, 3].map((s) => (
+          {[1, 2].map((s) => (
             <div key={s} className="flex items-center gap-2">
               <div
                 className={`w-6 h-6 rounded-full text-xs flex items-center justify-center font-semibold ${
@@ -102,10 +136,10 @@ export const CreateTicketModal = ({
                   step >= s ? "text-violet-600 font-medium" : "text-slate-400"
                 }`}
               >
-                {s === 1 ? "Details" : s === 2 ? "Attachments" : "Contact"}
+                {s === 1 ? "Details" : "Image"}
               </span>
 
-              {s < 3 && (
+              {s < 2 && (
                 <div
                   className={`w-12 h-px ${
                     step > s ? "bg-violet-300" : "bg-slate-200"
@@ -122,11 +156,12 @@ export const CreateTicketModal = ({
           {step === 1 && (
             <>
               <div>
-                <label className="text-xs text-slate-500">
+                <label className="text-xs text-black font-semibold mb-1 block">
                   Incident Title *
                 </label>
                 <input
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-black bg-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-600"
+                  placeholder="Enter incident title"
                   value={form.title}
                   onChange={(e) =>
                     setForm({ ...form, title: e.target.value })
@@ -136,17 +171,17 @@ export const CreateTicketModal = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-slate-500">
+                  <label className="text-xs text-black font-semibold mb-1 block">
                     Category *
                   </label>
                   <select
-                    className="w-full border rounded-lg px-3 py-2 text-sm"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-violet-600"
                     value={form.category}
                     onChange={(e) =>
                       setForm({ ...form, category: e.target.value })
                     }
                   >
-                    <option value="">Select</option>
+                    <option value="">Select Category</option>
                     {CATEGORIES.map((c) => (
                       <option key={c}>{c}</option>
                     ))}
@@ -154,7 +189,7 @@ export const CreateTicketModal = ({
                 </div>
 
                 <div>
-                  <label className="text-xs text-slate-500">Priority</label>
+                  <label className="text-xs text-black font-semibold mb-1 block">Priority</label>
                   <div className="flex gap-1.5">
                     {(["LOW", "MEDIUM", "HIGH", "CRITICAL"] as Priority[]).map(
                       (p) => (
@@ -163,10 +198,10 @@ export const CreateTicketModal = ({
                           onClick={() =>
                             setForm({ ...form, priority: p })
                           }
-                          className={`flex-1 py-2 text-xs rounded-lg border ${
+                          className={`flex-1 py-2 text-xs rounded-lg border font-semibold ${
                             form.priority === p
-                              ? "bg-violet-50 border-violet-400 text-violet-700"
-                              : "border-slate-200"
+                              ? "bg-violet-600 border-violet-600 text-white"
+                              : "border-slate-300 text-black bg-white hover:border-slate-400"
                           }`}
                         >
                           {PRIORITY_CONFIG[p].label}
@@ -178,28 +213,13 @@ export const CreateTicketModal = ({
               </div>
 
               <div>
-                <label className="text-xs text-slate-500">
-                  Location *
-                </label>
-                <input
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
-                  value={form.resourceLocation}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      resourceLocation: e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-500">
+                <label className="text-xs text-black font-semibold mb-1 block">
                   Description *
                 </label>
                 <textarea
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-black bg-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-600 resize-none"
                   rows={4}
+                  placeholder="Describe the incident in detail"
                   value={form.description}
                   onChange={(e) =>
                     setForm({
@@ -216,65 +236,56 @@ export const CreateTicketModal = ({
           {step === 2 && (
             <div>
               <div
-                className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer"
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
+                  isDragOver
+                    ? "border-violet-500 bg-violet-50 scale-105"
+                    : "border-slate-300 hover:bg-slate-50 hover:border-violet-400 bg-white"
+                }`}
                 onClick={() => fileRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
               >
-                <p className="text-sm">Upload Images (max 3)</p>
+                <p className={`text-sm font-semibold mb-2 transition-colors ${
+                  isDragOver ? "text-violet-700" : "text-black"
+                }`}>
+                  {isDragOver ? "📸 Drop your image here!" : "📷 Upload Image (optional)"}
+                </p>
+                <p className={`text-xs transition-colors ${
+                  isDragOver ? "text-violet-600" : "text-black"
+                }`}>
+                  {isDragOver ? "Release to upload" : "Drag & drop or click to select • Max file size: 10MB"}
+                </p>
               </div>
 
               <input
                 ref={fileRef}
                 type="file"
-                multiple
                 accept="image/*"
                 hidden
                 onChange={handleImage}
               />
 
-              {images.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 mt-3">
-                  {images.map((img, i) => (
-                    <img
-                      key={i}
-                      src={img}
-                      className="h-20 w-full object-cover rounded"
-                    />
-                  ))}
+              {imagePreview && (
+                <div className="mt-3">
+                  <p className="text-xs text-black font-semibold mb-2">Preview:</p>
+                  <img
+                    src={imagePreview}
+                    className="h-32 w-full object-cover rounded-lg border border-slate-300"
+                    alt="Preview"
+                  />
+                  <button
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview(null);
+                    }}
+                    className="mt-2 text-xs text-red-600 hover:text-red-700 font-semibold"
+                  >
+                    Remove image
+                  </button>
                 </div>
               )}
             </div>
-          )}
-
-          {/* STEP 3 */}
-          {step === 3 && (
-            <>
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Name"
-                value={form.contactName}
-                onChange={(e) =>
-                  setForm({ ...form, contactName: e.target.value })
-                }
-              />
-
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Email"
-                value={form.contactEmail}
-                onChange={(e) =>
-                  setForm({ ...form, contactEmail: e.target.value })
-                }
-              />
-
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Phone"
-                value={form.contactPhone}
-                onChange={(e) =>
-                  setForm({ ...form, contactPhone: e.target.value })
-                }
-              />
-            </>
           )}
         </div>
 
@@ -282,16 +293,17 @@ export const CreateTicketModal = ({
         <div className="flex justify-between px-6 py-4 border-t bg-slate-50">
           <button
             onClick={() => (step === 1 ? onClose() : setStep(step - 1))}
-            className="text-sm text-slate-500"
+            className="text-sm text-black hover:text-slate-600"
           >
             {step === 1 ? "Cancel" : "Back"}
           </button>
 
           <button
-            onClick={() => (step < 3 ? setStep(step + 1) : handleSubmit())}
-            className="bg-violet-600 text-white px-4 py-2 rounded-lg text-sm"
+            onClick={() => (step < 2 ? setStep(step + 1) : handleSubmit())}
+            className="bg-violet-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            disabled={step === 1 && (!form.title || !form.category || !form.description)}
           >
-            {step < 3 ? "Next" : "Submit"}
+            {step < 2 ? "Next" : "Create Ticket"}
           </button>
         </div>
       </div>

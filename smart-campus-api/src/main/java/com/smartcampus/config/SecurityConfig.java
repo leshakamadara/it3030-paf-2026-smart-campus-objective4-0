@@ -18,6 +18,15 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/**").permitAll()  // allow all API calls
                 .anyRequest().authenticated()
+/*
+
+                .cors() // enable CORS
+                .and()
+                .csrf().disable(); // disable for development
+
+ */
+
+
             );
 
         return http.build();

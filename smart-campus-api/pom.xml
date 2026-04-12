@@ -141,6 +141,13 @@
 			<artifactId>core</artifactId>
 			<version>3.5.3</version>
 		</dependency>
+
+		<!-- Cloudinary for image management -->
+		<dependency>
+			<groupId>com.cloudinary</groupId>
+			<artifactId>cloudinary-http45</artifactId>
+			<version>1.38.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

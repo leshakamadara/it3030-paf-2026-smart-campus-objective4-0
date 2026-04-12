@@ -2,10 +2,13 @@ package com.smartcampus.ticket.service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.smartcampus.ticket.dto.AttachmentDTO;
 import com.smartcampus.ticket.dto.CommentDTO;
 import com.smartcampus.ticket.dto.TicketRequestDTO;
 import com.smartcampus.ticket.dto.TicketResponseDTO;
@@ -33,9 +36,7 @@ public class TicketServiceImpl implements TicketService {
     private final UserRepository userRepository;
     private final TicketCommentRepository commentRepository;
     private final TicketAttachmentRepository attachmentRepository;
-
-
-    
+    private final CloudinaryService cloudinaryService;
 
     @Override
     public TicketResponseDTO createTicket(TicketRequestDTO request, String userEmail) throws IOException {
@@ -52,10 +53,15 @@ public class TicketServiceImpl implements TicketService {
         ticket.setStatus(Status.OPEN);
         ticket.setCreatedBy(user);
 
-       // Save ticket first 
+        // Save ticket first 
         Ticket savedTicket = ticketRepository.save(ticket);
 
-        // Handle attachment link
+        // Handle Cloudinary image upload
+        if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
+            uploadAttachmentInternal(savedTicket, request.getImageFile());
+        }
+
+        // Handle legacy attachment link
         if (request.getAttachmentLink() != null && !request.getAttachmentLink().trim().isEmpty()) {
             TicketAttachment attachment = new TicketAttachment();
             attachment.setLinkUrl(request.getAttachmentLink().trim());
@@ -69,6 +75,13 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public TicketResponseDTO getTicketById(Long id) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+        return convertToDTO(ticket);
+    }
+
+    @Override
+    public TicketResponseDTO getTicketWithAttachments(Long id) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
         return convertToDTO(ticket);
@@ -109,6 +122,54 @@ public class TicketServiceImpl implements TicketService {
         return convertCommentToDTO(savedComment);
     }
 
+    @Override
+    public AttachmentDTO uploadAttachment(Long ticketId, MultipartFile file, String userEmail) throws IOException {
+        // Verify user exists
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found."));
+
+        // Get ticket
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+        // Upload to Cloudinary and save to database
+        return uploadAttachmentInternal(ticket, file);
+    }
+
+    @Override
+    public boolean deleteAttachment(Long attachmentId, String userEmail) throws IOException {
+        // Verify user exists
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found."));
+
+        TicketAttachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new TicketNotFoundException("Attachment not found"));
+
+        // Delete from Cloudinary if it has a public ID
+        if (attachment.getCloudinaryPublicId() != null) {
+            cloudinaryService.deleteImage(attachment.getCloudinaryPublicId());
+        }
+
+        // Delete from database
+        attachmentRepository.delete(attachment);
+        return true;
+    }
+
+    private AttachmentDTO uploadAttachmentInternal(Ticket ticket, MultipartFile file) throws IOException {
+        Map<String, Object> uploadResult = cloudinaryService.uploadImage(file, ticket.getId());
+
+        TicketAttachment attachment = new TicketAttachment();
+        attachment.setTicket(ticket);
+        attachment.setCloudinaryPublicId((String) uploadResult.get("public_id"));
+        attachment.setCloudinaryUrl((String) uploadResult.get("url"));
+        attachment.setCloudinarySecureUrl((String) uploadResult.get("secure_url"));
+        attachment.setCloudinarySize((Long) uploadResult.get("bytes"));
+        attachment.setCloudinaryResourceType((String) uploadResult.get("resource_type"));
+
+        TicketAttachment savedAttachment = attachmentRepository.save(attachment);
+        return convertAttachmentToDTO(savedAttachment);
+    }
+
     private TicketResponseDTO convertToDTO(Ticket ticket) {
         TicketResponseDTO dto = new TicketResponseDTO();
         dto.setId(ticket.getId());
@@ -120,9 +181,17 @@ public class TicketServiceImpl implements TicketService {
         dto.setCreatedBy(ticket.getCreatedBy().getEmail());
         dto.setTechnician(ticket.getTechnician() != null ? ticket.getTechnician().getEmail() : null);
 
-        // Convert attachment link
+        // Convert attachments
+        List<AttachmentDTO> attachmentDTOs = ticket.getAttachments().stream()
+                .map(this::convertAttachmentToDTO)
+                .collect(Collectors.toList());
+        dto.setAttachments(attachmentDTOs);
+
+        // Set legacy attachment link for backward compatibility
         String attachmentLink = ticket.getAttachments().isEmpty() ? null :
-                ticket.getAttachments().get(0).getLinkUrl();
+                ticket.getAttachments().get(0).getCloudinarySecureUrl() != null ?
+                        ticket.getAttachments().get(0).getCloudinarySecureUrl() :
+                        ticket.getAttachments().get(0).getLinkUrl();
         dto.setAttachmentLink(attachmentLink);
 
         // Convert comments
@@ -132,6 +201,19 @@ public class TicketServiceImpl implements TicketService {
         dto.setComments(comments);
 
         return dto;
+    }
+
+    private AttachmentDTO convertAttachmentToDTO(TicketAttachment attachment) {
+        return new AttachmentDTO(
+                attachment.getId(),
+                attachment.getLinkUrl(),
+                attachment.getCloudinaryPublicId(),
+                attachment.getCloudinaryUrl(),
+                attachment.getCloudinarySecureUrl(),
+                attachment.getCloudinarySize(),
+                attachment.getCloudinaryResourceType(),
+                attachment.getCreatedAt()
+        );
     }
 
     private CommentDTO convertCommentToDTO(TicketComment comment) {

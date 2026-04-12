@@ -1,7 +1,7 @@
 import { STATUS_CONFIG } from "../constants/ticketConstants";
-import type { Ticket ,TicketStatus} from "../types/ticketTypes";
+import type { TicketResponseDTO, TicketStatus } from "../types/ticketTypes";
 
-export const WorkflowPipeline = ({ tickets }: { tickets: Ticket[] }) => {
+export const WorkflowPipeline = ({ tickets }: { tickets: TicketResponseDTO[] }) => {
   const stages: TicketStatus[] = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"];
 
   const counts = stages.reduce((acc, s) => {

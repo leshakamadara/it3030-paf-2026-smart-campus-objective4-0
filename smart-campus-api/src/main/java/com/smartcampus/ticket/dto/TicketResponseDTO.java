@@ -20,6 +20,12 @@ public class TicketResponseDTO {
     private Status status;
     private String createdBy;
     private String technician;
+    
+    // Legacy field - for backward compatibility
     private String attachmentLink;
+    
+    // New field - list of all attachments with Cloudinary details
+    private List<AttachmentDTO> attachments;
+    
     private List<CommentDTO> comments;
 }

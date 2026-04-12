@@ -28,6 +28,13 @@ public class TicketAttachment {
 
     private String linkUrl;
 
+    // Cloudinary specific fields
+    private String cloudinaryPublicId;
+    private String cloudinaryUrl;
+    private String cloudinarySecureUrl;
+    private Long cloudinarySize;
+    private String cloudinaryResourceType;
+
     @ManyToOne
     @JoinColumn(name = "ticket_id", nullable = false)
     private Ticket ticket;

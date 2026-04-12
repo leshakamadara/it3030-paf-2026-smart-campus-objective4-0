@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @NoArgsConstructor
@@ -22,5 +23,9 @@ public class TicketRequestDTO {
     @NotNull
     private Priority priority;
 
+    // Legacy field - for backward compatibility
     private String attachmentLink;
+
+    // New field - for Cloudinary image upload
+    private MultipartFile imageFile;
 }

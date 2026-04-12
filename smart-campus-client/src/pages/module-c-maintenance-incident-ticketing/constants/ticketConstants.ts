@@ -1,9 +1,9 @@
-import type  { Priority, Ticket, TicketStatus, User } from "../types/ticketTypes";
+import type { Ticket, TicketStatus, User } from "../types/ticketTypes";
 
 export const CATEGORIES = [
-  "Hardware Failure",
-  "Software / System Error",
-  "Network / Connectivity",
+  "Hardware",
+  "Software ",
+  "Network ",
   "AV Equipment",
   "Electrical / Power",
   "Plumbing / Facility",

@@ -1,4 +1,4 @@
-import type { Ticket } from "../types/ticketTypes";
+import type { TicketResponseDTO } from "../types/ticketTypes";
 import { Badge } from "./Badge";
 import { PriorityDot } from "./PriorityDot";
 
@@ -6,7 +6,7 @@ export const TicketCard = ({
   ticket,
   onClick,
 }: {
-  ticket: Ticket;
+  ticket: TicketResponseDTO;
   onClick: () => void;
 }) => (
   <button
@@ -15,7 +15,7 @@ export const TicketCard = ({
   >
     <div className="flex items-start justify-between gap-3 mb-2">
       <div className="flex items-center gap-2 min-w-0">
-        <span className="font-mono text-xs text-slate-400 shrink-0">{ticket.id}</span>
+        <span className="font-mono text-xs text-slate-400 shrink-0">#{ticket.id}</span>
         <Badge status={ticket.status} />
       </div>
       <PriorityDot priority={ticket.priority} />
@@ -26,7 +26,7 @@ export const TicketCard = ({
     </p>
 
     <p className="text-xs text-slate-400 line-clamp-1 mb-3">
-      📍 {ticket.resourceLocation}
+      📝 {ticket.description ? ticket.description.substring(0, 50) + (ticket.description.length > 50 ? "..." : "") : "No description"}
     </p>
   </button>
 );

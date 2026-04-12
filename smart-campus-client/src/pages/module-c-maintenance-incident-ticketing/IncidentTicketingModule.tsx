@@ -1,14 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-import { INITIAL_TICKETS } from "./constants/ticketConstants";
+import { ticketService } from "./services/ticketService";
 
-import type { Ticket, TicketStatus, Priority } from "./types/ticketTypes";
+import type { TicketResponseDTO, TicketStatus, Priority } from "./types/ticketTypes";
 import {
   CURRENT_USER,
-  TECHNICIANS,
-  STATUS_FLOW,
   PRIORITY_CONFIG,
-  STATUS_CONFIG, 
+  STATUS_CONFIG,
 } from "./constants/ticketConstants";
 
 import { TicketCard } from "./components/TicketCard";
@@ -17,47 +15,66 @@ import { CreateTicketModal } from "./components/CreateTicketModal";
 import { TicketDetail } from "./components/TicketDetail";
 
 export default function IncidentTicketingModule() {
-  const [tickets, setTickets] = useState<Ticket[]>(INITIAL_TICKETS);
+  const [tickets, setTickets] = useState<TicketResponseDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<TicketResponseDTO | null>(null);
   const [filterStatus, setFilterStatus] = useState<TicketStatus | "ALL">("ALL");
   const [filterPriority, setFilterPriority] = useState<Priority | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "priority">("date");
 
-  //  Create Ticket 
-  const handleCreate = (partial: Partial<Ticket>) => {
-    const newTicket: Ticket = {
-      id: `TKT-${String(tickets.length + 1).padStart(3, "0")}`,
-      title: partial.title || "",
-      category: partial.category || "",
-      description: partial.description || "",
-      priority: partial.priority || "MEDIUM",
-      status: "OPEN",
-      resourceLocation: partial.resourceLocation || "",
-      contactName: partial.contactName || "",
-      contactEmail: partial.contactEmail || "",
-      contactPhone: partial.contactPhone || "",
-      images: partial.images || [],
-      createdBy: CURRENT_USER.id,
-      createdByName: CURRENT_USER.name,
-      comments: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  // Fetch tickets on component mount
+  useEffect(() => {
+    fetchTickets();
+  }, []);
 
-    setTickets([newTicket, ...tickets]);
+  const fetchTickets = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      // For now, we'll use an empty array since the backend doesn't have a getAll endpoint
+      // In a real implementation, you'd add a GET /api/tickets endpoint to the backend
+      const fetchedTickets = await ticketService.getAll();
+      setTickets(fetchedTickets);
+    } catch (err) {
+      console.error("Failed to fetch tickets:", err);
+      setError("Failed to load tickets. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  //  Update Ticket
-  const handleUpdate = (updated: Ticket) => {
-    setTickets((prev) =>
-      prev.map((t) => (t.id === updated.id ? updated : t))
-    );
-    setSelectedTicket(updated);
+  // Create Ticket
+  const handleCreate = async (data: any) => {
+    try {
+      setError(null);
+      const newTicket = await ticketService.create(data);
+      setTickets([newTicket, ...tickets]);
+      setShowCreate(false);
+    } catch (err) {
+      console.error("Failed to create ticket:", err);
+      setError("Failed to create ticket. Please try again.");
+    }
   };
 
-  //  Filters & Sorting 
+  // Update Ticket
+  const handleUpdate = async (updated: TicketResponseDTO) => {
+    try {
+      setError(null);
+      // Update the ticket in the local state
+      setTickets((prev) =>
+        prev.map((t) => (t.id === updated.id ? updated : t))
+      );
+      setSelectedTicket(updated);
+    } catch (err) {
+      console.error("Failed to update ticket:", err);
+      setError("Failed to update ticket. Please try again.");
+    }
+  };
+
+  //  Filters & Sorting
   const PRIORITY_ORDER: Record<Priority, number> = {
     CRITICAL: 0,
     HIGH: 1,
@@ -74,8 +91,8 @@ export default function IncidentTicketingModule() {
       (t) =>
         !search ||
         t.title.toLowerCase().includes(search.toLowerCase()) ||
-        t.id.toLowerCase().includes(search.toLowerCase()) ||
-        t.resourceLocation.toLowerCase().includes(search.toLowerCase())
+        t.id.toString().toLowerCase().includes(search.toLowerCase()) ||
+        (t.description && t.description.toLowerCase().includes(search.toLowerCase()))
     )
     .sort((a, b) =>
       sortBy === "priority"
@@ -91,6 +108,8 @@ export default function IncidentTicketingModule() {
       (t) => t.status === "RESOLVED" || t.status === "CLOSED"
     ).length,
   };
+
+
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
@@ -134,6 +153,13 @@ export default function IncidentTicketingModule() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-6">
+        {/* Error message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
+        )}
+
         {/* Stats row */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           {[
@@ -166,7 +192,7 @@ export default function IncidentTicketingModule() {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
             <input
               className="w-full border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 bg-white"
-              placeholder="Search tickets by title, ID, or location…"
+              placeholder="Search tickets by title, ID, or description…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -210,7 +236,12 @@ export default function IncidentTicketingModule() {
         </div>
 
         {/* Ticket list */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-20 text-slate-400">
+            <p className="text-4xl mb-3">⏳</p>
+            <p className="font-medium">Loading tickets...</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-20 text-slate-400">
             <p className="text-4xl mb-3">🎉</p>
             <p className="font-medium">No tickets found</p>

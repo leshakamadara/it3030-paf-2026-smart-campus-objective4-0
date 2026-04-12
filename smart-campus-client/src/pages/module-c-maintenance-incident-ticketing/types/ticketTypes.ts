@@ -2,6 +2,50 @@ export type Priority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | "REJECTED";
 export type UserRole = "USER" | "TECHNICIAN" | "ADMIN";
 
+// Backend-compatible types
+export interface AttachmentDTO {
+  id: number;
+  linkUrl?: string;
+  cloudinaryPublicId?: string;
+  cloudinaryUrl?: string;
+  cloudinarySecureUrl?: string;
+  cloudinarySize?: number;
+  cloudinaryResourceType?: string;
+  createdAt: string;
+}
+
+export interface CommentDTO {
+  id: number;
+  createdBy: string; // email
+  comment: string;
+  createdAt: string;
+}
+
+export interface TicketRequestDTO {
+  title: string;
+  category?: string;
+  description: string;
+  priority: Priority;
+  attachmentLink?: string;
+  imageFile?: File;
+}
+
+export interface TicketResponseDTO {
+  id: number;
+  title: string;
+  category?: string;
+  description: string;
+  priority: Priority;
+  status: TicketStatus;
+  createdBy: string; // email
+  technician?: string; // email
+  attachmentLink?: string; // legacy
+  attachments: AttachmentDTO[];
+  comments: CommentDTO[];
+  createdAt: string;
+}
+
+// Frontend types (for backward compatibility)
 export interface User {
   id: string;
   name: string;
