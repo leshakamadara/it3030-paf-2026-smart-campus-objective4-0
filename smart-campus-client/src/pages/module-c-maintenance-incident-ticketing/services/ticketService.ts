@@ -30,10 +30,6 @@ export const ticketService = {
         formData.append("category", data.category);
       }
 
-      if (data.attachmentLink) {
-        formData.append("attachmentLink", data.attachmentLink);
-      }
-
       // Add image file if provided
       if (data.imageFile) {
         formData.append("imageFile", data.imageFile);

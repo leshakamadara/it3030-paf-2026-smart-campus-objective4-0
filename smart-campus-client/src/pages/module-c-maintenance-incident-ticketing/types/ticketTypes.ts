@@ -11,6 +11,7 @@ export interface AttachmentDTO {
   cloudinarySecureUrl?: string;
   cloudinarySize?: number;
   cloudinaryResourceType?: string;
+  cloudinaryVersion?: number;
   createdAt: string;
 }
 
@@ -26,7 +27,6 @@ export interface TicketRequestDTO {
   category?: string;
   description: string;
   priority: Priority;
-  attachmentLink?: string;
   imageFile?: File;
 }
 
@@ -39,7 +39,6 @@ export interface TicketResponseDTO {
   status: TicketStatus;
   createdBy: string; // email
   technician?: string; // email
-  attachmentLink?: string; // legacy
   attachments: AttachmentDTO[];
   comments: CommentDTO[];
   createdAt: string;

@@ -13,20 +13,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
+        // Enable CORS and disable CSRF for API endpoints. Permit unauthenticated access to /api/** and actuator.
         http
-            .csrf(csrf -> csrf.disable())   //  disable CSRF for APIs
+            .cors(cors -> {})
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").permitAll()  // allow all API calls
-                .anyRequest().authenticated()
-/*
-
-                .cors() // enable CORS
-                .and()
-                .csrf().disable(); // disable for development
-
- */
-
-
+                .requestMatchers("/api/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
+                .anyRequest().permitAll()
             );
 
         return http.build();

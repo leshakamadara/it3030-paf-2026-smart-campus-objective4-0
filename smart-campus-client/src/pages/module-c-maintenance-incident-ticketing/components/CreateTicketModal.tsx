@@ -22,7 +22,7 @@ export const CreateTicketModal = ({
   const [step, setStep] = useState(1);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // ─── Image Handler ────────────────────────────────────────────────
+  //  Image Handler 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -76,7 +76,7 @@ export const CreateTicketModal = ({
     }
   };
 
-  // ─── Submit ───────────────────────────────────────────────────────
+  // Submit
   const handleSubmit = () => {
     if (!form.title || !form.category || !form.description) return;
 

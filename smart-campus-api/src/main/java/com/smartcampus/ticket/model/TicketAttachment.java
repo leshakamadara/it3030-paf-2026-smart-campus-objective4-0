@@ -34,6 +34,7 @@ public class TicketAttachment {
     private String cloudinarySecureUrl;
     private Long cloudinarySize;
     private String cloudinaryResourceType;
+    private Long cloudinaryVersion;
 
     @ManyToOne
     @JoinColumn(name = "ticket_id", nullable = false)

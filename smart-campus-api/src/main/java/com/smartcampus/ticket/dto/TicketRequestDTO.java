@@ -23,9 +23,6 @@ public class TicketRequestDTO {
     @NotNull
     private Priority priority;
 
-    // Legacy field - for backward compatibility
-    private String attachmentLink;
-
     // New field - for Cloudinary image upload
     private MultipartFile imageFile;
 }

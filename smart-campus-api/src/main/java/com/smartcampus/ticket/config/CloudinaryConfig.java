@@ -1,21 +1,20 @@
 package com.smartcampus.ticket.config;
 
 import com.cloudinary.Cloudinary;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ConfigurationProperties(prefix = "cloudinary")
+@Data
 public class CloudinaryConfig {
 
-    @Value("${cloudinary.cloud-name}")
     private String cloudName;
-
-    @Value("${cloudinary.api-key}")
     private String apiKey;
-
-    @Value("${cloudinary.api-secret}")
     private String apiSecret;
+    private String folder;
 
     @Bean
     public Cloudinary cloudinary() {

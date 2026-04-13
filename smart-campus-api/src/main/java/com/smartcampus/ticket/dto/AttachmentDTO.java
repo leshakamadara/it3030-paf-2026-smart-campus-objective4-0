@@ -16,5 +16,6 @@ public class AttachmentDTO {
     private String cloudinarySecureUrl;
     private Long cloudinarySize;
     private String cloudinaryResourceType;
+    private Long cloudinaryVersion;
     private LocalDateTime createdAt;
 }

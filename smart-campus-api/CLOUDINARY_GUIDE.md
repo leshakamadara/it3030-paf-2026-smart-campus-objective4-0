@@ -3,6 +3,11 @@
 ## Overview
 This document describes how to use the Cloudinary integration for managing images/attachments in the Smart Campus Ticket System.
 
+### Image Upload Flow
+1. **Your Server sends the image to Cloudinary**: The client uploads an image file to your server via multipart/form-data
+2. **Cloudinary sends back a JSON response to Your Server**: Cloudinary processes the image and returns metadata including URLs, public_id, version, and other details
+3. **Your Server extracts the public_id and version and saves them to Your Database**: Your server stores the Cloudinary metadata (public_id, version, URLs, size, etc.) in the database for future reference
+
 ## Setup
 
 ### 1. Cloudinary Configuration
@@ -44,7 +49,6 @@ Content-Type: multipart/form-data
 - `description` (string, required): Ticket description
 - `priority` (enum, required): LOW, MEDIUM, HIGH
 - `imageFile` (file, optional): Image file to upload
-- `attachmentLink` (string, optional): Legacy attachment URL
 
 **Example (using curl):**
 ```bash
@@ -77,6 +81,7 @@ curl -X POST http://localhost:8082/api/tickets/create \
       "cloudinarySecureUrl": "https://res.cloudinary.com/.../image.jpg",
       "cloudinarySize": 125472,
       "cloudinaryResourceType": "image",
+      "cloudinaryVersion": 1655789000,
       "createdAt": "2026-04-12T10:30:00"
     }
   ],
@@ -159,17 +164,18 @@ curl http://localhost:8082/api/tickets/1/with-attachments
 
 ## Database Schema
 
-The `ticket_attachments` table now includes:
+The `ticket_attachments` table stores Cloudinary metadata:
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | BIGSERIAL | Primary key |
-| link_url | VARCHAR(500) | Legacy URL field |
+| link_url | VARCHAR(500) | Legacy field (no longer used) |
 | cloudinary_public_id | VARCHAR(500) | Cloudinary public ID (unique identifier) |
 | cloudinary_url | VARCHAR(1000) | HTTP URL of the image |
 | cloudinary_secure_url | VARCHAR(1000) | HTTPS URL of the image |
 | cloudinary_size | BIGINT | File size in bytes |
 | cloudinary_resource_type | VARCHAR(100) | Resource type (image, video, etc.) |
+| cloudinary_version | BIGINT | Cloudinary version number |
 | ticket_id | BIGINT | Foreign key to tickets table |
 | created_at | TIMESTAMP | Creation timestamp |
 

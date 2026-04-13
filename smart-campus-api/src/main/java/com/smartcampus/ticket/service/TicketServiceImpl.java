@@ -61,14 +61,6 @@ public class TicketServiceImpl implements TicketService {
             uploadAttachmentInternal(savedTicket, request.getImageFile());
         }
 
-        // Handle legacy attachment link
-        if (request.getAttachmentLink() != null && !request.getAttachmentLink().trim().isEmpty()) {
-            TicketAttachment attachment = new TicketAttachment();
-            attachment.setLinkUrl(request.getAttachmentLink().trim());
-            attachment.setTicket(savedTicket);
-            attachmentRepository.save(attachment);
-        }
-
         // Convert to DTO and return
         return convertToDTO(savedTicket);
     }
@@ -158,13 +150,24 @@ public class TicketServiceImpl implements TicketService {
     private AttachmentDTO uploadAttachmentInternal(Ticket ticket, MultipartFile file) throws IOException {
         Map<String, Object> uploadResult = cloudinaryService.uploadImage(file, ticket.getId());
 
-        TicketAttachment attachment = new TicketAttachment();
-        attachment.setTicket(ticket);
-        attachment.setCloudinaryPublicId((String) uploadResult.get("public_id"));
-        attachment.setCloudinaryUrl((String) uploadResult.get("url"));
-        attachment.setCloudinarySecureUrl((String) uploadResult.get("secure_url"));
-        attachment.setCloudinarySize((Long) uploadResult.get("bytes"));
-        attachment.setCloudinaryResourceType((String) uploadResult.get("resource_type"));
+                TicketAttachment attachment = new TicketAttachment();
+                attachment.setTicket(ticket);
+                attachment.setCloudinaryPublicId((String) uploadResult.get("public_id"));
+                attachment.setCloudinaryUrl((String) uploadResult.get("url"));
+                attachment.setCloudinarySecureUrl((String) uploadResult.get("secure_url"));
+
+                // Safely handle numeric values returned by Cloudinary (may be Integer or Long)
+                Object bytesObj = uploadResult.get("bytes");
+                if (bytesObj instanceof Number) {
+                        attachment.setCloudinarySize(((Number) bytesObj).longValue());
+                }
+
+                attachment.setCloudinaryResourceType((String) uploadResult.get("resource_type"));
+
+                Object versionObj = uploadResult.get("version");
+                if (versionObj instanceof Number) {
+                        attachment.setCloudinaryVersion(((Number) versionObj).longValue());
+                }
 
         TicketAttachment savedAttachment = attachmentRepository.save(attachment);
         return convertAttachmentToDTO(savedAttachment);
@@ -187,13 +190,6 @@ public class TicketServiceImpl implements TicketService {
                 .collect(Collectors.toList());
         dto.setAttachments(attachmentDTOs);
 
-        // Set legacy attachment link for backward compatibility
-        String attachmentLink = ticket.getAttachments().isEmpty() ? null :
-                ticket.getAttachments().get(0).getCloudinarySecureUrl() != null ?
-                        ticket.getAttachments().get(0).getCloudinarySecureUrl() :
-                        ticket.getAttachments().get(0).getLinkUrl();
-        dto.setAttachmentLink(attachmentLink);
-
         // Convert comments
         List<CommentDTO> comments = ticket.getComments().stream()
                 .map(this::convertCommentToDTO)
@@ -212,6 +208,7 @@ public class TicketServiceImpl implements TicketService {
                 attachment.getCloudinarySecureUrl(),
                 attachment.getCloudinarySize(),
                 attachment.getCloudinaryResourceType(),
+                attachment.getCloudinaryVersion(),
                 attachment.getCreatedAt()
         );
     }
