@@ -1,0 +1,32 @@
+# ═══ Spring Boot ═══
+smart-campus-api/target/
+smart-campus-api/*.jar
+smart-campus-api/*.war
+smart-campus-api/.mvn/wrapper/maven-wrapper.jar
+smart-campus-api/src/main/resources/application-local.yml
+
+# ═══ React / Node ═══
+smart-campus-client/node_modules/
+smart-campus-client/dist/
+smart-campus-client/.env.local
+smart-campus-client/.env.production
+
+# ═══ Environment secrets ═══
+# ═══ Uploads (runtime files) ═══
+uploads/
+.vscode/
+*.code-workspace
+
+# ═══ OS ═══
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ═══ Logs ═══
+*.log
+logs/
+
+# ═══ Java compiled ═══
+*.class
+*.jar
+!**/test-*.jar
