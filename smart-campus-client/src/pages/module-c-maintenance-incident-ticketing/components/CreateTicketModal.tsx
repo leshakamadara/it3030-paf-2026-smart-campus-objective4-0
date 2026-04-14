@@ -191,7 +191,7 @@ export const CreateTicketModal = ({
                 <div>
                   <label className="text-xs text-black font-semibold mb-1 block">Priority</label>
                   <div className="flex gap-1.5">
-                    {(["LOW", "MEDIUM", "HIGH", "CRITICAL"] as Priority[]).map(
+                    {(["LOW", "MEDIUM", "HIGH"] as Priority[]).map(
                       (p) => (
                         <button
                           key={p}

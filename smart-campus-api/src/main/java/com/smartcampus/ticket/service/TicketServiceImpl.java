@@ -49,6 +49,8 @@ public class TicketServiceImpl implements TicketService {
         ticket.setTitle(request.getTitle());
         ticket.setCategory(request.getCategory());
         ticket.setDescription(request.getDescription());
+        ticket.setResourceLocation(request.getResourceLocation());
+
         ticket.setPriority(request.getPriority());
         ticket.setStatus(Status.OPEN);
         ticket.setCreatedBy(user);
@@ -77,6 +79,13 @@ public class TicketServiceImpl implements TicketService {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
         return convertToDTO(ticket);
+    }
+
+    @Override
+    public List<TicketResponseDTO> getAllTickets() {
+        return ticketRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -117,7 +126,7 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public AttachmentDTO uploadAttachment(Long ticketId, MultipartFile file, String userEmail) throws IOException {
         // Verify user exists
-        User user = userRepository.findByEmail(userEmail)
+        userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found."));
 
         // Get ticket
@@ -131,7 +140,7 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public boolean deleteAttachment(Long attachmentId, String userEmail) throws IOException {
         // Verify user exists
-        User user = userRepository.findByEmail(userEmail)
+        userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found."));
 
         TicketAttachment attachment = attachmentRepository.findById(attachmentId)
@@ -147,27 +156,80 @@ public class TicketServiceImpl implements TicketService {
         return true;
     }
 
+    @Override
+    public boolean deleteTicket(Long id, String userEmail) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+        // Optionally verify user permission here; currently allow deletion if user exists
+        userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found."));
+
+        // Delete attachments from Cloudinary
+        for (TicketAttachment att : ticket.getAttachments()) {
+            if (att.getCloudinaryPublicId() != null) {
+                try {
+                    cloudinaryService.deleteImage(att.getCloudinaryPublicId());
+                } catch (IOException e) {
+                    // log and continue
+                }
+            }
+        }
+
+        ticketRepository.delete(ticket);
+        return true;
+    }
+
+    @Override
+    public TicketResponseDTO updateTicket(Long id, TicketRequestDTO request, String userEmail) throws IOException {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+        // Verify user exists (caller)
+        userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found."));
+
+        // Only allow updates when ticket is OPEN
+        if (ticket.getStatus() != Status.OPEN) {
+            throw new com.smartcampus.ticket.exception.TicketUpdateNotAllowedException("Only tickets in OPEN state can be updated.");
+        }
+
+        // Update editable fields (only those provided)
+        if (request.getTitle() != null) ticket.setTitle(request.getTitle());
+        if (request.getCategory() != null) ticket.setCategory(request.getCategory());
+        if (request.getDescription() != null) ticket.setDescription(request.getDescription());
+        if (request.getPriority() != null) ticket.setPriority(request.getPriority());
+        if (request.getResourceLocation() != null) ticket.setResourceLocation(request.getResourceLocation());
+
+        Ticket updated = ticketRepository.save(ticket);
+
+        // If image provided, attach it (add as attachment)
+        if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
+            uploadAttachmentInternal(updated, request.getImageFile());
+        }
+
+        return convertToDTO(updated);
+    }
+
     private AttachmentDTO uploadAttachmentInternal(Ticket ticket, MultipartFile file) throws IOException {
         Map<String, Object> uploadResult = cloudinaryService.uploadImage(file, ticket.getId());
 
-                TicketAttachment attachment = new TicketAttachment();
-                attachment.setTicket(ticket);
-                attachment.setCloudinaryPublicId((String) uploadResult.get("public_id"));
-                attachment.setCloudinaryUrl((String) uploadResult.get("url"));
-                attachment.setCloudinarySecureUrl((String) uploadResult.get("secure_url"));
-
-                // Safely handle numeric values returned by Cloudinary (may be Integer or Long)
-                Object bytesObj = uploadResult.get("bytes");
-                if (bytesObj instanceof Number) {
-                        attachment.setCloudinarySize(((Number) bytesObj).longValue());
-                }
-
-                attachment.setCloudinaryResourceType((String) uploadResult.get("resource_type"));
-
-                Object versionObj = uploadResult.get("version");
-                if (versionObj instanceof Number) {
-                        attachment.setCloudinaryVersion(((Number) versionObj).longValue());
-                }
+        TicketAttachment attachment = new TicketAttachment();
+        attachment.setTicket(ticket);
+        attachment.setCloudinaryPublicId((String) uploadResult.get("public_id"));
+        attachment.setCloudinaryUrl((String) uploadResult.get("url"));
+        attachment.setCloudinarySecureUrl((String) uploadResult.get("secure_url"));
+        // Handle bytes as Number to avoid ClassCastException when Cloudinary returns Integer
+        Object bytesObj = uploadResult.get("bytes");
+        if (bytesObj instanceof Number) {
+            attachment.setCloudinarySize(((Number) bytesObj).longValue());
+        }
+        attachment.setCloudinaryResourceType((String) uploadResult.get("resource_type"));
+        // Handle version as Number since Cloudinary may return Integer; convert to Long
+        Object versionObj = uploadResult.get("version");
+        if (versionObj instanceof Number) {
+            attachment.setCloudinaryVersion(((Number) versionObj).longValue());
+        }
 
         TicketAttachment savedAttachment = attachmentRepository.save(attachment);
         return convertAttachmentToDTO(savedAttachment);
@@ -179,6 +241,8 @@ public class TicketServiceImpl implements TicketService {
         dto.setTitle(ticket.getTitle());
         dto.setCategory(ticket.getCategory());
         dto.setDescription(ticket.getDescription());
+        dto.setResourceLocation(ticket.getResourceLocation());
+
         dto.setPriority(ticket.getPriority());
         dto.setStatus(ticket.getStatus());
         dto.setCreatedBy(ticket.getCreatedBy().getEmail());

@@ -306,7 +306,6 @@ export const TicketDetail = ({
                 <div>
                   <span className="text-slate-500">Priority:</span>{" "}
                   <span className={`font-medium ${
-                    ticket.priority === "CRITICAL" ? "text-red-600" :
                     ticket.priority === "HIGH" ? "text-orange-600" :
                     ticket.priority === "MEDIUM" ? "text-yellow-600" :
                     "text-green-600"

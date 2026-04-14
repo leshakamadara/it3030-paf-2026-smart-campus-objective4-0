@@ -76,10 +76,9 @@ export default function IncidentTicketingModule() {
 
   //  Filters & Sorting
   const PRIORITY_ORDER: Record<Priority, number> = {
-    CRITICAL: 0,
-    HIGH: 1,
-    MEDIUM: 2,
-    LOW: 3,
+    HIGH: 0,
+    MEDIUM: 1,
+    LOW: 2,
   };
 
   const filtered = tickets
@@ -103,7 +102,6 @@ export default function IncidentTicketingModule() {
   const stats = {
     total: tickets.length,
     open: tickets.filter((t) => t.status === "OPEN").length,
-    critical: tickets.filter((t) => t.priority === "CRITICAL").length,
     resolved: tickets.filter(
       (t) => t.status === "RESOLVED" || t.status === "CLOSED"
     ).length,
@@ -165,7 +163,6 @@ export default function IncidentTicketingModule() {
           {[
             { label: "Total Tickets", value: stats.total, color: "text-slate-700", bg: "bg-white" },
             { label: "Open", value: stats.open, color: "text-blue-700", bg: "bg-blue-50" },
-            { label: "Critical Priority", value: stats.critical, color: "text-red-700", bg: "bg-red-50" },
             { label: "Resolved", value: stats.resolved, color: "text-emerald-700", bg: "bg-emerald-50" },
           ].map((s) => (
             <div key={s.label} className={`${s.bg} border border-slate-200 rounded-xl px-4 py-3`}>
@@ -216,7 +213,7 @@ export default function IncidentTicketingModule() {
               onChange={(e) => setFilterPriority(e.target.value as Priority | "ALL")}
             >
               <option value="ALL">All Priorities</option>
-              {(["CRITICAL", "HIGH", "MEDIUM", "LOW"] as Priority[]).map((p) => (
+              {(["HIGH", "MEDIUM", "LOW"] as Priority[]).map((p) => (
                 <option key={p} value={p}>{PRIORITY_CONFIG[p].label}</option>
               ))}
             </select>
@@ -243,7 +240,7 @@ export default function IncidentTicketingModule() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20 text-slate-400">
-            <p className="text-4xl mb-3">🎉</p>
+            <p className="text-4xl mb-3"></p>
             <p className="font-medium">No tickets found</p>
             <p className="text-sm mt-1">Try adjusting your filters or create a new ticket.</p>
           </div>

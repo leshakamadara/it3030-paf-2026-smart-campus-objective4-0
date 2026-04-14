@@ -1,4 +1,4 @@
-export type Priority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+export type Priority = "LOW" | "MEDIUM" | "HIGH";
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | "REJECTED";
 export type UserRole = "USER" | "TECHNICIAN" | "ADMIN";
 
@@ -27,6 +27,8 @@ export interface TicketRequestDTO {
   category?: string;
   description: string;
   priority: Priority;
+  resourceLocation?: string;
+
   imageFile?: File;
 }
 
@@ -38,6 +40,8 @@ export interface TicketResponseDTO {
   priority: Priority;
   status: TicketStatus;
   createdBy: string; // email
+
+  resourceLocation?: string;
   technician?: string; // email
   attachments: AttachmentDTO[];
   comments: CommentDTO[];
@@ -64,15 +68,13 @@ export interface Comment {
 
 export interface Ticket {
   id: string;
+  backendId?: number;
   title: string;
   category: string;
   description: string;
   priority: Priority;
   status: TicketStatus;
   resourceLocation: string;
-  contactName: string;
-  contactEmail: string;
-  contactPhone: string;
   images: string[];
   createdBy: string;
   createdByName: string;

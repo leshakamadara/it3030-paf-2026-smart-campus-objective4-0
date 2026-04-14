@@ -23,6 +23,8 @@ public class TicketRequestDTO {
     @NotNull
     private Priority priority;
 
-    // New field - for Cloudinary image upload
+    private String resourceLocation;
+
+
     private MultipartFile imageFile;
 }

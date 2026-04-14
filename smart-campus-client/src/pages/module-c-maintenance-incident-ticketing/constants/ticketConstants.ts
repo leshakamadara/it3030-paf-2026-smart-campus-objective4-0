@@ -23,7 +23,6 @@ export const PRIORITY_CONFIG = {
   LOW: { label: "Low", dot: "bg-slate-400", badge: "bg-slate-100 text-slate-600", text: "text-slate-600" },
   MEDIUM: { label: "Medium", dot: "bg-amber-400", badge: "bg-amber-50 text-amber-700", text: "text-amber-700" },
   HIGH: { label: "High", dot: "bg-orange-500", badge: "bg-orange-50 text-orange-700", text: "text-orange-700" },
-  CRITICAL: { label: "Critical", dot: "bg-red-500", badge: "bg-red-50 text-red-700", text: "text-red-700" },
 };
 
 export const STATUS_CONFIG = {
@@ -57,9 +56,6 @@ export const INITIAL_TICKETS: Ticket[] = [
     priority: "HIGH",
     status: "OPEN",
     resourceLocation: "Lab 3",
-    contactName: "Amal Perera",
-    contactEmail: "amal@example.com",
-    contactPhone: "0771234567",
     images: [],
     createdBy: "u1",
     createdByName: "Amal Perera",

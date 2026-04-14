@@ -16,9 +16,12 @@ public class TicketResponseDTO {
     private String title;
     private String category;
     private String description;
+    private String resourceLocation;
     private Priority priority;
     private Status status;
     private String createdBy;
+    private String contactName;
+
     private String technician;
     
     // New field - list of all attachments with Cloudinary details

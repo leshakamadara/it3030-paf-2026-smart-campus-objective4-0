@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS tickets (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     category VARCHAR(100),
+    resource_location VARCHAR(255),
     description TEXT,
     priority VARCHAR(50),
     status VARCHAR(50),

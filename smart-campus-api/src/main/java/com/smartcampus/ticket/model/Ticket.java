@@ -42,6 +42,9 @@ public class Ticket {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    private String resourceLocation;
+
+
     @Enumerated(EnumType.STRING)
     private Priority priority; // LOW, MEDIUM, HIGH
 

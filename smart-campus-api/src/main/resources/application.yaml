@@ -32,7 +32,10 @@ server:
 
 
 cloudinary:
-
+  cloud-name: dbda5xjhk
+  api-key: 658366674114443
+  api-secret: gKtk-zEt_-EFN3u-DtOOElDUkDY
+  folder: smart-campus-tickets
 
 
 logging:

@@ -4,12 +4,11 @@ import type { TicketResponseDTO, TicketRequestDTO, CommentDTO, AttachmentDTO } f
 const BASE_URL = "http://localhost:8080/api/tickets";
 
 export const ticketService = {
-  // Get all tickets (for now, we'll implement a simple list endpoint)
+  // Get all tickets
   getAll: async (): Promise<TicketResponseDTO[]> => {
     try {
-      // For now, we'll return empty array since backend doesn't have a getAll endpoint
-      // In a real implementation, you'd add a GET /api/tickets endpoint to the backend
-      return [];
+      const response = await axios.get<TicketResponseDTO[]>(BASE_URL);
+      return response.data;
     } catch (error) {
       console.error("Error fetching tickets:", error);
       throw error;
@@ -28,6 +27,9 @@ export const ticketService = {
 
       if (data.category) {
         formData.append("category", data.category);
+      }
+      if (data.resourceLocation) {
+        formData.append("resourceLocation", data.resourceLocation);
       }
 
       // Add image file if provided
@@ -86,6 +88,35 @@ export const ticketService = {
     }
   },
 
+  // Update ticket editable fields (only when ticket is OPEN)
+  update: async (id: number, data: TicketRequestDTO | FormData): Promise<TicketResponseDTO> => {
+    try {
+      let formData: FormData;
+      if (data instanceof FormData) {
+        formData = data;
+      } else {
+        formData = new FormData();
+        if (data.title) formData.append("title", data.title);
+        if (data.description) formData.append("description", data.description);
+        if (data.priority) formData.append("priority", data.priority);
+        if (data.category) formData.append("category", data.category);
+        if (data.resourceLocation) formData.append("resourceLocation", data.resourceLocation);
+        if ((data as any).imageFile) formData.append("imageFile", (data as any).imageFile);
+      }
+
+      const response = await axios.put<TicketResponseDTO>(`${BASE_URL}/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error updating ticket:", error);
+      throw error;
+    }
+  },
+
   // Add comment to ticket
   addComment: async (ticketId: number, comment: string): Promise<CommentDTO> => {
     try {
@@ -130,6 +161,18 @@ export const ticketService = {
       return response.data;
     } catch (error) {
       console.error("Error deleting attachment:", error);
+      throw error;
+    }
+  },
+  // Delete ticket
+  delete: async (ticketId: number, userEmail: string = "jane.smith@example.com") : Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await axios.delete<{ success: boolean; message: string }>(`${BASE_URL}/${ticketId}`, {
+        params: { userEmail },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
       throw error;
     }
   },

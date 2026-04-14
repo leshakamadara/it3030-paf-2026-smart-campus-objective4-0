@@ -21,6 +21,7 @@ import com.smartcampus.ticket.service.TicketService;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -42,6 +43,11 @@ public class TicketController {
         } catch (IOException e)  {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<TicketResponseDTO>> getAllTickets() {
+        return ResponseEntity.ok(ticketService.getAllTickets());
     }
 
     @GetMapping("/{id}")
@@ -108,6 +114,36 @@ public class TicketController {
     public ResponseEntity<TicketResponseDTO> getTicketWithAttachments(@PathVariable Long id) {
         TicketResponseDTO ticket = ticketService.getTicketWithAttachments(id);
         return ResponseEntity.ok(ticket);
+    }
+
+    /**
+     * Delete a ticket and its attachments
+     * DELETE /api/tickets/{id}
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> deleteTicket(@PathVariable Long id,
+                                                            @RequestParam(defaultValue = "guest@example.com") String userEmail) {
+        boolean deleted = ticketService.deleteTicket(id, userEmail);
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", deleted);
+        response.put("message", deleted ? "Ticket deleted successfully" : "Failed to delete ticket");
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Update a ticket's editable fields. Only allowed when ticket is OPEN.
+     * PUT /api/tickets/{id}
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateTicket(@PathVariable Long id,
+                                          @Valid @ModelAttribute TicketRequestDTO request,
+                                          @RequestParam(defaultValue = "jane.smith@example.com") String userEmail) {
+        try {
+            TicketResponseDTO updated = ticketService.updateTicket(id, request, userEmail);
+            return ResponseEntity.ok(updated);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }
 

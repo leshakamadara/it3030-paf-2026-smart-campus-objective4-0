@@ -26,13 +26,15 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         try {
             String folder = baseFolder + "/ticket-" + ticketId;
 
-            Map<String, Object> uploadParams = ObjectUtils.asMap(
+            @SuppressWarnings("unchecked")
+            Map<String, Object> uploadParams = (Map<String, Object>) ObjectUtils.asMap(
                 "folder", folder,
                 "resource_type", "auto",
                 "public_id", System.currentTimeMillis() + "_" + file.getOriginalFilename().replaceAll("[^a-zA-Z0-9._-]", "_")
             );
 
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), uploadParams);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> uploadResult = (Map<String, Object>) cloudinary.uploader().upload(file.getBytes(), uploadParams);
 
             log.info("Image successfully uploaded to Cloudinary. Public ID: {}", uploadResult.get("public_id"));
 
@@ -46,7 +48,8 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     @Override
     public boolean deleteImage(String publicId) throws IOException {
         try {
-            Map<String, Object> deleteResult = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+            @SuppressWarnings("unchecked")
+            Map<String, Object> deleteResult = (Map<String, Object>) cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
             boolean isDeleted = "ok".equals(deleteResult.get("result"));
 
             if (isDeleted) {

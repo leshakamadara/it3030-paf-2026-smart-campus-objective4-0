@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -13,14 +14,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        // Enable CORS and disable CSRF for API endpoints. Permit unauthenticated access to /api/** and actuator.
         http
-            .cors(cors -> {})
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf.disable())   //  disable CSRF for APIs
+            .cors(withDefaults())          // enable CORS
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
-                .anyRequest().permitAll()
+                .requestMatchers("/api/**").permitAll()  // allow all API calls
+                .anyRequest().authenticated()
             );
 
         return http.build();
