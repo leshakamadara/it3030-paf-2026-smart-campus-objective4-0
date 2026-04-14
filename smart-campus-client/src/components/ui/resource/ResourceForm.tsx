@@ -515,7 +515,7 @@ export default function ResourceForm({
               alt="Resource preview"
               className="h-56 w-full object-cover"
             />
-            <div className="absolute inset-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/60 to-transparent p-4">
+            <div className="absolute inset-0 flex items-end justify-between gap-3 bg-linear-to-t from-black/60 to-transparent p-4">
               <span className="text-xs font-medium text-white/80">Image uploaded</span>
               <div className="flex gap-2">
                 <label
@@ -802,7 +802,7 @@ function ToggleCard({
             : "border-zinc-200 bg-zinc-50 hover:border-zinc-300 hover:bg-white"
         }`}
       >
-        <div className="relative mt-0.5 flex-shrink-0">
+        <div className="relative mt-0.5 shrink-0">
           <input
             id={id}
             type="checkbox"

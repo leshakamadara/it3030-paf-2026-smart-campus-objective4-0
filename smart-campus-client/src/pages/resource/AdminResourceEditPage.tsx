@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ResourceForm from "../../components/ui/resource/ResourceForm";
+import { useToast } from "../../components/ui/toast-system";
 import { isAdmin } from "../../lib/mockAuth";
 import resourceService from "../../services/resourceService";
 import type { Resource, ResourceRequest } from "../../types/resource";
@@ -29,22 +30,25 @@ const toRequestValues = (resource: Resource): ResourceRequest => ({
 export default function AdminResourceEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
+  const admin = isAdmin();
 
   const [resource, setResource] = useState<Resource | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(admin);
   const [pageError, setPageError] = useState("");
   const [formError, setFormError] = useState("");
 
-  if (!isAdmin()) {
-    return <AccessDenied />;
-  }
-
   useEffect(() => {
+    if (!admin) return;
+    if (!id) {
+      setPageError("Resource ID is missing.");
+      setLoading(false);
+      return;
+    }
+
     let isMounted = true;
 
     const fetchResource = async () => {
-      if (!id) { setPageError("Resource ID is missing."); setLoading(false); return; }
-
       try {
         setLoading(true);
         setPageError("");
@@ -59,37 +63,37 @@ export default function AdminResourceEditPage() {
     };
 
     fetchResource();
-    return () => { isMounted = false; };
-  }, [id]);
+    return () => {
+      isMounted = false;
+    };
+  }, [id, admin]);
+
+  if (!admin) {
+    return <AccessDenied />;
+  }
 
   const handleUpdate = async (values: ResourceRequest) => {
     if (!id) return;
     try {
       setFormError("");
       const updated = await resourceService.updateResource(Number(id), values);
+      toast.success("Changes saved!", `"${updated.name}" has been updated successfully.`);
       navigate(`/resources/${updated.id}`);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Failed to update resource. Please try again.");
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!id) return;
-    try {
-      setFormError("");
-      await resourceService.deleteResource(Number(id));
-      navigate("/resources");
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Failed to delete resource. Please try again.");
+      const message =
+        error instanceof Error ? error.message : "Failed to update resource. Please try again.";
+      toast.error("Update failed", message);
+      setFormError(message);
     }
   };
 
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* Sub-header */}
-      <div className="border-b border-zinc-200 bg-white">
+      <div className="relative overflow-hidden border-b border-zinc-200 bg-white">
+        <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-indigo-500 via-violet-500 to-purple-500" />
         <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 pt-1">
             <Link
               to="/resources"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
@@ -136,11 +140,11 @@ export default function AdminResourceEditPage() {
             </div>
           </div>
         ) : (
+          // Note: onDelete is intentionally NOT passed — delete has been moved to ResourceDetailsPage
           <ResourceForm
             mode="edit"
             initialValues={toRequestValues(resource)}
             onSubmit={handleUpdate}
-            onDelete={handleDelete}
             formError={formError}
             submitLabel="Save Changes"
           />
@@ -153,8 +157,9 @@ export default function AdminResourceEditPage() {
 function AccessDenied() {
   return (
     <div className="min-h-screen bg-zinc-50">
-      <div className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6">
+      <div className="relative overflow-hidden border-b border-zinc-200 bg-white">
+        <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-indigo-500 via-violet-500 to-purple-500" />
+        <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 pt-1">
           <Link
             to="/resources"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
@@ -174,7 +179,7 @@ function AccessDenied() {
           <div>
             <h2 className="font-semibold text-amber-900">Admin Access Required</h2>
             <p className="mt-1 text-sm text-amber-700">
-              Only administrators can edit or delete resources.
+              Only administrators can edit resources.
             </p>
           </div>
         </div>

@@ -2,65 +2,110 @@ import { Link } from "react-router-dom";
 import type { Resource } from "../../../types/resource";
 import ResourceStatusBadge from "./ResourceStatusBadge";
 
-interface ResourceTableProps {
-  resources: Resource[];
+// ─── Type theming ─────────────────────────────────────────────────────────────
+
+interface TypeConfig {
+  label: string;
+  icon: string;
+  imageBg: string;          // placeholder image section bg
+  imageIconColor: string;   // icon opacity/color in placeholder
+  chipBg: string;           // type chip background + border + text
+  borderAccent: string;     // left border color class
+  viewBtn: string;          // hover state of view details button
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  LECTURE_HALL: "Lecture Hall",
-  LAB: "Lab",
-  MEETING_ROOM: "Meeting Room",
-  PROJECTOR: "Projector",
-  CAMERA: "Camera",
+const TYPE_CONFIG: Record<string, TypeConfig> = {
+  LECTURE_HALL: {
+    label: "Lecture Hall",
+    icon: "🏛️",
+    imageBg: "bg-linear-to-br from-violet-100 to-purple-50",
+    imageIconColor: "text-violet-300",
+    chipBg: "bg-violet-100 border-violet-200 text-violet-700",
+    borderAccent: "border-l-violet-400",
+    viewBtn: "hover:border-violet-600 hover:bg-violet-600 hover:text-white",
+  },
+  LAB: {
+    label: "Lab",
+    icon: "🖥️",
+    imageBg: "bg-linear-to-br from-blue-100 to-sky-50",
+    imageIconColor: "text-blue-300",
+    chipBg: "bg-blue-100 border-blue-200 text-blue-700",
+    borderAccent: "border-l-blue-400",
+    viewBtn: "hover:border-blue-600 hover:bg-blue-600 hover:text-white",
+  },
+  MEETING_ROOM: {
+    label: "Meeting Room",
+    icon: "🤝",
+    imageBg: "bg-linear-to-br from-teal-100 to-emerald-50",
+    imageIconColor: "text-teal-300",
+    chipBg: "bg-teal-100 border-teal-200 text-teal-700",
+    borderAccent: "border-l-teal-400",
+    viewBtn: "hover:border-teal-600 hover:bg-teal-600 hover:text-white",
+  },
+  PROJECTOR: {
+    label: "Projector",
+    icon: "📽️",
+    imageBg: "bg-linear-to-br from-amber-100 to-yellow-50",
+    imageIconColor: "text-amber-300",
+    chipBg: "bg-amber-100 border-amber-200 text-amber-700",
+    borderAccent: "border-l-amber-400",
+    viewBtn: "hover:border-amber-500 hover:bg-amber-500 hover:text-white",
+  },
+  CAMERA: {
+    label: "Camera",
+    icon: "📷",
+    imageBg: "bg-linear-to-br from-rose-100 to-pink-50",
+    imageIconColor: "text-rose-300",
+    chipBg: "bg-rose-100 border-rose-200 text-rose-700",
+    borderAccent: "border-l-rose-400",
+    viewBtn: "hover:border-rose-600 hover:bg-rose-600 hover:text-white",
+  },
 };
 
-const TYPE_ICONS: Record<string, string> = {
-  LECTURE_HALL: "🏛️",
-  LAB: "🖥️",
-  MEETING_ROOM: "🤝",
-  PROJECTOR: "📽️",
-  CAMERA: "📷",
+const DEFAULT_TYPE_CONFIG: TypeConfig = {
+  label: "Resource",
+  icon: "📦",
+  imageBg: "bg-linear-to-br from-zinc-100 to-slate-50",
+  imageIconColor: "text-zinc-300",
+  chipBg: "bg-zinc-100 border-zinc-200 text-zinc-700",
+  borderAccent: "border-l-zinc-400",
+  viewBtn: "hover:border-zinc-800 hover:bg-zinc-900 hover:text-white",
 };
 
-// Subtle background colours per type (for the icon placeholder tile)
-const TYPE_BG: Record<string, string> = {
-  LECTURE_HALL: "bg-violet-50",
-  LAB: "bg-blue-50",
-  MEETING_ROOM: "bg-emerald-50",
-  PROJECTOR: "bg-amber-50",
-  CAMERA: "bg-rose-50",
-};
+// ─── Resource Card ────────────────────────────────────────────────────────────
 
 function ResourceCard({ resource }: { resource: Resource }) {
-  const hasRealImage = !!resource.imageUrl;
+  const cfg = TYPE_CONFIG[resource.type] ?? DEFAULT_TYPE_CONFIG;
+  const hasImage = !!resource.imageUrl;
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md hover:-translate-y-0.5">
-
-      {/* ── Image / placeholder ── */}
+    <article
+      className={`group flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md hover:-translate-y-0.5 border-l-4 ${cfg.borderAccent}`}
+    >
+      {/* ── Image / placeholder ────────────────────────────────────────── */}
       <div className="relative h-44 w-full overflow-hidden">
-        {hasRealImage ? (
+        {hasImage ? (
           <img
             src={resource.imageUrl!}
             alt={resource.name}
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
             onError={(e) => {
-              // If the URL is broken, fall back to the icon tile
               const target = e.target as HTMLImageElement;
               target.style.display = "none";
               const parent = target.parentElement;
               if (parent) {
-                parent.classList.add(TYPE_BG[resource.type] ?? "bg-zinc-50", "flex", "items-center", "justify-center");
+                parent.classList.add("flex", "items-center", "justify-center");
+                parent.style.background = "var(--tw-gradient-from, #f4f4f5)";
                 const span = document.createElement("span");
-                span.className = "text-5xl";
-                span.textContent = TYPE_ICONS[resource.type] ?? "📦";
+                span.style.fontSize = "3.5rem";
+                span.textContent = cfg.icon;
                 parent.appendChild(span);
               }
             }}
           />
         ) : (
-          <div className={`flex h-full w-full items-center justify-center ${TYPE_BG[resource.type] ?? "bg-zinc-50"}`}>
-            <span className="text-5xl opacity-70">{TYPE_ICONS[resource.type] ?? "📦"}</span>
+          <div className={`flex h-full w-full items-center justify-center ${cfg.imageBg}`}>
+            <span className={`text-5xl opacity-60 ${cfg.imageIconColor}`}>{cfg.icon}</span>
           </div>
         )}
 
@@ -80,13 +125,14 @@ function ResourceCard({ resource }: { resource: Resource }) {
         )}
       </div>
 
-      {/* ── Card body ── */}
+      {/* ── Card body ──────────────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col p-4">
-
         {/* Type chip */}
-        <span className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-600">
-          {TYPE_ICONS[resource.type]}
-          {TYPE_LABELS[resource.type] ?? resource.type}
+        <span
+          className={`inline-flex w-fit items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${cfg.chipBg}`}
+        >
+          {cfg.icon}
+          {cfg.label}
         </span>
 
         {/* Name + code */}
@@ -127,10 +173,10 @@ function ResourceCard({ resource }: { resource: Resource }) {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Action button */}
+        {/* View Details button */}
         <Link
           to={`/resources/${resource.id}`}
-          className="mt-4 flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 text-sm font-semibold text-zinc-800 transition hover:border-zinc-900 hover:bg-zinc-900 hover:text-white"
+          className={`mt-4 flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 text-sm font-semibold text-zinc-800 transition ${cfg.viewBtn}`}
         >
           View Details
           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,6 +186,12 @@ function ResourceCard({ resource }: { resource: Resource }) {
       </div>
     </article>
   );
+}
+
+// ─── Table (Grid) ─────────────────────────────────────────────────────────────
+
+interface ResourceTableProps {
+  resources: Resource[];
 }
 
 export default function ResourceTable({ resources }: ResourceTableProps) {
