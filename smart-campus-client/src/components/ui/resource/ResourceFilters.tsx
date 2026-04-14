@@ -14,7 +14,6 @@ interface ResourceFiltersProps {
 type BooleanSelectValue = "" | "true" | "false";
 
 interface FilterFormState {
-  name: string;
   type: "" | ResourceType;
   building: string;
   status: "" | ResourceStatus;
@@ -33,7 +32,7 @@ interface FilterFormState {
   size: string;
 }
 
-const resourceTypes: ResourceType[] = [
+const RESOURCE_TYPES: ResourceType[] = [
   "LECTURE_HALL",
   "LAB",
   "MEETING_ROOM",
@@ -41,25 +40,28 @@ const resourceTypes: ResourceType[] = [
   "CAMERA",
 ];
 
-const resourceStatuses: ResourceStatus[] = ["ACTIVE", "OUT_OF_SERVICE"];
+const RESOURCE_STATUSES: ResourceStatus[] = ["ACTIVE", "OUT_OF_SERVICE"];
 
-const createFormState = (
-  filters: ResourceFilterValues,
-): FilterFormState => ({
-  name: filters.name ?? "",
+const TYPE_LABELS: Record<ResourceType, string> = {
+  LECTURE_HALL: "Lecture Hall",
+  LAB: "Lab",
+  MEETING_ROOM: "Meeting Room",
+  PROJECTOR: "Projector",
+  CAMERA: "Camera",
+};
+
+const createFormState = (filters: ResourceFilterValues): FilterFormState => ({
   type: filters.type ?? "",
   building: filters.building ?? "",
   status: filters.status ?? "",
   isBookable:
-    filters.isBookable === undefined ? "" : String(filters.isBookable) as BooleanSelectValue,
+    filters.isBookable === undefined ? "" : (String(filters.isBookable) as BooleanSelectValue),
   isUnderMaintenance:
     filters.isUnderMaintenance === undefined
       ? ""
       : (String(filters.isUnderMaintenance) as BooleanSelectValue),
-  minCapacity:
-    filters.minCapacity === undefined ? "" : String(filters.minCapacity),
-  maxCapacity:
-    filters.maxCapacity === undefined ? "" : String(filters.maxCapacity),
+  minCapacity: filters.minCapacity === undefined ? "" : String(filters.minCapacity),
+  maxCapacity: filters.maxCapacity === undefined ? "" : String(filters.maxCapacity),
   hasProjector: filters.hasProjector ?? false,
   hasAc: filters.hasAc ?? false,
   hasWhiteboard: filters.hasWhiteboard ?? false,
@@ -82,6 +84,15 @@ const parseOptionalNumber = (value: string): number | undefined => {
   return Number.isNaN(parsed) ? undefined : parsed;
 };
 
+const FEATURES = [
+  { key: "hasProjector", label: "Projector", icon: "📽️" },
+  { key: "hasAc", label: "AC", icon: "❄️" },
+  { key: "hasWhiteboard", label: "Whiteboard", icon: "✏️" },
+  { key: "hasWifi", label: "Wi-Fi", icon: "📶" },
+  { key: "hasComputers", label: "Computers", icon: "💻" },
+  { key: "hasWindows", label: "Windows", icon: "🪟" },
+] as const;
+
 export default function ResourceFilters({
   initialFilters,
   onApply,
@@ -93,9 +104,25 @@ export default function ResourceFilters({
     setForm(createFormState(initialFilters));
   }, [initialFilters]);
 
+  // Count active filters (excluding pagination/sort)
+  const activeCount = [
+    form.type,
+    form.building,
+    form.status,
+    form.isBookable,
+    form.isUnderMaintenance,
+    form.minCapacity,
+    form.maxCapacity,
+    form.hasProjector,
+    form.hasAc,
+    form.hasWhiteboard,
+    form.hasWifi,
+    form.hasComputers,
+    form.hasWindows,
+  ].filter(Boolean).length;
+
   const handleApply = () => {
     onApply({
-      name: form.name.trim() || undefined,
       type: form.type || undefined,
       building: form.building.trim() || undefined,
       status: form.status || undefined,
@@ -121,271 +148,261 @@ export default function ResourceFilters({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Search resources by metadata, availability, capacity, and features.
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Search by name
-          </label>
-          <input
-            type="text"
-            value={form.name}
-            onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-            placeholder="Computer Lab"
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Type
-          </label>
-          <select
-            value={form.type}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                type: e.target.value as FilterFormState["type"],
-              }))
-            }
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-          >
-            <option value="">All types</option>
-            {resourceTypes.map((type) => (
-              <option key={type} value={type}>
-                {type.replaceAll("_", " ")}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Building
-          </label>
-          <input
-            type="text"
-            value={form.building}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, building: e.target.value }))
-            }
-            placeholder="Engineering Building"
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Status
-          </label>
-          <select
-            value={form.status}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                status: e.target.value as FilterFormState["status"],
-              }))
-            }
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-          >
-            <option value="">All statuses</option>
-            {resourceStatuses.map((status) => (
-              <option key={status} value={status}>
-                {status.replaceAll("_", " ")}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Bookable
-          </label>
-          <select
-            value={form.isBookable}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                isBookable: e.target.value as BooleanSelectValue,
-              }))
-            }
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-          >
-            <option value="">All</option>
-            <option value="true">Bookable only</option>
-            <option value="false">Non-bookable only</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Under maintenance
-          </label>
-          <select
-            value={form.isUnderMaintenance}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                isUnderMaintenance: e.target.value as BooleanSelectValue,
-              }))
-            }
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-          >
-            <option value="">All</option>
-            <option value="true">Maintenance only</option>
-            <option value="false">Not under maintenance</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Min capacity
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={form.minCapacity}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, minCapacity: e.target.value }))
-            }
-            placeholder="30"
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Max capacity
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={form.maxCapacity}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, maxCapacity: e.target.value }))
-            }
-            placeholder="100"
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Sort by
-          </label>
-          <select
-            value={form.sortBy}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, sortBy: e.target.value }))
-            }
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-          >
-            <option value="id">ID</option>
-            <option value="name">Name</option>
-            <option value="resourceCode">Resource Code</option>
-            <option value="building">Building</option>
-            <option value="capacity">Capacity</option>
-            <option value="type">Type</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Direction
-          </label>
-          <select
-            value={form.direction}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                direction: e.target.value as "asc" | "desc",
-              }))
-            }
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-          >
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Page size
-          </label>
-          <select
-            value={form.size}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, size: e.target.value }))
-            }
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-          >
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="15">15</option>
-            <option value="20">20</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-        <p className="mb-3 text-sm font-semibold text-slate-700">
-          Feature filters
-        </p>
-
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            { key: "hasProjector", label: "Projector" },
-            { key: "hasAc", label: "AC" },
-            { key: "hasWhiteboard", label: "Whiteboard" },
-            { key: "hasWifi", label: "WiFi" },
-            { key: "hasComputers", label: "Computers" },
-            { key: "hasWindows", label: "Windows" },
-          ].map((item) => (
-            <label
-              key={item.key}
-              className="flex items-center gap-2 text-sm text-slate-700"
+    <aside className="space-y-1">
+      {/* Header */}
+      <div className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0014 13.828V19a1 1 0 01-.553.894l-4 2A1 1 0 018 21v-7.172a1 1 0 00-.293-.707L1.293 6.707A1 1 0 011 6V4z" />
+            </svg>
+            <span className="text-sm font-semibold text-zinc-900">Filters</span>
+            {activeCount > 0 && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white">
+                {activeCount}
+              </span>
+            )}
+          </div>
+          {activeCount > 0 && (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="text-xs text-zinc-400 transition hover:text-zinc-700"
             >
-              <input
-                type="checkbox"
-                checked={form[item.key as keyof FilterFormState] as boolean}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    [item.key]: e.target.checked,
-                  }))
-                }
-                className="h-4 w-4 rounded border-slate-300"
-              />
-              {item.label}
-            </label>
-          ))}
+              Clear all
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={handleApply}
-          className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
-        >
-          Apply Filters
-        </button>
+      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <div className="space-y-5">
 
-        <button
-          type="button"
-          onClick={handleReset}
-          className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-        >
-          Reset
-        </button>
+          {/* Type */}
+          <FilterGroup label="Resource Type">
+            <select
+              value={form.type}
+              onChange={(e) => setForm((p) => ({ ...p, type: e.target.value as FilterFormState["type"] }))}
+              className={selectCls}
+            >
+              <option value="">All types</option>
+              {RESOURCE_TYPES.map((t) => (
+                <option key={t} value={t}>{TYPE_LABELS[t]}</option>
+              ))}
+            </select>
+          </FilterGroup>
+
+          {/* Building */}
+          <FilterGroup label="Building">
+            <input
+              type="text"
+              value={form.building}
+              onChange={(e) => setForm((p) => ({ ...p, building: e.target.value }))}
+              placeholder="Search building..."
+              className={inputCls}
+            />
+          </FilterGroup>
+
+          {/* Status */}
+          <FilterGroup label="Status">
+            <select
+              value={form.status}
+              onChange={(e) => setForm((p) => ({ ...p, status: e.target.value as FilterFormState["status"] }))}
+              className={selectCls}
+            >
+              <option value="">All statuses</option>
+              {RESOURCE_STATUSES.map((s) => (
+                <option key={s} value={s}>{s.replaceAll("_", " ")}</option>
+              ))}
+            </select>
+          </FilterGroup>
+
+          <div className="h-px bg-zinc-100" />
+
+          {/* Bookable */}
+          <FilterGroup label="Bookable">
+            <div className="flex gap-2">
+              {(["", "true", "false"] as BooleanSelectValue[]).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setForm((p) => ({ ...p, isBookable: v }))}
+                  className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition ${
+                    form.isBookable === v
+                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-white"
+                  }`}
+                >
+                  {v === "" ? "All" : v === "true" ? "Yes" : "No"}
+                </button>
+              ))}
+            </div>
+          </FilterGroup>
+
+          {/* Maintenance */}
+          <FilterGroup label="Under Maintenance">
+            <div className="flex gap-2">
+              {(["", "true", "false"] as BooleanSelectValue[]).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setForm((p) => ({ ...p, isUnderMaintenance: v }))}
+                  className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition ${
+                    form.isUnderMaintenance === v
+                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-white"
+                  }`}
+                >
+                  {v === "" ? "All" : v === "true" ? "Yes" : "No"}
+                </button>
+              ))}
+            </div>
+          </FilterGroup>
+
+          <div className="h-px bg-zinc-100" />
+
+          {/* Capacity range */}
+          <FilterGroup label="Capacity Range">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="mb-1 block text-xs text-zinc-400">Min</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.minCapacity}
+                  onChange={(e) => setForm((p) => ({ ...p, minCapacity: e.target.value }))}
+                  placeholder="0"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-zinc-400">Max</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.maxCapacity}
+                  onChange={(e) => setForm((p) => ({ ...p, maxCapacity: e.target.value }))}
+                  placeholder="∞"
+                  className={inputCls}
+                />
+              </div>
+            </div>
+          </FilterGroup>
+
+          <div className="h-px bg-zinc-100" />
+
+          {/* Features */}
+          <FilterGroup label="Amenities">
+            <div className="grid grid-cols-2 gap-2">
+              {FEATURES.map((item) => (
+                <label
+                  key={item.key}
+                  className={`flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium transition ${
+                    form[item.key as keyof FilterFormState]
+                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={form[item.key as keyof FilterFormState] as boolean}
+                    onChange={(e) =>
+                      setForm((p) => ({ ...p, [item.key]: e.target.checked }))
+                    }
+                  />
+                  <span>{item.icon}</span>
+                  <span>{item.label}</span>
+                </label>
+              ))}
+            </div>
+          </FilterGroup>
+
+          <div className="h-px bg-zinc-100" />
+
+          {/* Sort */}
+          <FilterGroup label="Sort By">
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={form.sortBy}
+                onChange={(e) => setForm((p) => ({ ...p, sortBy: e.target.value }))}
+                className={selectCls}
+              >
+                <option value="id">ID</option>
+                <option value="name">Name</option>
+                <option value="resourceCode">Code</option>
+                <option value="building">Building</option>
+                <option value="capacity">Capacity</option>
+                <option value="type">Type</option>
+              </select>
+
+              <select
+                value={form.direction}
+                onChange={(e) => setForm((p) => ({ ...p, direction: e.target.value as "asc" | "desc" }))}
+                className={selectCls}
+              >
+                <option value="asc">A → Z</option>
+                <option value="desc">Z → A</option>
+              </select>
+            </div>
+          </FilterGroup>
+
+          {/* Page size */}
+          <FilterGroup label="Results per page">
+            <div className="flex gap-1.5">
+              {["5", "10", "15", "20"].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setForm((p) => ({ ...p, size: n }))}
+                  className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition ${
+                    form.size === n
+                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </FilterGroup>
+        </div>
+
+        {/* Apply */}
+        <div className="mt-6 flex gap-2">
+          <button
+            type="button"
+            onClick={handleApply}
+            className="flex-1 rounded-xl bg-zinc-900 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-700"
+          >
+            Apply Filters
+          </button>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50"
+          >
+            Reset
+          </button>
+        </div>
       </div>
+    </aside>
+  );
+}
+
+function FilterGroup({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{label}</p>
+      {children}
     </div>
   );
 }
+
+import type { ReactNode } from "react";
+
+const inputCls =
+  "w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:bg-white focus:ring-2 focus:ring-zinc-900/[0.06]";
+
+const selectCls =
+  "w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white focus:ring-2 focus:ring-zinc-900/[0.06]";

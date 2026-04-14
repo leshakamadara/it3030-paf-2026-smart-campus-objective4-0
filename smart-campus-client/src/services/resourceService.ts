@@ -7,9 +7,6 @@ import type {
 } from "../types/resource";
 
 const API_BASE_URL = "http://localhost:8080/api/resources";
-  //import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/resources";
-
-// Change to true only if you want to use mock resource data instead of backend.
 const USE_MOCK_DATA = false;
 
 type BackendResourcePayload = {
@@ -51,9 +48,9 @@ const mockResources: Resource[] = [
     availableTo: "17:00:00",
     isBookable: true,
     isUnderMaintenance: false,
-    description: "Main computing lab",
+    description: "Primary computing lab with 40 high-performance workstations.",
     capacity: 40,
-    imageUrl: "https://example.com/lab1.jpg",
+    imageUrl: null,
     hasProjector: true,
     hasAc: true,
     hasWhiteboard: true,
@@ -75,9 +72,9 @@ const mockResources: Resource[] = [
     availableTo: "16:00:00",
     isBookable: true,
     isUnderMaintenance: false,
-    description: "Large lecture hall",
+    description: "Large capacity lecture hall for main campus events.",
     capacity: 120,
-    imageUrl: "https://example.com/hall.jpg",
+    imageUrl: null,
     hasProjector: true,
     hasAc: true,
     hasWhiteboard: true,
@@ -95,56 +92,57 @@ const delay = (ms: number) =>
     setTimeout(resolve, ms);
   });
 
-const normalizeResource = (payload: BackendResourcePayload): Resource => {
-  return {
-    id: payload.id,
-    resourceCode: payload.resourceCode,
-    name: payload.name,
-    type: payload.type,
-    building: payload.building,
-    status: payload.status,
-    availableFrom: payload.availableFrom,
-    availableTo: payload.availableTo,
-    isBookable: payload.bookable ?? payload.isBookable ?? false,
-    isUnderMaintenance:
-      payload.underMaintenance ?? payload.isUnderMaintenance ?? false,
-    description: payload.description ?? null,
-    capacity: payload.capacity ?? null,
-    imageUrl: payload.imageUrl ?? null,
-    hasProjector: payload.hasProjector,
-    hasAc: payload.hasAc,
-    hasWhiteboard: payload.hasWhiteboard,
-    hasWifi: payload.hasWifi,
-    hasComputers: payload.hasComputers,
-    hasWindows: payload.hasWindows,
-    createdAt: payload.createdAt,
-    updatedAt: payload.updatedAt,
-    displayStatus: payload.displayStatus,
-  };
-};
+const normalizeResource = (payload: BackendResourcePayload): Resource => ({
+  id: payload.id,
+  resourceCode: payload.resourceCode,
+  name: payload.name,
+  type: payload.type,
+  building: payload.building,
+  status: payload.status,
+  availableFrom: payload.availableFrom,
+  availableTo: payload.availableTo,
+  isBookable: payload.bookable ?? payload.isBookable ?? false,
+  isUnderMaintenance:
+    payload.underMaintenance ?? payload.isUnderMaintenance ?? false,
+  description: payload.description ?? null,
+  capacity: payload.capacity ?? null,
+  imageUrl: payload.imageUrl ?? null,
+  hasProjector: payload.hasProjector,
+  hasAc: payload.hasAc,
+  hasWhiteboard: payload.hasWhiteboard,
+  hasWifi: payload.hasWifi,
+  hasComputers: payload.hasComputers,
+  hasWindows: payload.hasWindows,
+  createdAt: payload.createdAt,
+  updatedAt: payload.updatedAt,
+  displayStatus: payload.displayStatus,
+});
 
-const toBackendRequest = (request: ResourceRequest) => {
-  return {
-    resourceCode: request.resourceCode,
-    name: request.name,
-    type: request.type,
-    building: request.building,
-    status: request.status,
-    availableFrom: request.availableFrom,
-    availableTo: request.availableTo,
-    bookable: request.isBookable,
-    underMaintenance: request.isUnderMaintenance,
-    description: request.description,
-    capacity: request.capacity,
-    imageUrl: request.imageUrl,
-    hasProjector: request.hasProjector,
-    hasAc: request.hasAc,
-    hasWhiteboard: request.hasWhiteboard,
-    hasWifi: request.hasWifi,
-    hasComputers: request.hasComputers,
-    hasWindows: request.hasWindows,
-  };
-};
+const toBackendRequest = (request: ResourceRequest) => ({
+  resourceCode: request.resourceCode,
+  name: request.name,
+  type: request.type,
+  building: request.building,
+  status: request.status,
+  availableFrom: request.availableFrom,
+  availableTo: request.availableTo,
+
+  // Send both forms to be safe with backend property naming
+  bookable: request.isBookable,
+  isBookable: request.isBookable,
+  underMaintenance: request.isUnderMaintenance,
+  isUnderMaintenance: request.isUnderMaintenance,
+
+  description: request.description,
+  capacity: request.capacity,
+  imageUrl: request.imageUrl,
+  hasProjector: request.hasProjector,
+  hasAc: request.hasAc,
+  hasWhiteboard: request.hasWhiteboard,
+  hasWifi: request.hasWifi,
+  hasComputers: request.hasComputers,
+  hasWindows: request.hasWindows,
+});
 
 const buildQueryString = (filters?: ResourceFilters): string => {
   if (!filters) return "";
@@ -153,17 +151,6 @@ const buildQueryString = (filters?: ResourceFilters): string => {
 
   Object.entries(filters).forEach(([key, value]) => {
     if (value === undefined || value === null || value === "") return;
-
-    if (key === "isBookable") {
-      params.append("isBookable", String(value));
-      return;
-    }
-
-    if (key === "isUnderMaintenance") {
-      params.append("isUnderMaintenance", String(value));
-      return;
-    }
-
     params.append(key, String(value));
   });
 
@@ -175,8 +162,7 @@ const buildDisplayStatus = (resource: Resource): string => {
   if (resource.isUnderMaintenance) return "UNDER_MAINTENANCE";
   if (resource.status === "OUT_OF_SERVICE") return "OUT_OF_SERVICE";
 
-  const now = new Date();
-  const currentTime = now.toTimeString().slice(0, 8);
+  const currentTime = new Date().toTimeString().slice(0, 8);
 
   if (
     resource.availableFrom &&
@@ -189,6 +175,22 @@ const buildDisplayStatus = (resource: Resource): string => {
   return "AVAILABLE";
 };
 
+const alphaCompare = (a: string, b: string): number => {
+  const aLower = a.toLowerCase();
+  const bLower = b.toLowerCase();
+
+  for (let i = 0; i < Math.max(aLower.length, bLower.length); i += 1) {
+    const aChar = aLower.charCodeAt(i) || 0;
+    const bChar = bLower.charCodeAt(i) || 0;
+
+    if (aChar !== bChar) {
+      return aChar - bChar;
+    }
+  }
+
+  return 0;
+};
+
 const applyMockFilters = (
   resources: Resource[],
   filters?: ResourceFilters,
@@ -196,112 +198,91 @@ const applyMockFilters = (
   let result = [...resources];
 
   if (filters?.name) {
-    result = result.filter((resource) =>
-      resource.name.toLowerCase().includes(filters.name!.toLowerCase()),
+    result = result.filter((r) =>
+      r.name.toLowerCase().includes(filters.name!.toLowerCase()),
     );
   }
 
   if (filters?.type) {
-    result = result.filter((resource) => resource.type === filters.type);
+    result = result.filter((r) => r.type === filters.type);
   }
 
   if (filters?.building) {
-    result = result.filter((resource) =>
-      resource.building.toLowerCase().includes(filters.building!.toLowerCase()),
+    result = result.filter((r) =>
+      r.building.toLowerCase().includes(filters.building!.toLowerCase()),
     );
   }
 
   if (filters?.status) {
-    result = result.filter((resource) => resource.status === filters.status);
+    result = result.filter((r) => r.status === filters.status);
   }
 
   if (filters?.isBookable !== undefined) {
-    result = result.filter(
-      (resource) => resource.isBookable === filters.isBookable,
-    );
+    result = result.filter((r) => r.isBookable === filters.isBookable);
   }
 
   if (filters?.isUnderMaintenance !== undefined) {
     result = result.filter(
-      (resource) =>
-        resource.isUnderMaintenance === filters.isUnderMaintenance,
+      (r) => r.isUnderMaintenance === filters.isUnderMaintenance,
     );
   }
 
   if (filters?.minCapacity !== undefined) {
     result = result.filter(
-      (resource) =>
-        resource.capacity !== null &&
-        resource.capacity !== undefined &&
-        resource.capacity >= filters.minCapacity!,
+      (r) => r.capacity != null && r.capacity >= filters.minCapacity!,
     );
   }
 
   if (filters?.maxCapacity !== undefined) {
     result = result.filter(
-      (resource) =>
-        resource.capacity !== null &&
-        resource.capacity !== undefined &&
-        resource.capacity <= filters.maxCapacity!,
+      (r) => r.capacity != null && r.capacity <= filters.maxCapacity!,
     );
   }
 
   if (filters?.hasProjector !== undefined) {
-    result = result.filter(
-      (resource) => resource.hasProjector === filters.hasProjector,
-    );
+    result = result.filter((r) => r.hasProjector === filters.hasProjector);
   }
 
   if (filters?.hasAc !== undefined) {
-    result = result.filter((resource) => resource.hasAc === filters.hasAc);
+    result = result.filter((r) => r.hasAc === filters.hasAc);
   }
 
   if (filters?.hasWhiteboard !== undefined) {
-    result = result.filter(
-      (resource) => resource.hasWhiteboard === filters.hasWhiteboard,
-    );
+    result = result.filter((r) => r.hasWhiteboard === filters.hasWhiteboard);
   }
 
   if (filters?.hasWifi !== undefined) {
-    result = result.filter((resource) => resource.hasWifi === filters.hasWifi);
+    result = result.filter((r) => r.hasWifi === filters.hasWifi);
   }
 
   if (filters?.hasComputers !== undefined) {
-    result = result.filter(
-      (resource) => resource.hasComputers === filters.hasComputers,
-    );
+    result = result.filter((r) => r.hasComputers === filters.hasComputers);
   }
 
   if (filters?.hasWindows !== undefined) {
-    result = result.filter(
-      (resource) => resource.hasWindows === filters.hasWindows,
-    );
+    result = result.filter((r) => r.hasWindows === filters.hasWindows);
   }
 
   const sortBy = filters?.sortBy ?? "id";
   const direction = filters?.direction ?? "asc";
 
   result.sort((a, b) => {
-    const aValue = a[sortBy as keyof Resource];
-    const bValue = b[sortBy as keyof Resource];
+    const aVal = String(a[sortBy as keyof Resource] ?? "");
+    const bVal = String(b[sortBy as keyof Resource] ?? "");
 
-    if (aValue === bValue) return 0;
+    const cmp =
+      sortBy === "name" ? alphaCompare(aVal, bVal) : aVal.localeCompare(bVal);
 
-    if (direction === "desc") {
-      return String(aValue) < String(bValue) ? 1 : -1;
-    }
-
-    return String(aValue) > String(bValue) ? 1 : -1;
+    return direction === "desc" ? -cmp : cmp;
   });
 
   const page = filters?.page ?? 0;
   const size = filters?.size ?? 10;
   const start = page * size;
-  const end = start + size;
 
-  const content = result.slice(start, end).map((resource) => ({
-    ...resource,
-    displayStatus: buildDisplayStatus(resource),
+  const content = result.slice(start, start + size).map((r) => ({
+    ...r,
+    displayStatus: buildDisplayStatus(r),
   }));
 
   return {
@@ -311,28 +292,27 @@ const applyMockFilters = (
     size,
     number: page,
     first: page === 0,
-    last: end >= result.length,
+    last: start + size >= result.length,
   };
 };
 
 const buildMockStats = (resources: Resource[]): ResourceStats => {
   const total = resources.length;
-  const active = resources.filter((item) => item.status === "ACTIVE").length;
+  const active = resources.filter((r) => r.status === "ACTIVE").length;
   const outOfService = resources.filter(
-    (item) => item.status === "OUT_OF_SERVICE",
+    (r) => r.status === "OUT_OF_SERVICE",
   ).length;
   const underMaintenance = resources.filter(
-    (item) => item.isUnderMaintenance,
+    (r) => r.isUnderMaintenance,
   ).length;
-  const bookable = resources.filter((item) => item.isBookable).length;
-  const nonBookable = total - bookable;
+  const bookable = resources.filter((r) => r.isBookable).length;
 
   const byType: Record<string, number> = {};
   const byBuilding: Record<string, number> = {};
 
-  resources.forEach((resource) => {
-    byType[resource.type] = (byType[resource.type] || 0) + 1;
-    byBuilding[resource.building] = (byBuilding[resource.building] || 0) + 1;
+  resources.forEach((r) => {
+    byType[r.type] = (byType[r.type] || 0) + 1;
+    byBuilding[r.building] = (byBuilding[r.building] || 0) + 1;
   });
 
   return {
@@ -341,7 +321,7 @@ const buildMockStats = (resources: Resource[]): ResourceStats => {
     outOfService,
     underMaintenance,
     bookable,
-    nonBookable,
+    nonBookable: total - bookable,
     byType,
     byBuilding,
   };
@@ -349,17 +329,24 @@ const buildMockStats = (resources: Resource[]): ResourceStats => {
 
 const extractErrorMessage = async (response: Response): Promise<string> => {
   try {
-    const errorBody = await response.json();
-    return errorBody.message || "Request failed";
+    const body = await response.json();
+
+    if (
+      body.validationErrors &&
+      typeof body.validationErrors === "object"
+    ) {
+      return Object.entries(body.validationErrors)
+        .map(([field, message]) => `${field}: ${String(message)}`)
+        .join(", ");
+    }
+
+    return body.message || `Request failed with status ${response.status}`;
   } catch {
-    return "Request failed";
+    return `Request failed with status ${response.status}`;
   }
 };
 
-const requestJson = async <T>(
-  url: string,
-  options?: RequestInit,
-): Promise<T> => {
+const requestJson = async <T>(url: string, options?: RequestInit): Promise<T> => {
   const response = await fetch(url, options);
 
   if (!response.ok) {
@@ -397,7 +384,7 @@ export const resourceService = {
   async getResourceById(id: number): Promise<Resource> {
     if (USE_MOCK_DATA) {
       await delay(150);
-      const resource = mockResources.find((item) => item.id === id);
+      const resource = mockResources.find((r) => r.id === id);
 
       if (!resource) {
         throw new Error("Resource not found");
@@ -409,13 +396,16 @@ export const resourceService = {
       };
     }
 
-    const data = await requestJson<BackendResourcePayload>(`${API_BASE_URL}/${id}`);
+    const data = await requestJson<BackendResourcePayload>(
+      `${API_BASE_URL}/${id}`,
+    );
+
     return normalizeResource(data);
   },
 
   async createResource(request: ResourceRequest): Promise<Resource> {
     if (USE_MOCK_DATA) {
-      await delay(150);
+      await delay(200);
 
       const newResource: Resource = {
         id: Date.now(),
@@ -438,6 +428,7 @@ export const resourceService = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify(toBackendRequest(request)),
     });
@@ -448,8 +439,7 @@ export const resourceService = {
   async updateResource(id: number, request: ResourceRequest): Promise<Resource> {
     if (USE_MOCK_DATA) {
       await delay(150);
-
-      const index = mockResources.findIndex((item) => item.id === id);
+      const index = mockResources.findIndex((r) => r.id === id);
 
       if (index === -1) {
         throw new Error("Resource not found");
@@ -469,13 +459,17 @@ export const resourceService = {
       return updated;
     }
 
-    const data = await requestJson<BackendResourcePayload>(`${API_BASE_URL}/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
+    const data = await requestJson<BackendResourcePayload>(
+      `${API_BASE_URL}/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(toBackendRequest(request)),
       },
-      body: JSON.stringify(toBackendRequest(request)),
-    });
+    );
 
     return normalizeResource(data);
   },
@@ -483,8 +477,7 @@ export const resourceService = {
   async deleteResource(id: number): Promise<void> {
     if (USE_MOCK_DATA) {
       await delay(150);
-
-      const index = mockResources.findIndex((item) => item.id === id);
+      const index = mockResources.findIndex((r) => r.id === id);
 
       if (index === -1) {
         throw new Error("Resource not found");

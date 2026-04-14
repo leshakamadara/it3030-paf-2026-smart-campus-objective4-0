@@ -36,114 +36,104 @@ export default function AdminResourceEditPage() {
   const [formError, setFormError] = useState("");
 
   if (!isAdmin()) {
-    return (
-      <AccessDeniedCard
-        title="Admin access required"
-        message="Only administrators can edit or delete resources."
-      />
-    );
+    return <AccessDenied />;
   }
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchResource = async () => {
-      if (!id) {
-        setPageError("Resource id is missing.");
-        setLoading(false);
-        return;
-      }
+      if (!id) { setPageError("Resource ID is missing."); setLoading(false); return; }
 
       try {
         setLoading(true);
         setPageError("");
         const data = await resourceService.getResourceById(Number(id));
-
-        if (isMounted) {
-          setResource(data);
-        }
+        if (isMounted) setResource(data);
       } catch (error) {
-        if (isMounted) {
-          setPageError(
-            error instanceof Error
-              ? error.message
-              : "Failed to load resource.",
-          );
-        }
+        if (isMounted)
+          setPageError(error instanceof Error ? error.message : "Failed to load resource.");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchResource();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [id]);
 
   const handleUpdate = async (values: ResourceRequest) => {
     if (!id) return;
-
     try {
       setFormError("");
-      const updatedResource = await resourceService.updateResource(Number(id), values);
-      navigate(`/resources/${updatedResource.id}`);
+      const updated = await resourceService.updateResource(Number(id), values);
+      navigate(`/resources/${updated.id}`);
     } catch (error) {
-      setFormError(
-        error instanceof Error
-          ? error.message
-          : "Failed to update resource. Please try again.",
-      );
+      setFormError(error instanceof Error ? error.message : "Failed to update resource. Please try again.");
     }
   };
 
   const handleDelete = async () => {
     if (!id) return;
-
     try {
       setFormError("");
       await resourceService.deleteResource(Number(id));
       navigate("/resources");
     } catch (error) {
-      setFormError(
-        error instanceof Error
-          ? error.message
-          : "Failed to delete resource. Please try again.",
-      );
+      setFormError(error instanceof Error ? error.message : "Failed to delete resource. Please try again.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl space-y-4">
-        <div className="flex flex-wrap gap-3">
-          <Link
-            to="/resources"
-            className="inline-flex rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-          >
-            Back to Resources
-          </Link>
-
-          {id ? (
+    <div className="min-h-screen bg-zinc-50">
+      {/* Sub-header */}
+      <div className="border-b border-zinc-200 bg-white">
+        <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4">
             <Link
-              to={`/resources/${id}`}
-              className="inline-flex rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              to="/resources"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
             >
-              View Details
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Resources
             </Link>
-          ) : null}
+            <span className="text-zinc-300">/</span>
+            {id && (
+              <>
+                <Link
+                  to={`/resources/${id}`}
+                  className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
+                >
+                  #{id}
+                </Link>
+                <span className="text-zinc-300">/</span>
+              </>
+            )}
+            <span className="text-sm font-medium text-zinc-900">Edit</span>
+          </div>
         </div>
+      </div>
 
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         {loading ? (
-          <div className="rounded-3xl bg-white p-8 text-center text-slate-500 shadow-sm">
-            Loading resource details...
+          <div className="flex items-center justify-center gap-3 rounded-2xl border border-zinc-200 bg-white p-12 shadow-sm">
+            <svg className="h-5 w-5 animate-spin text-zinc-400" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span className="text-sm text-zinc-500">Loading resource...</span>
           </div>
         ) : pageError || !resource ? (
-          <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 shadow-sm">
-            {pageError || "Resource not found."}
+          <div className="flex items-start gap-4 rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-red-100 text-xl">
+              ⚠️
+            </div>
+            <div>
+              <h2 className="font-semibold text-red-900">Failed to load resource</h2>
+              <p className="mt-1 text-sm text-red-700">{pageError || "Resource not found."}</p>
+            </div>
           </div>
         ) : (
           <ResourceForm
@@ -160,25 +150,33 @@ export default function AdminResourceEditPage() {
   );
 }
 
-interface AccessDeniedCardProps {
-  title: string;
-  message: string;
-}
-
-function AccessDeniedCard({ title, message }: AccessDeniedCardProps) {
+function AccessDenied() {
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8">
-      <div className="mx-auto max-w-3xl space-y-4">
-        <Link
-          to="/resources"
-          className="inline-flex rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-        >
-          Back to Resources
-        </Link>
-
-        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-amber-800">{title}</h1>
-          <p className="mt-2 text-sm text-amber-700">{message}</p>
+    <div className="min-h-screen bg-zinc-50">
+      <div className="border-b border-zinc-200 bg-white">
+        <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6">
+          <Link
+            to="/resources"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Resources
+          </Link>
+        </div>
+      </div>
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+        <div className="flex items-start gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-amber-100 text-xl">
+            🔒
+          </div>
+          <div>
+            <h2 className="font-semibold text-amber-900">Admin Access Required</h2>
+            <p className="mt-1 text-sm text-amber-700">
+              Only administrators can edit or delete resources.
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalTime;
 
@@ -47,8 +46,8 @@ public class ResourceRequest {
     @Min(value = 0, message = "Capacity must be 0 or greater")
     private Integer capacity;
 
-    @URL(message = "Image URL must be a valid URL")
-    @Size(max = 500, message = "Image URL must not exceed 500 characters")
+    // @URL removed — allows base64 data URLs (e.g. uploaded images)
+    // @Size removed  — base64 image strings can be large
     private String imageUrl;
 
     private boolean hasProjector;

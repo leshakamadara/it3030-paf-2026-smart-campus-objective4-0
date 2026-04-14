@@ -1,19 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import ResourceFilters from "../../components/ui/resource/ResourceFilters";
 import ResourceTable from "../../components/ui/resource/ResourceTable";
-//import { getMockUser } from "../../lib/mockAuth";
 import resourceService from "../../services/resourceService";
-import { Link } from "react-router-dom";
 import { getMockUser, isAdmin } from "../../lib/mockAuth";
-
-
 import type {
   PaginatedResponse,
   Resource,
   ResourceFilters as ResourceFilterValues,
 } from "../../types/resource";
 
-const defaultFilters: ResourceFilterValues = {
+const DEFAULT_FILTERS: ResourceFilterValues = {
   page: 0,
   size: 10,
   sortBy: "id",
@@ -21,15 +18,33 @@ const defaultFilters: ResourceFilterValues = {
 };
 
 export default function ResourceListPage() {
-  const [filters, setFilters] = useState<ResourceFilterValues>(defaultFilters);
-  const [pageData, setPageData] = useState<PaginatedResponse<Resource> | null>(
-    null,
-  );
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const [filters, setFilters] = useState<ResourceFilterValues>(DEFAULT_FILTERS);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [pageData, setPageData] = useState<PaginatedResponse<Resource> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Ref to the results column — used for smooth scroll-to-top on filter/search
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const currentUser = getMockUser();
 
+  const scrollToResults = () => {
+    // Scroll to the very top of the page smoothly
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Fetch resources whenever filters or debounced search changes
   useEffect(() => {
     let isMounted = true;
 
@@ -38,169 +53,280 @@ export default function ResourceListPage() {
         setLoading(true);
         setError("");
 
-        const data = await resourceService.getResources(filters);
+        const activeFilters: ResourceFilterValues = {
+          ...filters,
+          name: debouncedSearch.trim() || undefined,
+          ...(debouncedSearch.trim() && {
+            sortBy: "name",
+            direction: "asc",
+          }),
+          page: debouncedSearch !== "" ? 0 : filters.page,
+        };
 
+        const data = await resourceService.getResources(activeFilters);
         if (isMounted) {
           setPageData(data);
+          // Auto-scroll to top of page once results arrive
+          scrollToResults();
         }
       } catch (err) {
-        if (isMounted) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : "Failed to load resources.",
-          );
-        }
+        if (isMounted)
+          setError(err instanceof Error ? err.message : "Failed to load resources.");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchResources();
-
     return () => {
       isMounted = false;
     };
-  }, [filters]);
+  }, [filters, debouncedSearch]);
 
   const handleApplyFilters = (newFilters: ResourceFilterValues) => {
-    setFilters({
-      ...newFilters,
-      page: 0,
-    });
+    setFilters({ ...newFilters, page: 0 });
+    // Immediately scroll — results will follow once fetched
+    scrollToResults();
   };
 
   const handleResetFilters = () => {
-    setFilters(defaultFilters);
+    setFilters(DEFAULT_FILTERS);
+    setSearchQuery("");
+    setDebouncedSearch("");
+    scrollToResults();
   };
 
   const handlePreviousPage = () => {
     if (!pageData?.first) {
-      setFilters((prev) => ({
-        ...prev,
-        page: Math.max((prev.page ?? 0) - 1, 0),
-      }));
+      setFilters((prev) => ({ ...prev, page: Math.max((prev.page ?? 0) - 1, 0) }));
     }
   };
 
   const handleNextPage = () => {
     if (!pageData?.last) {
-      setFilters((prev) => ({
-        ...prev,
-        page: (prev.page ?? 0) + 1,
-      }));
+      setFilters((prev) => ({ ...prev, page: (prev.page ?? 0) + 1 }));
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-500">
-              Facilities Catalogue
-            </p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
-              Browse Campus Resources
-        {isAdmin() ? (
-  <div className="flex flex-wrap gap-3">
-    <Link
-      to="/admin/resources/create"
-      className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
-    >
-      Add Resource
-    </Link>
+    <div className="min-h-screen bg-zinc-50">
+      {/* Page header */}
+      <div className="border-b border-zinc-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+                Facilities Catalogue
+              </p>
+              <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900">
+                Campus Resources
+              </h1>
+              <p className="mt-1 text-sm text-zinc-500">
+                Browse, search and manage all campus facilities and assets.
+              </p>
+            </div>
 
-    <Link
-      to="/admin/resources/stats"
-      className="inline-flex rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-    >
-      View Dashboard
-    </Link>
-  </div>
-) : null}
-            </h1>
-            <p className="mt-2 text-sm text-slate-500">
-              Search, filter, and explore facilities and assets available in the
-              smart campus system.
-            </p>
-          </div>
+            <div className="flex shrink-0 flex-wrap items-center gap-3">
+              <span className="hidden rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-medium text-zinc-600 sm:inline-flex">
+                {currentUser.role}
+              </span>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            Viewing as{" "}
-            <span className="font-semibold text-slate-900">
-              {currentUser.role}
-            </span>
+              {isAdmin() && (
+                <>
+                  <Link
+                    to="/admin/resources/create"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-700"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Resource
+                  </Link>
+                  <Link
+                    to="/admin/resources/stats"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Dashboard
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+      {/* Body */}
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+          {/* ── Filters sidebar ── */}
           <ResourceFilters
             initialFilters={filters}
             onApply={handleApplyFilters}
             onReset={handleResetFilters}
           />
 
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    Resource Results
-                  </h2>
-                  <p className="text-sm text-slate-500">
-                    {pageData
-                      ? `Showing ${pageData.content.length} of ${pageData.totalElements} resources`
-                      : "Loading resources..."}
-                  </p>
-                </div>
+          {/* ── Results column ── */}
+          <div ref={resultsRef} className="space-y-4">
 
-                {pageData && (
-                  <div className="text-sm text-slate-500">
-                    Page {(pageData.number ?? 0) + 1} of{" "}
-                    {Math.max(pageData.totalPages, 1)}
-                  </div>
+            {/* Live search bar */}
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                {loading && debouncedSearch ? (
+                  <svg className="h-4 w-4 animate-spin text-zinc-400" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                 )}
               </div>
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Live search resources by name... results appear alphabetically"
+                className="w-full rounded-2xl border border-zinc-200 bg-white py-3.5 pl-11 pr-10 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/[0.06]"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    searchRef.current?.focus();
+                  }}
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-zinc-400 transition hover:text-zinc-600"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
 
+            {/* Search active indicator */}
+            {debouncedSearch && (
+              <div className="flex items-center gap-2 text-xs text-zinc-500">
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Searching for{" "}
+                <span className="font-semibold text-zinc-700">"{debouncedSearch}"</span> — results sorted A → Z
+              </div>
+            )}
+
+            {/* Results header */}
+            <div className="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-semibold text-zinc-900">Results</h2>
+                <p className="text-sm text-zinc-500">
+                  {loading
+                    ? "Loading..."
+                    : pageData
+                    ? `${pageData.content.length} of ${pageData.totalElements} resource${pageData.totalElements !== 1 ? "s" : ""}`
+                    : "No data"}
+                </p>
+              </div>
+
+              {pageData && pageData.totalPages > 1 && (
+                <p className="text-sm text-zinc-500">
+                  Page {(pageData.number ?? 0) + 1} / {pageData.totalPages}
+                </p>
+              )}
+            </div>
+
+            {/* Table or states */}
             {loading ? (
-              <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">
-                Loading resources...
+              <div className="flex items-center justify-center gap-3 rounded-2xl border border-zinc-200 bg-white p-16 shadow-sm">
+                <svg className="h-5 w-5 animate-spin text-zinc-400" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <span className="text-sm text-zinc-500">Loading resources...</span>
               </div>
             ) : error ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 shadow-sm">
-                {error}
+              <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm">
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm text-red-700">{error}</p>
               </div>
             ) : (
               <>
                 <ResourceTable resources={pageData?.content ?? []} />
 
-                {pageData && pageData.totalElements > 0 && (
-                  <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                {/* Pagination */}
+                {pageData && pageData.totalElements > 0 && pageData.totalPages > 1 && (
+                  <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
                     <button
                       type="button"
                       onClick={handlePreviousPage}
                       disabled={pageData.first}
-                      className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
                     >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
                       Previous
                     </button>
 
-                    <span className="text-sm text-slate-600">
-                      Page {pageData.number + 1} /{" "}
-                      {Math.max(pageData.totalPages, 1)}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(pageData.totalPages, 7) }, (_, i) => {
+                        const currentPage = pageData.number;
+                        const totalPages = pageData.totalPages;
+                        let page: number | null;
+
+                        if (totalPages <= 7) {
+                          page = i;
+                        } else if (i === 0) {
+                          page = 0;
+                        } else if (i === 6) {
+                          page = totalPages - 1;
+                        } else if (i === 1 && currentPage > 3) {
+                          page = null;
+                        } else if (i === 5 && currentPage < totalPages - 4) {
+                          page = null;
+                        } else {
+                          const start = Math.max(1, Math.min(currentPage - 1, totalPages - 5));
+                          page = start + (i - 1);
+                        }
+
+                        if (page === null) {
+                          return <span key={i} className="px-1 text-zinc-400">…</span>;
+                        }
+
+                        return (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setFilters((p) => ({ ...p, page }))}
+                            className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition ${
+                              page === currentPage
+                                ? "bg-zinc-900 text-white"
+                                : "text-zinc-600 hover:bg-zinc-100"
+                            }`}
+                          >
+                            {page! + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
 
                     <button
                       type="button"
                       onClick={handleNextPage}
                       disabled={pageData.last}
-                      className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       Next
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </button>
                   </div>
                 )}

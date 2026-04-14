@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -65,7 +66,9 @@ public class Resource {
     @Column
     private Integer capacity;
 
-    @Column(name = "image_url", length = 500)
+    // Changed to TEXT/CLOB so base64 image data URLs can be stored
+    @Lob
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "has_projector", nullable = false)
@@ -101,7 +104,6 @@ public class Resource {
         this.createdAt = now;
         this.updatedAt = now;
 
-        // Safety defaults
         if (this.status == null) {
             this.status = ResourceStatus.ACTIVE;
         }
