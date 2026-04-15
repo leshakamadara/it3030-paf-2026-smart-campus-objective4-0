@@ -1,5 +1,6 @@
 import type { Ticket } from "../types/ticketTypes";
 import { STATUS_META, PRIORITY_META, CATEGORIES } from "../constants/constants";
+import { Badge } from "./Badge";
 import { timeAgo } from "../utills/helpers";
 
 export default function TicketCard({
@@ -46,10 +47,7 @@ export default function TicketCard({
           <span className="font-mono text-xs text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
             {ticket.id}
           </span>
-          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${sm.color} ${sm.bg} ${sm.border}`}>
-            <span className="text-[10px]">{sm.icon}</span>
-            {sm.label}
-          </span>
+          <Badge status={ticket.status} />
         </div>
         <span className={`flex items-center gap-1 text-xs font-semibold shrink-0 ${pm.color}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${pm.dot}`} />

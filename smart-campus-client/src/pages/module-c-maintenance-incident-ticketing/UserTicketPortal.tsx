@@ -7,7 +7,7 @@ import type { TicketRequestDTO, TicketResponseDTO } from "./types/ticketTypes";
 
 import TicketCard from "./components/UserTicketCard";
 import CreateTicket from "./components/CreateTicket";
-import TicketDetailView from "./components/AdminTicketDetailView";
+import TicketDetailView from "./components/UserTicketDetailView";
 
 type View = "list" | "create" | "detail";
 

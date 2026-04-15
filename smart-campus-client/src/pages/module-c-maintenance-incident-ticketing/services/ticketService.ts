@@ -86,11 +86,14 @@ export const ticketService = {
 
 
 
-  // Update ticket status
-  updateStatus: async (id: number, status: string): Promise<TicketResponseDTO> => {
+  // Update ticket status (optional notes/reason)
+  updateStatus: async (id: number, status: string, notes?: string): Promise<TicketResponseDTO> => {
     try {
+      const params: any = { status };
+      if (notes !== undefined) params.notes = notes;
+
       const response = await axios.put<TicketResponseDTO>(`${BASE_URL}/${id}/status`, null, {
-        params: { status },
+        params,
         headers: {
           // Add any authentication headers if needed
         },

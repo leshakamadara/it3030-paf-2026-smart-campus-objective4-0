@@ -1,384 +1,451 @@
 import { useState } from "react";
+
+import type { TicketResponseDTO, CommentDTO } from "../types/ticketTypes";
 import { ticketService } from "../services/ticketService";
-import type { Ticket, Comment } from "../types/ticketTypes";
-import { CURRENT_USER, STATUS_META, PRIORITY_META, CATEGORIES } from "../constants/constants";
-import { timeAgo, formatDate } from "../utills/helpers";
-import StatusTracker from "./StatusTracker";
-
-export default function TicketDetailView({
-  ticket,
-  onBack,
-  onUpdate,
-  onDelete,
-}: {
-  ticket: Ticket;
-  onBack: () => void;
-  onUpdate: (t: Ticket) => void;
-  onDelete?: (id: number) => void;
-}) {
+import {
   
+  STATUS_FLOW,
+  STATUS_META,
+} from "../constants/constants";
+
+import { CURRENT_USER } from "../constants/ticketConstants";
+
+
+import { Avatar } from "./Avatar";
+import { Badge } from "./Badge";
+import { PriorityDot } from "./PriorityDot";
+import { Divider } from "./Divider";
+
+export const AdminTicketDetailView = ({
+  ticket,
+  onClose,
+  onUpdate,
+}: {
+  ticket: TicketResponseDTO;
+  onClose: () => void;
+  onUpdate: (updated: TicketResponseDTO) => void;
+}) => {
   const [comment, setComment] = useState("");
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
-  const sm = STATUS_META[ticket.status];
-  const pm = PRIORITY_META[ticket.priority];
-  const cat = CATEGORIES.find((c) => c.value === ticket.category);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const addComment = () => {
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const [showResolution, setShowResolution] = useState(false);
+  const [resolutionNote, setResolutionNote] = useState("");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const isAdmin = CURRENT_USER.role === "ADMIN";
+  const isTech =
+    CURRENT_USER.role === "TECHNICIAN" || CURRENT_USER.role === "ADMIN";
+
+  const nextStatuses = STATUS_FLOW[ticket.status];
+
+  // Comments
+  const addComment = async () => {
     if (!comment.trim()) return;
-    const c: Comment = {
-      id: `c-${Date.now()}`,
-      authorId: CURRENT_USER.id,
-      authorName: CURRENT_USER.name,
-      authorRole: "USER",
-      content: comment.trim(),
-      createdAt: new Date().toISOString(),
-    };
-    onUpdate({ ...ticket, comments: [...ticket.comments, c] });
-    setComment("");
-  };
 
-  const saveEdit = (id: string) => {
-    onUpdate({
-      ...ticket,
-      comments: ticket.comments.map((c) =>
-        c.id === id ? { ...c, content: editText, updatedAt: new Date().toISOString() } : c
-      ),
-    });
-    setEditId(null);
-  };
-
-  const deleteComment = (id: string) => {
-    onUpdate({ ...ticket, comments: ticket.comments.filter((c) => c.id !== id) });
-  };
-
-  // Edit form state (users can update ticket fields only when OPEN)
-  const [isEditing, setIsEditing] = useState(false);
-  const [localTitle, setLocalTitle] = useState(ticket.title);
-  const [localDescription, setLocalDescription] = useState(ticket.description);
-  const [localCategory, setLocalCategory] = useState(ticket.category);
-  const [localPriority, setLocalPriority] = useState(ticket.priority);
-  const [localResourceLocation, setLocalResourceLocation] = useState(ticket.resourceLocation);
-  const [localImageFile, setLocalImageFile] = useState<File | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  const resetLocalFields = () => {
-    setLocalTitle(ticket.title);
-    setLocalDescription(ticket.description);
-    setLocalCategory(ticket.category);
-    setLocalPriority(ticket.priority);
-    setLocalResourceLocation(ticket.resourceLocation);
-    setLocalImageFile(null);
-  };
-
-  const handleSave = async () => {
-    const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
-    setSaving(true);
     try {
-      const formData = new FormData();
-      formData.append("title", localTitle);
-      formData.append("description", localDescription);
-      formData.append("priority", localPriority);
-      formData.append("category", localCategory);
-      formData.append("resourceLocation", localResourceLocation);
-      if (localImageFile) formData.append("imageFile", localImageFile);
-
-      // Send update and then fetch ticket with attachments to get canonical attachments list
-      await ticketService.update(backendId, formData as any);
-      const full = await ticketService.getWithAttachments(backendId);
-      onUpdate({ ...ticket, ...mapResponseToTicket(full) });
-      setIsEditing(false);
+      setLoading(true);
+      setError(null);
+      await ticketService.addComment(ticket.id, comment);
+      // Refresh ticket data
+      const updatedTicket = await ticketService.getWithAttachments(ticket.id);
+      onUpdate(updatedTicket);
+      setComment("");
     } catch (err) {
-      console.error("Failed to update ticket:", err);
+      console.error("Failed to add comment:", err);
+      setError("Failed to add comment. Please try again.");
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
-  const handleDeleteImage = async (attachmentId: number) => {
-    const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
+  // ─── Workflow Actions ───────────────────────────────────────
+  const advanceStatus = async (status: TicketResponseDTO["status"]) => {
+    // If transitioning to RESOLVED without notes, show modal first
+    if (status === "RESOLVED" && !showResolution) {
+      setShowResolution(true);
+      return;
+    }
+
     try {
-      await ticketService.deleteAttachment(attachmentId);
-      const full = await ticketService.getWithAttachments(backendId);
-      onUpdate({ ...ticket, ...mapResponseToTicket(full) });
+      setLoading(true);
+      setError(null);
+      const notes = status === "RESOLVED" ? resolutionNote : undefined;
+      await ticketService.updateStatus(ticket.id, status, notes);
+      // Refresh ticket data
+      const updatedTicket = await ticketService.getWithAttachments(ticket.id);
+      onUpdate(updatedTicket);
+      setShowResolution(false);
+      setResolutionNote("");
     } catch (err) {
-      console.error("Failed to delete image:", err);
+      console.error("Failed to update status:", err);
+      setError("Failed to update ticket status. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCancelEdit = () => {
-    resetLocalFields();
-    setIsEditing(false);
-  };
+  const rejectTicket = async () => {
+    if (!rejectReason.trim()) return;
 
-  const mapResponseToTicket = (resp: any): Partial<Ticket> => {
-    return {
-      title: resp.title,
-      description: resp.description,
-      category: resp.category,
-      priority: resp.priority,
-      resourceLocation: resp.resourceLocation,
-      images: resp.attachments ? resp.attachments.map((a: any) => a.cloudinarySecureUrl || a.cloudinaryUrl || a.linkUrl).filter((u: any) => u) : ticket.images,
-      attachments: resp.attachments ? resp.attachments.map((a: any) => ({ id: a.id, cloudinaryUrl: a.cloudinaryUrl, cloudinarySecureUrl: a.cloudinarySecureUrl })) : ticket.attachments,
-      updatedAt: resp.updatedAt || new Date().toISOString(),
-    };
+    try {
+      setLoading(true);
+      setError(null);
+      await ticketService.updateStatus(ticket.id, "REJECTED", rejectReason);
+      // Refresh ticket data
+      const updatedTicket = await ticketService.getWithAttachments(ticket.id);
+      onUpdate(updatedTicket);
+      setShowRejectModal(false);
+      setRejectReason("");
+    } catch (err) {
+      console.error("Failed to reject ticket:", err);
+      setError("Failed to reject ticket. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Back */}
-      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 mb-5 transition-colors">
-        ← Back to my tickets
-      </button>
+    <div
+      className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* HEADER */}
+        <div className="flex items-start justify-between p-6 border-b border-slate-100">
+          <div className="flex-1 min-w-0 mr-4">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="font-mono text-sm text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+                #{ticket.id}
+              </span>
 
-      {/* Ticket Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-xs text-slate-400 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
-              {ticket.id}
-            </span>
-            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${sm.color} ${sm.bg} ${sm.border}`}>
-              {sm.icon} {sm.label}
-            </span>
-          </div>
-          <span className={`flex items-center gap-1 text-xs font-bold ${pm.color}`}>
-            <span className={`w-2 h-2 rounded-full ${pm.dot}`} />
-            {pm.label}
-          </span>
-        </div>
-
-        <h1 className="text-xl font-bold text-slate-800 mb-1">{ticket.title}</h1>
-        <p className="text-sm text-slate-400 mb-4">
-          <span className="mr-1">{cat?.icon}</span>{ticket.resourceLocation}
-        </p>
-
-        {/* Status tracker */}
-        <div className="bg-slate-50 rounded-xl p-4 mb-5">
-          <StatusTracker status={ticket.status} />
-        </div>
-
-        {/* Assigned technician */}
-        {ticket.assignedToName && (
-          <div className="flex items-center gap-3 p-3 bg-violet-50 rounded-xl border border-violet-100 mb-4">
-            <div className="w-8 h-8 rounded-full bg-violet-200 text-violet-700 text-xs font-bold flex items-center justify-center shrink-0">
-              {ticket.assignedToName.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+              <Badge status={ticket.status} />
+              <PriorityDot priority={ticket.priority} />
             </div>
-            <div>
-              <p className="text-xs text-violet-500 font-medium">Assigned Technician</p>
-              <p className="text-sm font-semibold text-violet-800">{ticket.assignedToName}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onDelete && onDelete(ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10))}
-                className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
-              >
-                Delete Ticket
-              </button>
-            </div>
-          </div>
-        )}
 
-        {/* Description */}
-        <div className="mb-4">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Description</p>
-          <p className="text-sm text-slate-700 leading-relaxed">{ticket.description}</p>
-        </div>
+            <h2 className="text-2xl font-bold text-slate-900 leading-tight pr-8">
+              {ticket.title}
+            </h2>
 
-        {/* Resolution note */}
-        {ticket.resolutionNote && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
-            <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">✓ Resolution</p>
-            <p className="text-sm text-emerald-800 leading-relaxed">{ticket.resolutionNote}</p>
-          </div>
-        )}
-
-        {/* Rejection */}
-        {ticket.rejectionReason && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-            <p className="text-xs font-bold text-red-600 uppercase tracking-widest mb-2">✗ Rejected</p>
-            <p className="text-sm text-red-700">{ticket.rejectionReason}</p>
-          </div>
-        )}
-
-        {/* Images */}
-        {(ticket.attachments && ticket.attachments.length > 0) || (ticket.images && ticket.images.length > 0) ? (
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-              Evidence ({(ticket.attachments && ticket.attachments.length) || ticket.images.length})
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {ticket.attachments && ticket.attachments.length > 0
-                ? ticket.attachments.map((a) => (
-                    <div key={a.id} className="relative">
-                      <img src={a.cloudinarySecureUrl || a.cloudinaryUrl} alt="" className="w-full h-24 object-cover rounded-xl border border-slate-200" />
-                      {ticket.status === "OPEN" && (
-                        <button
-                          onClick={() => handleDeleteImage(a.id)}
-                          className="absolute top-1 right-1 w-7 h-7 bg-red-50 text-red-600 rounded-md flex items-center justify-center hover:bg-red-100"
-                          title="Delete image"
-                        >
-                          🗑
-                        </button>
-                      )}
-                    </div>
-                  ))
-                : ticket.images.map((img, i) => (
-                    <img key={i} src={img} alt="" className="w-full h-24 object-cover rounded-xl border border-slate-200" />
-                  ))}
-            </div>
-          </div>
-        ) : null}
-
-        {/* Meta footer */}
-        <div className="flex items-center justify-between text-xs text-slate-400 mt-5 pt-4 border-t border-slate-100">
-          <span>Submitted {formatDate(ticket.createdAt)}</span>
-          <span>Updated {timeAgo(ticket.updatedAt)}</span>
-        </div>
-        {ticket.status === "OPEN" && (
-          <div className="flex items-center gap-2 mt-3">
-            {!isEditing ? (
-              <button onClick={() => setIsEditing(true)} className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-md text-sm">Edit Ticket</button>
-            ) : (
-              <div className="w-full space-y-2">
-                <input className="w-full border rounded-md px-2 py-1" value={localTitle} onChange={(e) => setLocalTitle(e.target.value)} />
-                <textarea className="w-full border rounded-md px-2 py-1" rows={3} value={localDescription} onChange={(e) => setLocalDescription(e.target.value)} />
-                <div className="flex gap-2">
-                  <select value={localCategory} onChange={(e) => setLocalCategory(e.target.value)} className="border rounded-md px-2 py-1">
-                    {CATEGORIES.map((c) => (<option key={c.value} value={c.value}>{c.value}</option>))}
-                  </select>
-                  <select value={localPriority} onChange={(e) => setLocalPriority(e.target.value as any)} className="border rounded-md px-2 py-1">
-                    {Object.keys(PRIORITY_META).map((k) => (<option key={k} value={k}>{k}</option>))}
-                  </select>
-                </div>
-                <input className="w-full border rounded-md px-2 py-1" value={localResourceLocation} onChange={(e) => setLocalResourceLocation(e.target.value)} />
-                <input type="file" accept="image/*" onChange={(e) => setLocalImageFile(e.target.files ? e.target.files[0] : null)} />
-                <div className="flex gap-2">
-                  <button disabled={saving} onClick={handleSave} className="px-3 py-1.5 bg-violet-600 text-white rounded-md text-sm">{saving ? 'Saving...' : 'Save'}</button>
-                  <button onClick={handleCancelEdit} className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-md text-sm">Cancel</button>
-                </div>
-              </div>
+            {ticket.description && (
+              <p className="text-sm text-slate-500 mt-2 line-clamp-2">
+                {ticket.description}
+              </p>
             )}
           </div>
-        )}
-      </div>
 
-      {/* Comments */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h2 className="text-sm font-bold text-slate-700 mb-5">
-          Updates & Comments
-          {ticket.comments.length > 0 && (
-            <span className="ml-2 bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full text-xs font-semibold">
-              {ticket.comments.length}
-            </span>
-          )}
-        </h2>
+          <button
+            onClick={onClose}
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
 
-        {ticket.comments.length === 0 && (
-          <div className="text-center py-8 text-slate-300">
-            <p className="text-3xl mb-2">💬</p>
-            <p className="text-sm">No updates yet. A technician will respond here.</p>
+        <div className="flex flex-1 min-h-0">
+          {/* MAIN */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* Error message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                <p className="text-red-700 text-sm font-medium">{error}</p>
+              </div>
+            )}
+
+            {/* Category */}
+            {ticket.category && (
+              <div className="pb-4">
+                <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full font-medium">
+                  {ticket.category}
+                </span>
+              </div>
+            )}
+
+            {/* Description */}
+            <div>
+              <p className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">
+                Description
+              </p>
+              <div className="text-base text-slate-800 leading-relaxed bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <p>{ticket.description}</p>
+              </div>
+            </div>
+
+            {/* Attachments / Evidence — always visible */}
+            <div>
+              <p className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">Attachments</p>
+              {ticket.attachments && ticket.attachments.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {ticket.attachments.map((attachment) => (
+                    <div key={attachment.id} className="border border-slate-200 rounded-2xl p-4 bg-slate-50 shadow-sm">
+                      {attachment.cloudinaryUrl && (
+                        <img
+                          src={attachment.cloudinaryUrl}
+                          alt="Attachment"
+                          onClick={() => setSelectedImage(attachment.cloudinaryUrl!)}
+                          className="h-40 w-full object-cover rounded-xl border border-slate-200 mb-3 cursor-pointer hover:opacity-90 transition-opacity"
+                        />
+                      )}
+                      <p className="text-xs text-slate-500 font-medium text-center">
+                        Uploaded: {new Date(attachment.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-base text-slate-500 italic p-4 border border-slate-200 rounded-2xl bg-slate-50 text-center">No attachments uploaded for this ticket.</div>
+              )}
+            </div>
+
+            <Divider />
+
+            {/* COMMENTS */}
+            <div>
+              <p className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-4">
+                Comments ({ticket.comments?.length || 0})
+              </p>
+
+              <div className="space-y-6">
+                {ticket.comments?.map((c: CommentDTO) => {
+                  const initials = c.createdBy
+                    .split("@")[0]
+                    .split(".")
+                    .map((n: string) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase();
+                  return (
+                    <div key={c.id} className="flex items-start gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                      <Avatar initials={initials} />
+
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between text-sm mb-2">
+                          <span className="font-semibold text-slate-800">
+                            {c.createdBy}
+                          </span>
+
+                          <span className="text-slate-500 text-xs">
+                            {new Date(c.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+
+                        <p className="text-base text-slate-700 leading-relaxed">
+                          {c.comment}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Add Comment */}
+                <div className="flex items-start gap-4 pt-6 border-t border-slate-200 mt-6">
+                  <Avatar initials={CURRENT_USER.avatar} />
+
+                  <div className="flex-1">
+                    <textarea
+                      className="w-full border border-slate-300 rounded-2xl px-4 py-3 text-sm resize-none placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all bg-white"
+                      rows={4}
+                      placeholder="Add a comment..."
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      disabled={loading}
+                    />
+
+                    <div className="flex justify-end mt-4">
+                      <button
+                        onClick={addComment}
+                        disabled={!comment.trim() || loading}
+                        className="bg-violet-600 text-white px-6 py-3 rounded-2xl text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
+                      >
+                        {loading ? "Posting..." : "Post Comment"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SIDEBAR */}
+          <div className="w-72 border-l border-slate-100 px-5 py-6 space-y-6 overflow-y-auto bg-slate-50">
+            {/* Actions */}
+            {(isTech || isAdmin) &&
+              ticket.status !== "CLOSED" &&
+              ticket.status !== "REJECTED" && (
+                <div className="space-y-4">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    Actions
+                  </p>
+
+                  <div className="space-y-2">
+                    {nextStatuses.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => {
+                          if (s === "RESOLVED") {
+                            setShowResolution(true);
+                          } else {
+                            advanceStatus(s);
+                          }
+                        }}
+                        disabled={loading}
+                        className="w-full text-left text-sm px-4 py-2 rounded-2xl bg-slate-100 text-slate-700 hover:bg-violet-200 hover:text-violet-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        → Mark as {STATUS_META[s].label}
+                      </button>
+                    ))}
+
+                    {isAdmin && ticket.status === "OPEN" && (
+                      <button
+                        onClick={() => setShowRejectModal(true)}
+                        disabled={loading}
+                        className="w-full text-left text-sm px-4 py-2 rounded-2xl bg-slate-100 text-red-600 hover:bg-red-100 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        ✕ Reject Ticket
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+            {/* Ticket Info */}
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wide">
+                Ticket Info
+              </p>
+              <div className="space-y-3 text-sm bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-medium">ID</span>
+                  <span className="text-slate-800 font-semibold">#{ticket.id}</span>
+                </div>
+                {ticket.createdAt && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Created</span>
+                    <span className="text-slate-800">{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-medium">Priority</span>
+                  <span className={`font-semibold ${
+                    ticket.priority === "HIGH" ? "text-orange-600" :
+                    ticket.priority === "MEDIUM" ? "text-yellow-600" :
+                    "text-green-600"
+                  }`}>
+                    {ticket.priority}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RESOLUTION MODAL */}
+        {showResolution && (
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
+              <h3 className="text-lg font-semibold mb-4">Resolve Ticket</h3>
+              <textarea
+                className="w-full border rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition-all"
+                rows={4}
+                placeholder="Add resolution notes..."
+                value={resolutionNote}
+                onChange={(e) => setResolutionNote(e.target.value)}
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => {
+                    setShowResolution(false);
+                    setResolutionNote("");
+                  }}
+                  className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => advanceStatus("RESOLVED")}
+                  disabled={loading}
+                  className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? "Resolving..." : "Resolve"}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
-        <div className="space-y-5 mb-6">
-          {ticket.comments.map((c) => {
-            const isOwn = c.authorId === CURRENT_USER.id;
-            const isTech = c.authorRole === "TECHNICIAN" || c.authorRole === "ADMIN";
-            const initials = c.authorName.split(" ").map((n) => n[0]).join("").slice(0, 2);
-
-            return (
-              <div key={c.id} className={`flex gap-3 ${isOwn ? "flex-row-reverse" : ""}`}>
-                <div className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
-                  isTech ? "bg-violet-100 text-violet-700" : "bg-sky-100 text-sky-700"
-                }`}>
-                  {initials}
-                </div>
-                <div className={`flex-1 ${isOwn ? "items-end" : "items-start"} flex flex-col`}>
-                  <div className={`flex items-center gap-2 mb-1 ${isOwn ? "flex-row-reverse" : ""}`}>
-                    <span className="text-xs font-semibold text-slate-700">{c.authorName}</span>
-                    {isTech && (
-                      <span className="text-[10px] bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">
-                        {c.authorRole}
-                      </span>
-                    )}
-                    <span className="text-[10px] text-slate-400">{timeAgo(c.createdAt)}{c.updatedAt ? " · edited" : ""}</span>
-                  </div>
-
-                  {editId === c.id ? (
-                    <div className="w-full">
-                      <textarea
-                        rows={2}
-                        className="w-full border border-violet-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 resize-none"
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                      />
-                      <div className="flex gap-2 mt-1.5">
-                        <button onClick={() => saveEdit(c.id)} className="text-xs text-violet-600 font-semibold hover:underline">Save</button>
-                        <button onClick={() => setEditId(null)} className="text-xs text-slate-400 hover:underline">Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={`group relative max-w-sm`}>
-                      <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                        isOwn
-                          ? "bg-violet-600 text-white rounded-tr-sm"
-                          : isTech
-                          ? "bg-slate-100 text-slate-700 border border-slate-200 rounded-tl-sm"
-                          : "bg-slate-100 text-slate-700 rounded-tl-sm"
-                      }`}>
-                        {c.content}
-                      </div>
-                      {isOwn && (
-                        <div className={`flex gap-2 mt-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity`}>
-                          <button
-                            onClick={() => { setEditId(c.id); setEditText(c.content); }}
-                            className="text-[10px] text-slate-400 hover:text-violet-600 transition-colors"
-                          >
-                            Edit
-                          </button>
-                          <button onClick={() => deleteComment(c.id)} className="text-[10px] text-slate-400 hover:text-red-500 transition-colors">
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Comment input */}
-        {ticket.status !== "CLOSED" && ticket.status !== "REJECTED" && (
-          <div className="flex gap-3 pt-4 border-t border-slate-100">
-            <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-700 text-xs font-bold flex items-center justify-center shrink-0">
-              {CURRENT_USER.avatar}
-            </div>
-            <div className="flex-1">
+        {/* REJECT MODAL */}
+        {showRejectModal && (
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
+              <h3 className="text-lg font-semibold mb-4">Reject Ticket</h3>
               <textarea
-                rows={2}
-                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 resize-none placeholder:text-slate-300"
-                placeholder="Add a comment or ask a question…"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addComment(); }}
+                className="w-full border rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all"
+                rows={4}
+                placeholder="Reason for rejection..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                required
               />
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-[10px] text-slate-300">⌘ + Enter to send</span>
+              <div className="flex justify-end gap-2">
                 <button
-                  onClick={addComment}
-                  disabled={!comment.trim()}
-                  className="px-4 py-1.5 bg-violet-600 text-white text-xs font-semibold rounded-lg hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  onClick={() => {
+                    setShowRejectModal(false);
+                    setRejectReason("");
+                  }}
+                  className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors"
                 >
-                  Send
+                  Cancel
+                </button>
+                <button
+                  onClick={rejectTicket}
+                  disabled={!rejectReason.trim() || loading}
+                  className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? "Rejecting..." : "Reject"}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {selectedImage && (
+          <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
+            <div className="relative w-full max-w-5xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute right-3 top-3 z-10 rounded-full bg-slate-900/80 text-white w-10 h-10 flex items-center justify-center hover:bg-slate-900"
+                aria-label="Close image preview"
+              >
+                ✕
+              </button>
+              <img
+                src={selectedImage}
+                alt="Attachment preview"
+                className="w-full max-h-[90vh] object-contain rounded-3xl border border-slate-200 bg-white shadow-2xl"
+              />
             </div>
           </div>
         )}
       </div>
     </div>
   );
-}
+};

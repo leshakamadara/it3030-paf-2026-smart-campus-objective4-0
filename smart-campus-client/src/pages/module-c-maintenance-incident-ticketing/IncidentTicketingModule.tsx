@@ -12,7 +12,7 @@ import { CURRENT_USER } from "./constants/ticketConstants";
 
 import { TicketCard } from "./components/AdminTicketCard";
 import { WorkflowPipeline } from "./components/WorkflowPipeline";
-import { TicketDetail } from "./components/UserTicketDetailView";
+import { AdminTicketDetailView } from "./components/AdminTicketDetailView";
 
 export default function IncidentTicketingModule() {
   const [tickets, setTickets] = useState<TicketResponseDTO[]>([]);
@@ -251,7 +251,7 @@ export default function IncidentTicketingModule() {
       {/* Modals */}
 
       {selectedTicket && (
-        <TicketDetail
+        <AdminTicketDetailView
           ticket={selectedTicket}
           onClose={() => setSelectedTicket(null)}
           onUpdate={handleUpdate}
