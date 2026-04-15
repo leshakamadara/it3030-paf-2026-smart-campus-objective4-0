@@ -3,10 +3,13 @@ import { useState } from "react";
 import type { TicketResponseDTO, CommentDTO } from "../types/ticketTypes";
 import { ticketService } from "../services/ticketService";
 import {
-  CURRENT_USER,
+  
   STATUS_FLOW,
-  STATUS_CONFIG,
-} from "../constants/ticketConstants";
+  STATUS_META,
+} from "../constants/constants";
+
+import { CURRENT_USER } from "../constants/ticketConstants";
+
 
 import { Avatar } from "./Avatar";
 import { Badge } from "./Badge";
@@ -160,12 +163,10 @@ export const TicketDetail = ({
               <p className="text-sm text-slate-700">{ticket.description}</p>
             </div>
 
-            {/* Attachments */}
-            {ticket.attachments && ticket.attachments.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-slate-400 mb-2">
-                  Attachments
-                </p>
+            {/* Attachments / Evidence — always visible */}
+            <div>
+              <p className="text-xs font-semibold text-slate-400 mb-2">Attachments</p>
+              {ticket.attachments && ticket.attachments.length > 0 ? (
                 <div className="grid grid-cols-2 gap-2">
                   {ticket.attachments.map((attachment) => (
                     <div key={attachment.id} className="border rounded-lg p-3">
@@ -182,8 +183,10 @@ export const TicketDetail = ({
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-sm text-slate-400">No attachments uploaded for this ticket.</div>
+              )}
+            </div>
 
             <Divider />
 
@@ -272,7 +275,7 @@ export const TicketDetail = ({
                       disabled={loading}
                       className="block w-full text-left text-sm mb-2 hover:text-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      → Mark as {STATUS_CONFIG[s].label}
+                      → Mark as {STATUS_META[s].label}
                     </button>
                   ))}
 

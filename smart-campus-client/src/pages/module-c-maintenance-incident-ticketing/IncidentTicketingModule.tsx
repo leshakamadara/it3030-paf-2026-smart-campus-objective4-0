@@ -4,15 +4,15 @@ import { ticketService } from "./services/ticketService";
 
 import type { TicketResponseDTO, TicketStatus, Priority } from "./types/ticketTypes";
 import {
-  CURRENT_USER,
-  PRIORITY_CONFIG,
-  STATUS_CONFIG,
-} from "./constants/ticketConstants";
+  
+  PRIORITY_META,
+  STATUS_META,
+} from "./constants/constants";
+import { CURRENT_USER } from "./constants/ticketConstants";
 
-import { TicketCard } from "./components/TicketCard";
+import { TicketCard } from "./components/AdminTicketCard";
 import { WorkflowPipeline } from "./components/WorkflowPipeline";
-import { CreateTicketModal } from "./components/CreateTicketModal";
-import { TicketDetail } from "./components/TicketDetail";
+import { TicketDetail } from "./components/UserTicketDetailView";
 
 export default function IncidentTicketingModule() {
   const [tickets, setTickets] = useState<TicketResponseDTO[]>([]);
@@ -139,12 +139,7 @@ export default function IncidentTicketingModule() {
               </span>
             </div>
 
-            <button
-              onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700"
-            >
-              + New Ticket
-            </button>
+
           </div>
 
         </div>
@@ -203,7 +198,7 @@ export default function IncidentTicketingModule() {
             >
               <option value="ALL">All Statuses</option>
               {(["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "REJECTED"] as TicketStatus[]).map((s) => (
-                <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
+                <option key={s} value={s}>{STATUS_META[s].label}</option>
               ))}
             </select>
 
@@ -214,7 +209,7 @@ export default function IncidentTicketingModule() {
             >
               <option value="ALL">All Priorities</option>
               {(["HIGH", "MEDIUM", "LOW"] as Priority[]).map((p) => (
-                <option key={p} value={p}>{PRIORITY_CONFIG[p].label}</option>
+                <option key={p} value={p}>{PRIORITY_META[p].label}</option>
               ))}
             </select>
 
@@ -254,9 +249,7 @@ export default function IncidentTicketingModule() {
       </main>
 
       {/* Modals */}
-      {showCreate && (
-        <CreateTicketModal onClose={() => setShowCreate(false)} onSubmit={handleCreate} />
-      )}
+
       {selectedTicket && (
         <TicketDetail
           ticket={selectedTicket}

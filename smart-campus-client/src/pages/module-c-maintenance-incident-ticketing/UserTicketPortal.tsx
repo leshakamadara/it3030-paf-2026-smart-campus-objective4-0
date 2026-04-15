@@ -1,19 +1,19 @@
 import { useState, useEffect } from "react";
 
 import { ticketService } from "./services/ticketService";
-import type { Ticket, TicketStatus } from "./types/ticket";
+import type { Ticket, TicketStatus } from "./types/ticketTypes";
 import type { TicketRequestDTO, TicketResponseDTO } from "./types/ticketTypes";
-import { MOCK_TICKETS } from "./constants/constants";
 
-import TicketCard from "./components/TicketCard1";
+
+import TicketCard from "./components/UserTicketCard";
 import CreateTicket from "./components/CreateTicket";
-import TicketDetailView from "./components/TicketDetailView";
+import TicketDetailView from "./components/AdminTicketDetailView";
 
 type View = "list" | "create" | "detail";
 
 export default function UserTicketPortal() {
   const [view, setView] = useState<View>("list");
-  const [tickets, setTickets] = useState<Ticket[]>(MOCK_TICKETS);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<TicketStatus | "ALL">("ALL");
   const [fadeIn, setFadeIn] = useState(true);
@@ -45,6 +45,8 @@ export default function UserTicketPortal() {
     images: ticket.attachments
       .map((attachment) => attachment.cloudinarySecureUrl || attachment.cloudinaryUrl || attachment.linkUrl)
       .filter(Boolean) as string[],
+    attachments: ticket.attachments
+      .map((attachment) => ({ id: attachment.id, cloudinaryUrl: attachment.cloudinaryUrl, cloudinarySecureUrl: attachment.cloudinarySecureUrl })),
     comments: ticket.comments.map((comment) => ({
       id: comment.id.toString(),
       authorId: comment.createdBy,
@@ -71,7 +73,7 @@ export default function UserTicketPortal() {
     }
   };
 
-  const handleCreate = async (partial: Partial<Ticket> & { imageFile?: File | null }) => {
+  const handleCreate = async (partial: Partial<Ticket> & { imageFiles?: File[] }) => {
     try {
       setError(null);
       const request: TicketRequestDTO = {
@@ -81,7 +83,8 @@ export default function UserTicketPortal() {
         category: partial.category,
         resourceLocation: partial.resourceLocation,
 
-        imageFile: partial.imageFile ?? undefined,
+        // map imageFiles from UI to backend DTO (supports single imageFile or multiple imageFiles handled in service)
+        imageFiles: partial.imageFiles ?? undefined,
       };
 
       const created = await ticketService.create(request);
@@ -221,6 +224,7 @@ export default function UserTicketPortal() {
                 ["IN_PROGRESS", "Active", "bg-violet-50 text-violet-700"],
                 ["RESOLVED", "Resolved", "bg-emerald-50 text-emerald-700"],
                 ["CLOSED", "Closed", "bg-slate-100 text-slate-500"],
+                
               ] as [TicketStatus, string, string][]).map(([s, label, cls]) => (
                 <button
                   key={s}
@@ -257,7 +261,7 @@ export default function UserTicketPortal() {
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-5xl mb-4">🎉</p>
+                <p className="text-5xl mb-4">📄</p>
                 <p className="font-semibold text-slate-600">
                   No tickets here
                 </p>

@@ -15,7 +15,9 @@ export const ticketService = {
     }
   },
 
-  // Create ticket with image upload
+
+
+  // Create ticket 
   create: async (data: TicketRequestDTO): Promise<TicketResponseDTO> => {
     try {
       const formData = new FormData();
@@ -32,9 +34,13 @@ export const ticketService = {
         formData.append("resourceLocation", data.resourceLocation);
       }
 
-      // Add image file if provided
-      if (data.imageFile) {
-        formData.append("imageFile", data.imageFile);
+
+      // support multiple files (imageFiles[]) or single imageFile for backward compatibility
+      if ((data as any).imageFiles && Array.isArray((data as any).imageFiles)) {
+        (data as any).imageFiles.slice(0, 3).forEach((f: File) => formData.append("imageFiles", f));
+        console.log("ticketService.create: attaching files:", (data as any).imageFiles.slice(0,3).map((f: File) => f.name));
+      } else if ((data as any).imageFile) {
+        formData.append("imageFile", data.imageFile as any);
       }
 
       const response = await axios.post<TicketResponseDTO>(`${BASE_URL}/create`, formData, {
@@ -50,6 +56,8 @@ export const ticketService = {
     }
   },
 
+
+
   // Get ticket by ID
   getById: async (id: number): Promise<TicketResponseDTO> => {
     try {
@@ -61,6 +69,8 @@ export const ticketService = {
     }
   },
 
+
+
   // Get ticket with attachments
   getWithAttachments: async (id: number): Promise<TicketResponseDTO> => {
     try {
@@ -71,6 +81,10 @@ export const ticketService = {
       throw error;
     }
   },
+
+
+
+
 
   // Update ticket status
   updateStatus: async (id: number, status: string): Promise<TicketResponseDTO> => {
@@ -88,6 +102,8 @@ export const ticketService = {
     }
   },
 
+
+  
   // Update ticket editable fields (only when ticket is OPEN)
   update: async (id: number, data: TicketRequestDTO | FormData): Promise<TicketResponseDTO> => {
     try {
@@ -101,7 +117,9 @@ export const ticketService = {
         if (data.priority) formData.append("priority", data.priority);
         if (data.category) formData.append("category", data.category);
         if (data.resourceLocation) formData.append("resourceLocation", data.resourceLocation);
-        if ((data as any).imageFile) formData.append("imageFile", (data as any).imageFile);
+        if ((data as any).imageFiles && Array.isArray((data as any).imageFiles)) {
+          (data as any).imageFiles.slice(0, 3).forEach((f: File) => formData.append("imageFiles", f));
+        } else if ((data as any).imageFile) formData.append("imageFile", (data as any).imageFile);
       }
 
       const response = await axios.put<TicketResponseDTO>(`${BASE_URL}/${id}`, formData, {

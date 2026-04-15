@@ -1,15 +1,6 @@
 import type { Ticket, TicketStatus, User } from "../types/ticketTypes";
 
-export const CATEGORIES = [
-  "Hardware",
-  "Software ",
-  "Network ",
-  "AV Equipment",
-  "Electrical / Power",
-  "Plumbing / Facility",
-  "Security / Access",
-  "Other",
-];
+
 
 export const STATUS_FLOW: Record<TicketStatus, TicketStatus[]> = {
   OPEN: ["IN_PROGRESS"],
@@ -40,27 +31,5 @@ export const CURRENT_USER: User = {
   avatar: "AP",
 };
 
-export const TECHNICIANS: User[] = [
-  { id: "t1", name: "Rajith Fernando", role: "TECHNICIAN", avatar: "RF" },
-  { id: "t2", name: "Nimal Bandara", role: "TECHNICIAN", avatar: "NB" },
-  { id: "t3", name: "Suresh Wijesinghe", role: "TECHNICIAN", avatar: "SW" },
-];
 
 
-export const INITIAL_TICKETS: Ticket[] = [
-  {
-    id: "TKT-001",
-    title: "Projector not working",
-    category: "AV Equipment",
-    description: "Projector in lab 3 is not powering on",
-    priority: "HIGH",
-    status: "OPEN",
-    resourceLocation: "Lab 3",
-    images: [],
-    createdBy: "u1",
-    createdByName: "Amal Perera",
-    comments: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];

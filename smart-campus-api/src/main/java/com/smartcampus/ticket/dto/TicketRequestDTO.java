@@ -27,4 +27,7 @@ public class TicketRequestDTO {
 
 
     private MultipartFile imageFile;
+    
+    // allow multiple image files (max 3)
+    private MultipartFile[] imageFiles;
 }

@@ -1,6 +1,7 @@
 package com.smartcampus.ticket.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +41,10 @@ public class TicketController {
         try {
             TicketResponseDTO response = ticketService.createTicket(request, "jane.smith@example.com");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException iae) {
+            Map<String,Object> resp = new HashMap<>();
+            resp.put("error", iae.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (IOException e)  {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -134,13 +139,15 @@ public class TicketController {
      * Update a ticket's editable fields. Only allowed when ticket is OPEN.
      * PUT /api/tickets/{id}
      */
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateTicket(@PathVariable Long id,
                                           @Valid @ModelAttribute TicketRequestDTO request,
                                           @RequestParam(defaultValue = "jane.smith@example.com") String userEmail) {
         try {
             TicketResponseDTO updated = ticketService.updateTicket(id, request, userEmail);
             return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException iae) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", iae.getMessage()));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }

@@ -1,4 +1,4 @@
-import type { Ticket } from "../types/ticket";
+import type { Ticket } from "../types/ticketTypes";
 import { STATUS_META, PRIORITY_META, CATEGORIES } from "../constants/constants";
 import { timeAgo } from "../utills/helpers";
 
@@ -26,17 +26,21 @@ export default function TicketCard({
       
       {/* Delete button */}
       {onDelete && (
-        <div className="absolute top-3 right-3">
-          <button
-            onClick={(e) => { e.stopPropagation(); const bid = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10); onDelete && onDelete(bid); }}
-            className="w-8 h-8 rounded-md bg-red-50 text-red-600 text-xs flex items-center justify-center hover:bg-red-100 transition-colors"
-            aria-label="Delete ticket"
-            title="Delete ticket"
-          >
-            🗑
-          </button>
-        </div>
+        <button
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            const bid = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10); 
+            onDelete && onDelete(bid); 
+          }}
+          className="absolute right-5 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-md bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition-colors"
+
+          aria-label="Delete ticket"
+          title="Delete ticket"
+        >
+          🗑
+        </button>
       )}
+
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-mono text-xs text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">

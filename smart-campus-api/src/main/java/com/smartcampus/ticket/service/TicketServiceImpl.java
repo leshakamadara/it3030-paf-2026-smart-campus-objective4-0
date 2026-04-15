@@ -58,8 +58,18 @@ public class TicketServiceImpl implements TicketService {
         // Save ticket first 
         Ticket savedTicket = ticketRepository.save(ticket);
 
-        // Handle Cloudinary image upload
-        if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
+        // Handle Cloudinary image upload (support up to 3 images)
+        if (request.getImageFiles() != null && request.getImageFiles().length > 0) {
+            if (request.getImageFiles().length > 3) {
+                throw new IllegalArgumentException("A maximum of 3 images may be uploaded per ticket.");
+            }
+            for (org.springframework.web.multipart.MultipartFile f : request.getImageFiles()) {
+                if (f != null && !f.isEmpty()) {
+                    uploadAttachmentInternal(savedTicket, f);
+                }
+            }
+        } else if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
+            // backward compatibility single-file field
             uploadAttachmentInternal(savedTicket, request.getImageFile());
         }
 
@@ -139,9 +149,13 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public boolean deleteAttachment(Long attachmentId, String userEmail) throws IOException {
-        // Verify user exists
-        userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found."));
+        // Verify user exists if provided; allow guest/anonymous when user not found
+        try {
+            userRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found."));
+        } catch (UserNotFoundException ex) {
+            // proceed as anonymous/guest
+        }
 
         TicketAttachment attachment = attachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new TicketNotFoundException("Attachment not found"));
@@ -203,9 +217,23 @@ public class TicketServiceImpl implements TicketService {
 
         Ticket updated = ticketRepository.save(ticket);
 
-        // If image provided, attach it (add as attachment)
-        if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
+        // If images provided, attach them (add as attachments)
+        if (request.getImageFiles() != null && request.getImageFiles().length > 0) {
+            if (request.getImageFiles().length > 3) {
+                throw new IllegalArgumentException("A maximum of 3 images may be uploaded per ticket.");
+            }
+            for (org.springframework.web.multipart.MultipartFile f : request.getImageFiles()) {
+                if (f != null && !f.isEmpty()) {
+                    uploadAttachmentInternal(updated, f);
+                }
+            }
+            // reload ticket so attachments are populated
+            updated = ticketRepository.findById(updated.getId())
+                    .orElseThrow(() -> new TicketNotFoundException("Ticket not found after update"));
+        } else if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
             uploadAttachmentInternal(updated, request.getImageFile());
+            updated = ticketRepository.findById(updated.getId())
+                    .orElseThrow(() -> new TicketNotFoundException("Ticket not found after update"));
         }
 
         return convertToDTO(updated);

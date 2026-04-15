@@ -24,7 +24,7 @@ public class TicketResponseDTO {
 
     private String technician;
     
-    // New field - list of all attachments with Cloudinary details
+
     private List<AttachmentDTO> attachments;
     
     private List<CommentDTO> comments;

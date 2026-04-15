@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ticketService } from "../services/ticketService";
-import type { Ticket, Comment } from "../types/ticket";
+import type { Ticket, Comment } from "../types/ticketTypes";
 import { CURRENT_USER, STATUS_META, PRIORITY_META, CATEGORIES } from "../constants/constants";
 import { timeAgo, formatDate } from "../utills/helpers";
 import StatusTracker from "./StatusTracker";
@@ -118,7 +118,8 @@ export default function TicketDetailView({
       category: resp.category,
       priority: resp.priority,
       resourceLocation: resp.resourceLocation,
-      images: resp.attachments ? resp.attachments.map((a: any) => a.cloudinaryUrl).filter((u: any) => u) : ticket.images,
+      images: resp.attachments ? resp.attachments.map((a: any) => a.cloudinarySecureUrl || a.cloudinaryUrl || a.linkUrl).filter((u: any) => u) : ticket.images,
+      attachments: resp.attachments ? resp.attachments.map((a: any) => ({ id: a.id, cloudinaryUrl: a.cloudinaryUrl, cloudinarySecureUrl: a.cloudinarySecureUrl })) : ticket.attachments,
       updatedAt: resp.updatedAt || new Date().toISOString(),
     };
   };
@@ -201,18 +202,33 @@ export default function TicketDetailView({
         )}
 
         {/* Images */}
-        {ticket.images.length > 0 && (
+        {(ticket.attachments && ticket.attachments.length > 0) || (ticket.images && ticket.images.length > 0) ? (
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-              Evidence ({ticket.images.length})
+              Evidence ({(ticket.attachments && ticket.attachments.length) || ticket.images.length})
             </p>
             <div className="grid grid-cols-3 gap-2">
-              {ticket.images.map((img, i) => (
-                <img key={i} src={img} alt="" className="w-full h-24 object-cover rounded-xl border border-slate-200" />
-              ))}
+              {ticket.attachments && ticket.attachments.length > 0
+                ? ticket.attachments.map((a) => (
+                    <div key={a.id} className="relative">
+                      <img src={a.cloudinarySecureUrl || a.cloudinaryUrl} alt="" className="w-full h-24 object-cover rounded-xl border border-slate-200" />
+                      {ticket.status === "OPEN" && (
+                        <button
+                          onClick={() => handleDeleteImage(a.id)}
+                          className="absolute top-1 right-1 w-7 h-7 bg-red-50 text-red-600 rounded-md flex items-center justify-center hover:bg-red-100"
+                          title="Delete image"
+                        >
+                          🗑
+                        </button>
+                      )}
+                    </div>
+                  ))
+                : ticket.images.map((img, i) => (
+                    <img key={i} src={img} alt="" className="w-full h-24 object-cover rounded-xl border border-slate-200" />
+                  ))}
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Meta footer */}
         <div className="flex items-center justify-between text-xs text-slate-400 mt-5 pt-4 border-t border-slate-100">
@@ -229,7 +245,7 @@ export default function TicketDetailView({
                 <textarea className="w-full border rounded-md px-2 py-1" rows={3} value={localDescription} onChange={(e) => setLocalDescription(e.target.value)} />
                 <div className="flex gap-2">
                   <select value={localCategory} onChange={(e) => setLocalCategory(e.target.value)} className="border rounded-md px-2 py-1">
-                    {CATEGORIES.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
+                    {CATEGORIES.map((c) => (<option key={c.value} value={c.value}>{c.value}</option>))}
                   </select>
                   <select value={localPriority} onChange={(e) => setLocalPriority(e.target.value as any)} className="border rounded-md px-2 py-1">
                     {Object.keys(PRIORITY_META).map((k) => (<option key={k} value={k}>{k}</option>))}

@@ -28,8 +28,8 @@ export interface TicketRequestDTO {
   description: string;
   priority: Priority;
   resourceLocation?: string;
-
   imageFile?: File;
+  imageFiles?: File[];
 }
 
 export interface TicketResponseDTO {
@@ -60,7 +60,7 @@ export interface Comment {
   id: string;
   authorId: string;
   authorName: string;
-  authorRole: UserRole;
+  authorRole: "USER" | "TECHNICIAN" | "ADMIN";
   content: string;
   createdAt: string;
   updatedAt?: string;
@@ -76,9 +76,7 @@ export interface Ticket {
   status: TicketStatus;
   resourceLocation: string;
   images: string[];
-  createdBy: string;
-  createdByName: string;
-  assignedTo?: string;
+  attachments?: Array<{ id: number; cloudinaryUrl?: string; cloudinarySecureUrl?: string }>;
   assignedToName?: string;
   resolutionNote?: string;
   rejectionReason?: string;

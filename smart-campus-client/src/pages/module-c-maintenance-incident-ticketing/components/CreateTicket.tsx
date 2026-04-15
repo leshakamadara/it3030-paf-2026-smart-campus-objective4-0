@@ -1,12 +1,12 @@
 import { useState, useRef } from "react";
-import type { Ticket, Priority } from "../types/ticket";
+import type { Ticket, Priority } from "../types/ticketTypes";
 import { CATEGORIES, PRIORITY_META } from "../constants/constants";
 
 export default function CreateTicket({
   onSubmit,
   onCancel,
 }: {
-  onSubmit: (t: Partial<Ticket> & { imageFile?: File | null }) => void;
+  onSubmit: (t: Partial<Ticket> & { imageFiles?: File[] } ) => void;
   onCancel: () => void;
 }) {
   const [step, setStep] = useState(0);
@@ -17,8 +17,8 @@ export default function CreateTicket({
     priority: "MEDIUM" as Priority,
     resourceLocation: "",
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -26,32 +26,42 @@ export default function CreateTicket({
   const steps = ["Category", "Details", "Evidence", "Contact & Submit"];
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    // Prevent adding more than 3
+    if (imageFiles.length >= 3) {
+      alert("You can attach up to 3 images.");
+      return;
+    }
+    const spaceLeft = 3 - imageFiles.length;
+    const toAdd = files.slice(0, spaceLeft);
+    const combined = [...imageFiles, ...toAdd].slice(0, 3);
+    processFiles(combined);
   };
 
-  const processFile = (file: File) => {
-    // Check file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File size must be less than 10MB.");
-      return;
+  const processFiles = (files: File[]) => {
+    const valid: File[] = [];
+    const previews: string[] = [];
+    for (const file of files.slice(0, 3)) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert("One of the files exceeds 10MB. It was not added.");
+        continue;
+      }
+      if (!file.type.startsWith("image/")) {
+        alert("Only image files are allowed. Non-image file was skipped.");
+        continue;
+      }
+      valid.push(file);
     }
-
-    // Check file type
-    if (!file.type.startsWith("image/")) {
-      alert("Please select an image file.");
-      return;
-    }
-
-    setImageFile(file);
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    // create previews
+    valid.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImagePreviews((prev) => [...prev, reader.result as string].slice(0, 3));
+      };
+      reader.readAsDataURL(file);
+    });
+    setImageFiles(valid.slice(0, 3));
   };
 
   // ─── Drag and Drop Handlers ────────────────────────────────────────
@@ -74,12 +84,13 @@ export default function CreateTicket({
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      processFile(files[0]); // Only process the first file
+      const combined = [...imageFiles, ...files].slice(0, 3);
+      processFiles(combined);
     }
   };
 
   const handleSubmit = () => {
-    onSubmit({ ...form, imageFile, images: imagePreview ? [imagePreview] : [] });
+    onSubmit({ ...form, imageFiles });
     setSubmitted(true);
   };
 
@@ -240,7 +251,7 @@ export default function CreateTicket({
       {step === 2 && (
         <div>
           <h2 className="text-base font-semibold text-slate-700 mb-1">Add evidence photo</h2>
-          <p className="text-sm text-slate-400 mb-5">Optional — upload one image (photo of the damage, error screen, etc.)</p>
+          <p className="text-sm text-slate-400 mb-5">Optional — upload up to 3 images (photos of the damage, error screen, etc.)</p>
 
           <div
             className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-200 ${
@@ -266,29 +277,31 @@ export default function CreateTicket({
             }`}>
               {isDragOver ? "Release to upload" : "Drag & drop or click to select • Max file size: 10MB"}
             </p>
+            {imageFiles.length >= 3 && (
+              <p className="text-xs text-red-500 mt-2">Maximum of 3 images attached.</p>
+            )}
           </div>
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImage} />
+          <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImage} />
 
-          {imagePreview && (
-            <div className="mt-4">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Preview:</p>
-              <div className="relative group aspect-square max-w-xs mx-auto">
-                <img src={imagePreview} alt="" className="w-full h-full object-cover rounded-xl border border-slate-200" />
-                <button
-                  onClick={() => {
-                    setImagePreview(null);
-                    setImageFile(null);
-                  }}
-                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  ✕
-                </button>
-              </div>
+          {imagePreviews.length > 0 ? (
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              {imagePreviews.map((src, idx) => (
+                <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden border border-slate-200">
+                  <img src={src} alt={`preview-${idx}`} className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => {
+                      setImageFiles((prev) => prev.filter((_, i) => i !== idx));
+                      setImagePreviews((prev) => prev.filter((_, i) => i !== idx));
+                    }}
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
             </div>
-          )}
-
-          {!imagePreview && (
-            <p className="text-center text-xs text-slate-400 mt-4">No image attached — you can still submit without a photo.</p>
+          ) : (
+            <p className="text-center text-xs text-slate-400 mt-4">No images attached — you can still submit without photos.</p>
           )}
         </div>
       )}
@@ -312,7 +325,7 @@ export default function CreateTicket({
                 { label: "Title", value: form.title },
                 { label: "Location", value: form.resourceLocation },
                 { label: "Priority", value: PRIORITY_META[form.priority].label },
-                { label: "Image", value: imagePreview ? "1 attached" : "None" },
+                { label: "Image", value: imagePreviews.length ? `${imagePreviews.length} attached` : "None" },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-start justify-between gap-3 text-sm">
                   <span className="text-slate-400 shrink-0">{label}</span>

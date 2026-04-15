@@ -1,4 +1,4 @@
-import type { TicketStatus } from "../types/ticket";
+import type { TicketStatus } from "../types/ticketTypes";
 import { STATUS_META } from "../constants/constants";
 
 export default function StatusTracker({ status }: { status: TicketStatus }) {
