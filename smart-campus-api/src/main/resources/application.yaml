@@ -1,3 +1,42 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: smart-campus-api
+  datasource:
+    url: jdbc:postgresql://localhost:5432/smartcampus
+    username: your_username
+    password: your_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+app:
+  jwt-secret: ${APP_JWT_SECRET}
+  jwt-expiration-milliseconds: ${APP_JWT_EXPIRATION_MILLISECONDS:86400000}
+  oauth2:
+    authorized-redirect-uri: ${APP_OAUTH2_AUTHORIZED_REDIRECT_URI:http://localhost:5173/auth/callback}
+  auth:
+    allow-dummy-login: ${APP_AUTH_ALLOW_DUMMY_LOGIN:false}
+  
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+        security: DEBUG
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql: TRACE
+
