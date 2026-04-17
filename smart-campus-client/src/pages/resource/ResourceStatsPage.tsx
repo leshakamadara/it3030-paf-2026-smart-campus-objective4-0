@@ -41,7 +41,7 @@ export default function ResourceStatsPage() {
 
   if (!isAdmin()) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-indigo-50/30">
+      <div className="min-h-screen bg-linear-to-br from-white via-sky-50 to-blue-50">
         <div className="border-b border-white/50 bg-white/70 backdrop-blur-md">
           <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
             <Link
@@ -77,7 +77,7 @@ export default function ResourceStatsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-indigo-50/30">
+    <div className="min-h-screen bg-linear-to-br from-white via-sky-50 to-blue-50">
       {/* Decorative background blobs */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-indigo-200/20 blur-3xl" />
@@ -85,7 +85,7 @@ export default function ResourceStatsPage() {
       </div>
 
       {/* Page Header */}
-      <div className="sticky top-0 z-20 border-b border-white/50 bg-white/70 backdrop-blur-xl">
+      <div className="sticky top-0 z-20 border-b border-sky-100/50 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">

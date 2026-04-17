@@ -104,7 +104,6 @@ export default function ResourceFilters({
     setForm(createFormState(initialFilters));
   }, [initialFilters]);
 
-  // Count active filters (excluding pagination/sort)
   const activeCount = [
     form.type,
     form.building,
@@ -150,15 +149,17 @@ export default function ResourceFilters({
   return (
     <aside className="space-y-1">
       {/* Header */}
-      <div className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 shadow-sm">
+      <div className="rounded-2xl border border-white/50 bg-white/80 p-5 shadow-lg backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <svg className="h-4 w-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0014 13.828V19a1 1 0 01-.553.894l-4 2A1 1 0 018 21v-7.172a1 1 0 00-.293-.707L1.293 6.707A1 1 0 011 6V4z" />
-            </svg>
-            <span className="text-sm font-semibold text-zinc-900">Filters</span>
+            <div className="rounded-lg bg-indigo-100 p-1.5">
+              <svg className="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0014 13.828V19a1 1 0 01-.553.894l-4 2A1 1 0 018 21v-7.172a1 1 0 00-.293-.707L1.293 6.707A1 1 0 011 6V4z" />
+              </svg>
+            </div>
+            <span className="text-sm font-semibold text-zinc-800">Filters</span>
             {activeCount > 0 && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
                 {activeCount}
               </span>
             )}
@@ -167,7 +168,7 @@ export default function ResourceFilters({
             <button
               type="button"
               onClick={handleReset}
-              className="text-xs text-zinc-400 transition hover:text-zinc-700"
+              className="text-xs font-medium text-zinc-400 transition hover:text-indigo-600"
             >
               Clear all
             </button>
@@ -175,9 +176,8 @@ export default function ResourceFilters({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-white/50 bg-white/80 p-5 shadow-lg backdrop-blur-sm">
         <div className="space-y-5">
-
           {/* Type */}
           <FilterGroup label="Resource Type">
             <select
@@ -217,7 +217,7 @@ export default function ResourceFilters({
             </select>
           </FilterGroup>
 
-          <div className="h-px bg-zinc-100" />
+          <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent" />
 
           {/* Bookable */}
           <FilterGroup label="Bookable">
@@ -229,8 +229,8 @@ export default function ResourceFilters({
                   onClick={() => setForm((p) => ({ ...p, isBookable: v }))}
                   className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition ${
                     form.isBookable === v
-                      ? "border-zinc-900 bg-zinc-900 text-white"
-                      : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-white"
+                      ? "border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm"
+                      : "border-zinc-200 bg-white text-zinc-600 hover:border-indigo-300 hover:bg-indigo-50/50"
                   }`}
                 >
                   {v === "" ? "All" : v === "true" ? "Yes" : "No"}
@@ -249,8 +249,8 @@ export default function ResourceFilters({
                   onClick={() => setForm((p) => ({ ...p, isUnderMaintenance: v }))}
                   className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition ${
                     form.isUnderMaintenance === v
-                      ? "border-zinc-900 bg-zinc-900 text-white"
-                      : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-white"
+                      ? "border-amber-400 bg-amber-50 text-amber-700 shadow-sm"
+                      : "border-zinc-200 bg-white text-zinc-600 hover:border-amber-300 hover:bg-amber-50/50"
                   }`}
                 >
                   {v === "" ? "All" : v === "true" ? "Yes" : "No"}
@@ -259,13 +259,13 @@ export default function ResourceFilters({
             </div>
           </FilterGroup>
 
-          <div className="h-px bg-zinc-100" />
+          <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent" />
 
           {/* Capacity range */}
           <FilterGroup label="Capacity Range">
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="mb-1 block text-xs text-zinc-400">Min</label>
+                <label className="mb-1 block text-xs text-zinc-500">Min</label>
                 <input
                   type="number"
                   min="0"
@@ -276,7 +276,7 @@ export default function ResourceFilters({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-zinc-400">Max</label>
+                <label className="mb-1 block text-xs text-zinc-500">Max</label>
                 <input
                   type="number"
                   min="0"
@@ -289,7 +289,7 @@ export default function ResourceFilters({
             </div>
           </FilterGroup>
 
-          <div className="h-px bg-zinc-100" />
+          <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent" />
 
           {/* Features */}
           <FilterGroup label="Amenities">
@@ -299,8 +299,8 @@ export default function ResourceFilters({
                   key={item.key}
                   className={`flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium transition ${
                     form[item.key as keyof FilterFormState]
-                      ? "border-zinc-900 bg-zinc-900 text-white"
-                      : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300"
+                      ? "border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm"
+                      : "border-zinc-200 bg-white text-zinc-600 hover:border-indigo-300 hover:bg-indigo-50/50"
                   }`}
                 >
                   <input
@@ -318,7 +318,7 @@ export default function ResourceFilters({
             </div>
           </FilterGroup>
 
-          <div className="h-px bg-zinc-100" />
+          <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent" />
 
           {/* Sort */}
           <FilterGroup label="Sort By">
@@ -357,8 +357,8 @@ export default function ResourceFilters({
                   onClick={() => setForm((p) => ({ ...p, size: n }))}
                   className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition ${
                     form.size === n
-                      ? "border-zinc-900 bg-zinc-900 text-white"
-                      : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300"
+                      ? "border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm"
+                      : "border-zinc-200 bg-white text-zinc-600 hover:border-indigo-300 hover:bg-indigo-50/50"
                   }`}
                 >
                   {n}
@@ -373,7 +373,7 @@ export default function ResourceFilters({
           <button
             type="button"
             onClick={handleApply}
-            className="flex-1 rounded-xl bg-zinc-900 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-700"
+            className="flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition hover:shadow-lg hover:shadow-indigo-200"
           >
             Apply Filters
           </button>
@@ -390,19 +390,17 @@ export default function ResourceFilters({
   );
 }
 
-function FilterGroup({ label, children }: { label: string; children: ReactNode }) {
+function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{label}</p>
       {children}
     </div>
   );
 }
 
-import type { ReactNode } from "react";
-
 const inputCls =
-  "w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:bg-white focus:ring-2 focus:ring-zinc-900/[0.06]";
+  "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20";
 
 const selectCls =
-  "w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white focus:ring-2 focus:ring-zinc-900/[0.06]";
+  "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20";

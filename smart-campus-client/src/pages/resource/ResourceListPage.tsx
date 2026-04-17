@@ -114,7 +114,7 @@ export default function ResourceListPage() {
                 Campus Resources
               </h1>
               <p className="mt-1 text-sm text-zinc-500">
-                Browse, search and manage all campus facilities and assets.
+                All campus facilities and assets.
               </p>
             </div>
 
@@ -167,41 +167,78 @@ export default function ResourceListPage() {
 
           {/* Results column */}
           <div ref={resultsRef} className="space-y-4">
-            {/* Live search bar */}
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                {loading && debouncedSearch ? (
-                  <svg className="h-4 w-4 animate-spin text-indigo-400" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                ) : (
-                  <svg className="h-4 w-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                )}
-              </div>
-              <input
-                ref={searchRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Live search by name... results appear alphabetically"
-                className="w-full rounded-2xl border border-zinc-200 bg-white py-3.5 pl-11 pr-10 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => { setSearchQuery(""); searchRef.current?.focus(); }}
-                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-zinc-400 transition hover:text-zinc-600"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-
+            {/* Search bar with FIXED icon visibility */}
+<div className="relative">
+  <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
+    {loading && debouncedSearch ? (
+      <svg
+        className="h-5 w-5 animate-spin text-indigo-600"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+        />
+      </svg>
+    ) : (
+      <svg
+        className="h-5 w-5 text-indigo-600"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2.5}
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        />
+      </svg>
+    )}
+  </div>
+  <input
+    ref={searchRef}
+    type="text"
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    placeholder="Search Name..."
+    className="w-full rounded-2xl border border-white/50 bg-white/80 py-3.5 pl-11 pr-10 text-sm text-zinc-800 shadow-md backdrop-blur-sm outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+  />
+  {searchQuery && (
+    <button
+      type="button"
+      onClick={() => {
+        setSearchQuery("");
+        searchRef.current?.focus();
+      }}
+      className="absolute inset-y-0 right-0 z-10 flex items-center pr-4 text-zinc-400 transition hover:text-zinc-600"
+    >
+      <svg
+        className="h-4 w-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M6 18L18 6M6 6l12 12"
+        />
+      </svg>
+    </button>
+  )}
+</div>
             {/* Search active indicator */}
             {debouncedSearch && (
               <div className="flex items-center gap-2 text-xs text-zinc-500">
