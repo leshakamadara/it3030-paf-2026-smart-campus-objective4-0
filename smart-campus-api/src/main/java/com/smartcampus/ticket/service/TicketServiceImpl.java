@@ -134,6 +134,45 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
+    public CommentDTO updateComment(Long ticketId, Long commentId, String userEmail, String commentText) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+        TicketComment existingComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new TicketNotFoundException("Comment not found"));
+
+        if (!existingComment.getTicket().getId().equals(ticket.getId())) {
+            throw new TicketNotFoundException("Comment does not belong to the specified ticket");
+        }
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found. Only existing users can edit comments."));
+
+        existingComment.setComment(commentText);
+        TicketComment updatedComment = commentRepository.save(existingComment);
+        return convertCommentToDTO(updatedComment);
+    }
+
+    @Override
+    public boolean deleteComment(Long ticketId, Long commentId, String userEmail) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+        TicketComment existingComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new TicketNotFoundException("Comment not found"));
+
+        if (!existingComment.getTicket().getId().equals(ticket.getId())) {
+            throw new TicketNotFoundException("Comment does not belong to the specified ticket");
+        }
+
+        userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found. Only existing users can delete comments."));
+
+        commentRepository.delete(existingComment);
+        return true;
+    }
+
+    @Override
     public AttachmentDTO uploadAttachment(Long ticketId, MultipartFile file, String userEmail) throws IOException {
         // Verify user exists
         userRepository.findByEmail(userEmail)
@@ -309,6 +348,7 @@ public class TicketServiceImpl implements TicketService {
         return new CommentDTO(
                 comment.getId(),
                 comment.getCreatedBy().getEmail(),
+                comment.getCreatedBy().getName(),
                 comment.getComment(),
                 comment.getCreatedAt()
         );

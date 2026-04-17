@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CommentDTO {
     private Long id;
-    private String user;
+    private String createdBy;
+    private String createdByName;
     private String comment;
     private LocalDateTime createdAt;
 }

@@ -24,10 +24,19 @@ export default function IncidentTicketingModule() {
   const [filterPriority, setFilterPriority] = useState<Priority | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "priority">("date");
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
 
   // Fetch tickets on component mount
   useEffect(() => {
     fetchTickets();
+    (async () => {
+      try {
+        const u = await ticketService.getCurrentUser();
+        setCurrentUser(u);
+      } catch (err) {
+        setCurrentUser(CURRENT_USER);
+      }
+    })();
   }, []);
 
   const fetchTickets = async () => {
@@ -125,17 +134,17 @@ export default function IncidentTicketingModule() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5">
               <span className="w-7 h-7 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-semibold">
-                {CURRENT_USER.avatar}
+                {(currentUser || CURRENT_USER).avatar}
               </span>
-              <span className="font-medium">{CURRENT_USER.name}</span>
+              <span className="font-medium">{(currentUser || CURRENT_USER).name}</span>
               <span
                 className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
-                  CURRENT_USER.role === "ADMIN"
+                  (currentUser || CURRENT_USER).role === "ADMIN"
                     ? "bg-amber-100 text-amber-700"
                     : "bg-slate-200 text-slate-600"
                 }`}
               >
-                {CURRENT_USER.role}
+                {(currentUser || CURRENT_USER).role}
               </span>
             </div>
 

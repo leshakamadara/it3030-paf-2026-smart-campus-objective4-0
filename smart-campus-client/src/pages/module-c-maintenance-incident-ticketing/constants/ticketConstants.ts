@@ -28,6 +28,7 @@ export const CURRENT_USER: User = {
   id: "u1",
   name: "Amal Perera",
   role: "ADMIN",
+  email: "admin@example.com",
   avatar: "AP",
 };
 

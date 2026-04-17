@@ -152,6 +152,41 @@ export const ticketService = {
       throw error;
     }
   },
+  
+  // Edit a comment
+  editComment: async (ticketId: number, commentId: number, newText: string): Promise<CommentDTO> => {
+    try {
+      const response = await axios.put<CommentDTO>(`${BASE_URL}/${ticketId}/comments/${commentId}`, newText, {
+        headers: { "Content-Type": "text/plain" },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error editing comment:", error);
+      throw error;
+    }
+  },
+
+  // Delete a comment
+  deleteComment: async (ticketId: number, commentId: number): Promise<{ success: boolean }> => {
+    try {
+      const response = await axios.delete<{ success: boolean }>(`${BASE_URL}/${ticketId}/comments/${commentId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      throw error;
+    }
+  },
+
+  // Fetch current authenticated user info (role, id, name)
+  getCurrentUser: async (): Promise<{ id: number; name: string; role: string; avatar?: string }> => {
+    try {
+      const response = await axios.get(`/api/auth/me`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+      throw error;
+    }
+  },
 
   // Upload attachment to existing ticket
   uploadAttachment: async (ticketId: number, file: File, userEmail: string = "guest@example.com"): Promise<AttachmentDTO> => {

@@ -16,6 +16,8 @@ public interface TicketService {
     List<TicketResponseDTO> getAllTickets();
     TicketResponseDTO updateTicketStatus(Long id, Status newStatus, String technicianEmail);
     CommentDTO addComment(Long ticketId, String userEmail, String commentText);
+    CommentDTO updateComment(Long ticketId, Long commentId, String userEmail, String commentText);
+    boolean deleteComment(Long ticketId, Long commentId, String userEmail);
 
     // Attachment management methods
     AttachmentDTO uploadAttachment(Long ticketId, MultipartFile file, String userEmail) throws IOException;

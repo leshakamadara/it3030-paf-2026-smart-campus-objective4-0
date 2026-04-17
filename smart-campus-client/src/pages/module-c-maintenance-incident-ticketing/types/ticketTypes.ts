@@ -18,6 +18,7 @@ export interface AttachmentDTO {
 export interface CommentDTO {
   id: number;
   createdBy: string; // email
+  createdByName?: string;
   comment: string;
   createdAt: string;
 }
@@ -52,6 +53,7 @@ export interface TicketResponseDTO {
 export interface User {
   id: string;
   name: string;
+  email: string;
   role: UserRole;
   avatar: string;
 }
@@ -64,6 +66,7 @@ export interface Comment {
   content: string;
   createdAt: string;
   updatedAt?: string;
+  initials?: string;
 }
 
 export interface Ticket {

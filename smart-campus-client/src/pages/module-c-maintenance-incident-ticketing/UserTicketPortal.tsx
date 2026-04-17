@@ -50,7 +50,7 @@ export default function UserTicketPortal() {
     comments: ticket.comments.map((comment) => ({
       id: comment.id.toString(),
       authorId: comment.createdBy,
-      authorName: comment.createdBy,
+      authorName: comment.createdByName ?? comment.createdBy,
       authorRole: "USER",
       content: comment.comment,
       createdAt: comment.createdAt,
@@ -104,7 +104,7 @@ export default function UserTicketPortal() {
         comments: created.comments.map((comment) => ({
           id: comment.id.toString(),
           authorId: comment.createdBy,
-          authorName: comment.createdBy,
+          authorName: comment.createdByName ?? comment.createdBy,
           authorRole: "USER",
           content: comment.comment,
           createdAt: comment.createdAt,

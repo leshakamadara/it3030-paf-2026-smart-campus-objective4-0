@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ticketService } from "../services/ticketService";
 import type { Ticket, Comment } from "../types/ticketTypes";
-import { CURRENT_USER, STATUS_META, PRIORITY_META, CATEGORIES } from "../constants/constants";
+import { STATUS_META, PRIORITY_META, CATEGORIES } from "../constants/constants";
+import { CURRENT_USER } from "../constants/constants";
 import { timeAgo, formatDate } from "../utills/helpers";
 import StatusTracker from "./StatusTracker";
+import CommentBubble from "./CommentBubble";
 
 export default function TicketDetailView({
   ticket,
@@ -20,37 +22,119 @@ export default function TicketDetailView({
   const [comment, setComment] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const u = await ticketService.getCurrentUser();
+        if (mounted) setCurrentUser(u);
+      } catch (err) {
+        if (mounted) setCurrentUser(CURRENT_USER);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const formatCommentAuthorName = (value: any) => {
+    if (!value) return "Unknown User";
+    const text = String(value).trim();
+    if (!text) return "Unknown User";
+    if (text.includes("@")) {
+      const local = text.split("@")[0];
+      return local
+        .split(/[._-]+/)
+        .filter(Boolean)
+        .map((part) => part[0].toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+    }
+    return text
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part[0].toUpperCase() + part.slice(1).toLowerCase())
+      .join(" ");
+  };
+
+  const getCommentInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "?";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  const getCommentAuthorLabel = (comment: any) => {
+    const rawAuthor = comment.authorName ?? comment.authorId ?? "";
+    return formatCommentAuthorName(rawAuthor);
+  };
+
+  const [loadingCommentAction, setLoadingCommentAction] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ open: boolean; commentId?: string }>(
+    { open: false }
+  );
   const sm = STATUS_META[ticket.status];
   const pm = PRIORITY_META[ticket.priority];
   const cat = CATEGORIES.find((c) => c.value === ticket.category);
 
   const addComment = () => {
     if (!comment.trim()) return;
-    const c: Comment = {
-      id: `c-${Date.now()}`,
-      authorId: CURRENT_USER.id,
-      authorName: CURRENT_USER.name,
-      authorRole: "USER",
-      content: comment.trim(),
-      createdAt: new Date().toISOString(),
-    };
-    onUpdate({ ...ticket, comments: [...ticket.comments, c] });
-    setComment("");
+    (async () => {
+      try {
+        setLoadingCommentAction(true);
+        const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
+        await ticketService.addComment(backendId, comment.trim());
+        const full = await ticketService.getWithAttachments(backendId);
+        onUpdate({ ...ticket, ...mapResponseToTicket(full), comments: mapDtoCommentsToComments(full.comments) });
+        setComment("");
+      } catch (err) {
+        console.error("Failed to add comment:", err);
+      } finally {
+        setLoadingCommentAction(false);
+      }
+    })();
   };
 
   const saveEdit = (id: string) => {
-    onUpdate({
-      ...ticket,
-      comments: ticket.comments.map((c) =>
-        c.id === id ? { ...c, content: editText, updatedAt: new Date().toISOString() } : c
-      ),
-    });
-    setEditId(null);
+    (async () => {
+      try {
+        setLoadingCommentAction(true);
+        const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
+        const numericId = typeof id === "string" && id.startsWith("c-") ? NaN : Number(id);
+        await ticketService.editComment(backendId, numericId as any, editText);
+        const full = await ticketService.getWithAttachments(backendId);
+        onUpdate({ ...ticket, ...mapResponseToTicket(full), comments: mapDtoCommentsToComments(full.comments) });
+        setEditId(null);
+      } catch (err) {
+        console.error("Failed to save edited comment:", err);
+      } finally {
+        setLoadingCommentAction(false);
+      }
+    })();
   };
 
   const deleteComment = (id: string) => {
-    onUpdate({ ...ticket, comments: ticket.comments.filter((c) => c.id !== id) });
+    setShowDeleteConfirm({ open: true, commentId: id });
   };
+
+  // actually perform delete after confirmation
+  const confirmDelete = async (id: string) => {
+    try {
+      setLoadingCommentAction(true);
+      const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
+      const numericId = typeof id === "string" && id.startsWith("c-") ? NaN : Number(id);
+      await ticketService.deleteComment(backendId, numericId as any);
+      const full = await ticketService.getWithAttachments(backendId);
+      onUpdate({ ...ticket, ...mapResponseToTicket(full), comments: mapDtoCommentsToComments(full.comments) });
+      setShowDeleteConfirm({ open: false });
+    } catch (err) {
+      console.error("Failed to delete comment:", err);
+      setShowDeleteConfirm({ open: false });
+    } finally {
+      setLoadingCommentAction(false);
+    }
+  };
+
+  // current user is provided by UserContext
 
   // Edit form state (users can update ticket fields only when OPEN)
   const [isEditing, setIsEditing] = useState(false);
@@ -122,6 +206,23 @@ export default function TicketDetailView({
       attachments: resp.attachments ? resp.attachments.map((a: any) => ({ id: a.id, cloudinaryUrl: a.cloudinaryUrl, cloudinarySecureUrl: a.cloudinarySecureUrl })) : ticket.attachments,
       updatedAt: resp.updatedAt || new Date().toISOString(),
     };
+  };
+
+  const mapDtoCommentsToComments = (dtos: any[] = []) => {
+    return dtos.map((c: any) => {
+      const rawAuthor = c.createdByName ?? c.createdBy ?? "";
+      const name = formatCommentAuthorName(rawAuthor);
+      return {
+        id: typeof c.id === "number" ? `c-${c.id}` : String(c.id),
+        authorId: String(c.createdBy ?? ""),
+        authorName: name,
+        authorRole: c.authorRole ?? "USER",
+        content: c.comment ?? c.content ?? "",
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+        initials: getCommentInitials(name),
+      };
+    });
   };
 
   return (
@@ -397,70 +498,44 @@ export default function TicketDetailView({
         )}
 
         <div className="space-y-5 mb-6">
-          {ticket.comments.map((c) => {
-            const isOwn = c.authorId === CURRENT_USER.id;
+          {( 
+            // ensure comments are oldest -> newest so newest appear last
+            (ticket.comments || []).slice().sort((a: any, b: any) => {
+              const ta = new Date(a.createdAt).getTime();
+              const tb = new Date(b.createdAt).getTime();
+              return ta - tb;
+            })
+          ).map((c) => {
+
+            const user = currentUser;
+            const userIdentifiers = [user?.email, user?.id, user?.name].filter(Boolean).map(String);
+            const authorName = getCommentAuthorLabel(c);
+            const authorId = String(c.authorId ?? "");
+            const isOwn = userIdentifiers.includes(authorId) || userIdentifiers.includes(authorName);
+            const role = (user as any)?.role || "USER";
+            const isStaff = role === "ADMIN" || role === "TECHNICIAN" || role === "STAFF";
             const isTech = c.authorRole === "TECHNICIAN" || c.authorRole === "ADMIN";
-            const initials = c.authorName.split(" ").map((n) => n[0]).join("").slice(0, 2);
+            const initials = c.initials || getCommentInitials(authorName);
 
             return (
-              <div key={c.id} className={`flex gap-3 ${isOwn ? "flex-row-reverse" : ""}`}>
-                <div className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
-                  isTech ? "bg-violet-100 text-violet-700" : "bg-sky-100 text-sky-700"
-                }`}>
-                  {initials}
-                </div>
-                <div className={`flex-1 ${isOwn ? "items-end" : "items-start"} flex flex-col`}>
-                  <div className={`flex items-center gap-2 mb-1 ${isOwn ? "flex-row-reverse" : ""}`}>
-                    <span className="text-xs font-semibold text-slate-700">{c.authorName}</span>
-                    {isTech && (
-                      <span className="text-[10px] bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">
-                        {c.authorRole}
-                      </span>
-                    )}
-                    <span className="text-[10px] text-slate-400">{timeAgo(c.createdAt)}{c.updatedAt ? " · edited" : ""}</span>
-                  </div>
-
-                  {editId === c.id ? (
-                    <div className="w-full">
-                      <textarea
-                        rows={2}
-                        className="w-full border border-violet-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 resize-none"
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                      />
-                      <div className="flex gap-2 mt-1.5">
-                        <button onClick={() => saveEdit(c.id)} className="text-xs text-violet-600 font-semibold hover:underline">Save</button>
-                        <button onClick={() => setEditId(null)} className="text-xs text-slate-400 hover:underline">Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={`group relative max-w-sm`}>
-                      <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                        isOwn
-                          ? "bg-violet-600 text-white rounded-tr-sm"
-                          : isTech
-                          ? "bg-slate-100 text-slate-700 border border-slate-200 rounded-tl-sm"
-                          : "bg-slate-100 text-slate-700 rounded-tl-sm"
-                      }`}>
-                        {c.content}
-                      </div>
-                      {isOwn && (
-                        <div className={`flex gap-2 mt-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity`}>
-                          <button
-                            onClick={() => { setEditId(c.id); setEditText(c.content); }}
-                            className="text-[10px] text-slate-400 hover:text-violet-600 transition-colors"
-                          >
-                            Edit
-                          </button>
-                          <button onClick={() => deleteComment(c.id)} className="text-[10px] text-slate-400 hover:text-red-500 transition-colors">
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <CommentBubble
+                id={c.id}
+                authorName={authorName}
+                authorRole={c.authorRole}
+                content={c.content}
+                createdAt={c.createdAt}
+                updatedAt={c.updatedAt}
+                initials={initials}
+                isOwn={isOwn}
+                isTech={isTech}
+                isStaff={isStaff}
+                onEdit={(id) => { setEditId(id); setEditText(c.content); }}
+                onDelete={(id) => deleteComment(id)}
+                isEditing={editId === c.id}
+                editText={editText}
+                setEditText={(v) => setEditText(v)}
+                saveEdit={(id) => saveEdit(id)}
+              />
             );
           })}
         </div>
@@ -469,7 +544,7 @@ export default function TicketDetailView({
         {ticket.status !== "CLOSED" && ticket.status !== "REJECTED" && (
           <div className="flex gap-3 pt-4 border-t border-slate-100">
             <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-700 text-xs font-bold flex items-center justify-center shrink-0">
-              {CURRENT_USER.avatar}
+              {currentUser?.avatar || currentUser?.name?.slice(0,2) || '??'}
             </div>
             <div className="flex-1">
               <textarea
@@ -484,11 +559,24 @@ export default function TicketDetailView({
                 <span className="text-[10px] text-slate-300">⌘ + Enter to send</span>
                 <button
                   onClick={addComment}
-                  disabled={!comment.trim()}
+                  disabled={!comment.trim() || loadingCommentAction}
                   className="px-4 py-1.5 bg-violet-600 text-white text-xs font-semibold rounded-lg hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
-                  Send
+                  {loadingCommentAction ? 'Sending…' : 'Send'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Delete confirmation modal */}
+        {showDeleteConfirm.open && (
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
+              <h3 className="text-lg font-semibold mb-4">Delete Comment</h3>
+              <p className="text-sm text-slate-600 mb-4">Are you sure you want to delete this comment?</p>
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setShowDeleteConfirm({ open: false })} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded">Cancel</button>
+                <button onClick={() => confirmDelete(showDeleteConfirm.commentId!)} disabled={loadingCommentAction} className="px-4 py-2 bg-red-600 text-white rounded">{loadingCommentAction ? 'Deleting…' : 'Delete'}</button>
               </div>
             </div>
           </div>

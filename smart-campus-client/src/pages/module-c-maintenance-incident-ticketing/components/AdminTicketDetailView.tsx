@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import type { TicketResponseDTO, CommentDTO } from "../types/ticketTypes";
 import { ticketService } from "../services/ticketService";
@@ -16,6 +16,8 @@ import { Badge } from "./Badge";
 import { PriorityDot } from "./PriorityDot";
 import { Divider } from "./Divider";
 
+import CommentBubble from "./CommentBubble";
+
 export const AdminTicketDetailView = ({
   ticket,
   onClose,
@@ -31,36 +33,80 @@ export const AdminTicketDetailView = ({
 
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ open: boolean; commentId?: number }>(
+    { open: false }
+  );
 
   const [showResolution, setShowResolution] = useState(false);
   const [resolutionNote, setResolutionNote] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const isAdmin = CURRENT_USER.role === "ADMIN";
-  const isTech =
-    CURRENT_USER.role === "TECHNICIAN" || CURRENT_USER.role === "ADMIN";
+  const isAdmin = (currentUser?.role || CURRENT_USER.role) === "ADMIN";
+  const isTech = (currentUser?.role || CURRENT_USER.role) === "TECHNICIAN" || (currentUser?.role || CURRENT_USER.role) === "ADMIN";
 
   const nextStatuses = STATUS_FLOW[ticket.status];
 
-  // Comments
+  // Comments (BACKEND PERSISTED)
   const addComment = async () => {
     if (!comment.trim()) return;
-
     try {
       setLoading(true);
       setError(null);
       await ticketService.addComment(ticket.id, comment);
-      // Refresh ticket data
       const updatedTicket = await ticketService.getWithAttachments(ticket.id);
       onUpdate(updatedTicket);
       setComment("");
     } catch (err) {
-      console.error("Failed to add comment:", err);
       setError("Failed to add comment. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  const editComment = async (id: number, newText: string) => {
+    if (!newText.trim()) return;
+    try {
+      setLoading(true);
+      setError(null);
+      await ticketService.editComment(ticket.id, id, newText); // You must implement this in ticketService and backend
+      const updatedTicket = await ticketService.getWithAttachments(ticket.id);
+      onUpdate(updatedTicket);
+    } catch (err) {
+      setError("Failed to edit comment. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteComment = async (id: number) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await ticketService.deleteComment(ticket.id, id);
+      const updatedTicket = await ticketService.getWithAttachments(ticket.id);
+      onUpdate(updatedTicket);
+    } catch (err) {
+      setError("Failed to delete comment. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // fetch current user
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const u = await ticketService.getCurrentUser();
+        if (mounted) setCurrentUser(u);
+      } catch (err) {
+        // fallback to constant CURRENT_USER
+        if (mounted) setCurrentUser(CURRENT_USER);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   // ─── Workflow Actions ───────────────────────────────────────
   const advanceStatus = async (status: TicketResponseDTO["status"]) => {
@@ -108,13 +154,24 @@ export const AdminTicketDetailView = ({
     }
   };
 
+  // Allow Escape key to close modal
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
   return (
     <div
       className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
       onClick={onClose}
+      style={{ minHeight: '100vh', minWidth: '100vw' }}
     >
       <div
         className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
+        style={{ minHeight: 300, minWidth: 320, boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER */}
@@ -225,34 +282,40 @@ export const AdminTicketDetailView = ({
               </p>
 
               <div className="space-y-6">
-                {ticket.comments?.map((c: CommentDTO) => {
-                  const initials = c.createdBy
-                    .split("@")[0]
-                    .split(".")
+                {(ticket.comments || []).slice().sort((a: CommentDTO, b: CommentDTO) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((c: CommentDTO) => {
+                  const user = currentUser || CURRENT_USER;
+                  const authorLabel = c.createdByName ?? c.createdBy ?? "Unknown User";
+                  const initials = authorLabel
+                    .split(/\s+/)
+                    .filter(Boolean)
                     .map((n: string) => n[0])
                     .join("")
                     .slice(0, 2)
-                    .toUpperCase();
+                    .toUpperCase() || "??";
+                  const canModerate = (user?.role || CURRENT_USER.role) === "ADMIN" || (user?.role || CURRENT_USER.role) === "TECHNICIAN";
+                  // CommentDTO has `createdBy` (email) and optionally `createdByName` (display name).
+                  const userIdentifier = (user?.username || user?.email || user?.id || null);
+                  const isOwn = !!(c.createdBy && userIdentifier && (c.createdBy === userIdentifier));
+
                   return (
-                    <div key={c.id} className="flex items-start gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                      <Avatar initials={initials} />
-
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="font-semibold text-slate-800">
-                            {c.createdBy}
-                          </span>
-
-                          <span className="text-slate-500 text-xs">
-                            {new Date(c.createdAt).toLocaleString()}
-                          </span>
-                        </div>
-
-                        <p className="text-base text-slate-700 leading-relaxed">
-                          {c.comment}
-                        </p>
-                      </div>
-                    </div>
+                    <CommentBubble
+                      key={c.id}
+                      id={String(c.id)}
+                      authorName={authorLabel}
+                      content={c.comment}
+                      createdAt={c.createdAt}
+                      initials={initials}
+                      isOwn={isOwn}
+                      isTech={false}
+                      isStaff={canModerate}
+                      onEdit={async (id) => {
+                        const newText = prompt("Edit comment:", c.comment);
+                        if (newText !== null && newText.trim() !== "") await editComment(Number(id), newText);
+                      }}
+                      onDelete={async (id) => {
+                        setShowDeleteConfirm({ open: true, commentId: Number(id) });
+                      }}
+                    />
                   );
                 })}
 
@@ -421,6 +484,34 @@ export const AdminTicketDetailView = ({
                   className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? "Rejecting..." : "Reject"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* DELETE CONFIRMATION */}
+        {showDeleteConfirm.open && (
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
+              <h3 className="text-lg font-semibold mb-4">Delete Comment</h3>
+              <p className="text-sm text-slate-600 mb-4">Are you sure you want to delete this comment? This action cannot be undone.</p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowDeleteConfirm({ open: false })}
+                  className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (showDeleteConfirm.commentId) await deleteComment(showDeleteConfirm.commentId);
+                    setShowDeleteConfirm({ open: false });
+                  }}
+                  disabled={loading}
+                  className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? "Deleting..." : "Delete"}
                 </button>
               </div>
             </div>
