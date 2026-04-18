@@ -46,3 +46,10 @@ export interface BookingQrVerificationResponse {
   message: string;
   booking: Booking | null;
 }
+
+export interface ResourceSummary {
+  id: string;
+  name?: string;
+  type?: string;
+  imageUrl?: string;
+}
