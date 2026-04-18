@@ -19,8 +19,10 @@ export interface CommentDTO {
   id: number;
   createdBy: string; // email
   createdByName?: string;
+  createdByRole?: string;
   comment: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface TicketRequestDTO {

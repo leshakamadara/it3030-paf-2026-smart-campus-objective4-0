@@ -41,7 +41,6 @@ export default function CreateTicket({
 
   const processFiles = (files: File[]) => {
     const valid: File[] = [];
-    const previews: string[] = [];
     for (const file of files.slice(0, 3)) {
       if (file.size > 10 * 1024 * 1024) {
         alert("One of the files exceeds 10MB. It was not added.");

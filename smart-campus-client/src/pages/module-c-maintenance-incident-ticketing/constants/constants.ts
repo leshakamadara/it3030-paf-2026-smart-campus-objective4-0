@@ -1,6 +1,6 @@
-import type { Ticket, Priority, TicketStatus } from "../types/ticketTypes";
+import type { Priority, TicketStatus } from "../types/ticketTypes";
 
-export const CURRENT_USER = { id: "u1", name: "Kasun Madhawa", email: "jane.smith@example.com", avatar: "KM", role: "USER" };
+export const CURRENT_USER = { id: 2, name: "Jane Smith", email: "jane.smith@example.com", avatar: "KM", role: "USER" };
 
 export const CATEGORIES = [
   { value: "Hardware Failure", icon: "🖥️" },

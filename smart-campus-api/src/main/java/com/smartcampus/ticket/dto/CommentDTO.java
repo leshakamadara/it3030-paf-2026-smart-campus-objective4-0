@@ -12,6 +12,8 @@ public class CommentDTO {
     private Long id;
     private String createdBy;
     private String createdByName;
+    private String createdByRole;
     private String comment;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

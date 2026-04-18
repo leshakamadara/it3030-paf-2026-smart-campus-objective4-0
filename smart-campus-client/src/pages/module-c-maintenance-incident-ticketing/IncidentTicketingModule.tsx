@@ -18,7 +18,6 @@ export default function IncidentTicketingModule() {
   const [tickets, setTickets] = useState<TicketResponseDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showCreate, setShowCreate] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<TicketResponseDTO | null>(null);
   const [filterStatus, setFilterStatus] = useState<TicketStatus | "ALL">("ALL");
   const [filterPriority, setFilterPriority] = useState<Priority | "ALL">("ALL");
@@ -52,19 +51,6 @@ export default function IncidentTicketingModule() {
       setError("Failed to load tickets. Please try again.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Create Ticket
-  const handleCreate = async (data: any) => {
-    try {
-      setError(null);
-      const newTicket = await ticketService.create(data);
-      setTickets([newTicket, ...tickets]);
-      setShowCreate(false);
-    } catch (err) {
-      console.error("Failed to create ticket:", err);
-      setError("Failed to create ticket. Please try again.");
     }
   };
 
@@ -136,7 +122,7 @@ export default function IncidentTicketingModule() {
               <span className="w-7 h-7 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-semibold">
                 {(currentUser || CURRENT_USER).avatar}
               </span>
-              <span className="font-medium">{(currentUser || CURRENT_USER).name}</span>
+              <span className="font-medium">{(currentUser || CURRENT_USER).name} </span>
               <span
                 className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
                   (currentUser || CURRENT_USER).role === "ADMIN"

@@ -1,6 +1,7 @@
 package com.smartcampus.ticket.service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -149,6 +150,7 @@ public class TicketServiceImpl implements TicketService {
                 .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found. Only existing users can edit comments."));
 
         existingComment.setComment(commentText);
+        existingComment.setUpdatedAt(LocalDateTime.now());
         TicketComment updatedComment = commentRepository.save(existingComment);
         return convertCommentToDTO(updatedComment);
     }
@@ -349,8 +351,10 @@ public class TicketServiceImpl implements TicketService {
                 comment.getId(),
                 comment.getCreatedBy().getEmail(),
                 comment.getCreatedBy().getName(),
+                comment.getCreatedBy().getRole(),
                 comment.getComment(),
-                comment.getCreatedAt()
+                comment.getCreatedAt(),
+                comment.getUpdatedAt()
         );
     }
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ticketService } from "../services/ticketService";
-import type { Ticket, Comment } from "../types/ticketTypes";
+import type { Ticket, Comment, TicketResponseDTO, CommentDTO } from "../types/ticketTypes";
 import { STATUS_META, PRIORITY_META, CATEGORIES } from "../constants/constants";
 import { CURRENT_USER } from "../constants/constants";
 import { timeAgo, formatDate } from "../utills/helpers";
@@ -68,6 +68,8 @@ export default function TicketDetailView({
     return formatCommentAuthorName(rawAuthor);
   };
 
+  const normalize = (val: any) => String(val || "").trim().toLowerCase();
+
   const [loadingCommentAction, setLoadingCommentAction] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ open: boolean; commentId?: string }>(
     { open: false }
@@ -99,7 +101,7 @@ export default function TicketDetailView({
       try {
         setLoadingCommentAction(true);
         const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
-        const numericId = typeof id === "string" && id.startsWith("c-") ? NaN : Number(id);
+        const numericId = typeof id === "string" && id.startsWith("c-") ? Number(id.replace(/^c-/, "")) : Number(id);
         await ticketService.editComment(backendId, numericId as any, editText);
         const full = await ticketService.getWithAttachments(backendId);
         onUpdate({ ...ticket, ...mapResponseToTicket(full), comments: mapDtoCommentsToComments(full.comments) });
@@ -121,7 +123,7 @@ export default function TicketDetailView({
     try {
       setLoadingCommentAction(true);
       const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
-      const numericId = typeof id === "string" && id.startsWith("c-") ? NaN : Number(id);
+      const numericId = typeof id === "string" && id.startsWith("c-") ? Number(id.replace(/^c-/, "")) : Number(id);
       await ticketService.deleteComment(backendId, numericId as any);
       const full = await ticketService.getWithAttachments(backendId);
       onUpdate({ ...ticket, ...mapResponseToTicket(full), comments: mapDtoCommentsToComments(full.comments) });
@@ -208,18 +210,18 @@ export default function TicketDetailView({
     };
   };
 
-  const mapDtoCommentsToComments = (dtos: any[] = []) => {
-    return dtos.map((c: any) => {
-      const rawAuthor = c.createdByName ?? c.createdBy ?? "";
+  const mapDtoCommentsToComments = (dtos: CommentDTO[] = []) => {
+    return dtos.map((c: CommentDTO) => {
+      const rawAuthor = (c as any).createdByName ?? (c as any).createdBy ?? "";
       const name = formatCommentAuthorName(rawAuthor);
       return {
-        id: typeof c.id === "number" ? `c-${c.id}` : String(c.id),
-        authorId: String(c.createdBy ?? ""),
+        id: typeof (c as any).id === "number" ? `c-${(c as any).id}` : String((c as any).id),
+        authorId: String((c as any).createdBy ?? ""),
         authorName: name,
-        authorRole: c.authorRole ?? "USER",
-        content: c.comment ?? c.content ?? "",
-        createdAt: c.createdAt,
-        updatedAt: c.updatedAt,
+        authorRole: (c as any).createdByRole ?? (c as any).authorRole ?? "USER",
+        content: (c as any).comment ?? (c as any).content ?? "",
+        createdAt: (c as any).createdAt,
+        updatedAt: (c as any).updatedAt,
         initials: getCommentInitials(name),
       };
     });
@@ -507,14 +509,14 @@ export default function TicketDetailView({
             })
           ).map((c) => {
 
-            const user = currentUser;
-            const userIdentifiers = [user?.email, user?.id, user?.name].filter(Boolean).map(String);
+            const user = currentUser || CURRENT_USER;
             const authorName = getCommentAuthorLabel(c);
-            const authorId = String(c.authorId ?? "");
-            const isOwn = userIdentifiers.includes(authorId) || userIdentifiers.includes(authorName);
+            const userIdentifier = normalize((user?.username || user?.email || user?.id));
+            const commentAuthor = normalize((c as any).createdBy ?? (c as any).authorId ?? authorName);
+            const isOwn = !!(userIdentifier && commentAuthor && userIdentifier === commentAuthor);
             const role = (user as any)?.role || "USER";
-            const isStaff = role === "ADMIN" || role === "TECHNICIAN" || role === "STAFF";
-            const isTech = c.authorRole === "TECHNICIAN" || c.authorRole === "ADMIN";
+            const isStaff = role === "USER" ;
+            const isTech = c.authorRole === "USER" ;
             const initials = c.initials || getCommentInitials(authorName);
 
             return (
@@ -556,7 +558,7 @@ export default function TicketDetailView({
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addComment(); }}
               />
               <div className="flex items-center justify-between mt-2">
-                <span className="text-[10px] text-slate-300">⌘ + Enter to send</span>
+                <span className="text-[10px] text-slate-300"></span>
                 <button
                   onClick={addComment}
                   disabled={!comment.trim() || loadingCommentAction}

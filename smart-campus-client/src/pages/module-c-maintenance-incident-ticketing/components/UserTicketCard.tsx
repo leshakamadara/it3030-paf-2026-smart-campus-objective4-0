@@ -1,5 +1,5 @@
 import type { Ticket } from "../types/ticketTypes";
-import { STATUS_META, PRIORITY_META, CATEGORIES } from "../constants/constants";
+import { PRIORITY_META, CATEGORIES } from "../constants/constants";
 import { Badge } from "./Badge";
 import { timeAgo } from "../utills/helpers";
 
@@ -12,7 +12,6 @@ export default function TicketCard({
   onClick: () => void;
   onDelete?: (id: number) => void;
 }) {
-  const sm = STATUS_META[ticket.status];
   const pm = PRIORITY_META[ticket.priority];
   const cat = CATEGORIES.find((c) => c.value === ticket.category);
 

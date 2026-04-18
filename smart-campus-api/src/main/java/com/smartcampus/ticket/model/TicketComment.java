@@ -40,4 +40,6 @@ public class TicketComment {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 }

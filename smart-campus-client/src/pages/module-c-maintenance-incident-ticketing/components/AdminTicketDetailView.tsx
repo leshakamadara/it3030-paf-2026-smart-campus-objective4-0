@@ -108,7 +108,7 @@ export const AdminTicketDetailView = ({
     return () => { mounted = false; };
   }, []);
 
-  // ─── Workflow Actions ───────────────────────────────────────
+  //  Workflow Actions 
   const advanceStatus = async (status: TicketResponseDTO["status"]) => {
     // If transitioning to RESOLVED without notes, show modal first
     if (status === "RESOLVED" && !showResolution) {
@@ -297,6 +297,8 @@ export const AdminTicketDetailView = ({
                   const userIdentifier = (user?.username || user?.email || user?.id || null);
                   const isOwn = !!(c.createdBy && userIdentifier && (c.createdBy === userIdentifier));
 
+                  const isStaffComment = c.createdByRole === "ADMIN" || c.createdByRole === "TECHNICIAN";
+
                   return (
                     <CommentBubble
                       key={c.id}
@@ -304,9 +306,10 @@ export const AdminTicketDetailView = ({
                       authorName={authorLabel}
                       content={c.comment}
                       createdAt={c.createdAt}
+                      updatedAt={c.updatedAt}
                       initials={initials}
                       isOwn={isOwn}
-                      isTech={false}
+                      isTech={isStaffComment}
                       isStaff={canModerate}
                       onEdit={async (id) => {
                         const newText = prompt("Edit comment:", c.comment);

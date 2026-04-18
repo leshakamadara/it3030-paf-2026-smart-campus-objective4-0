@@ -4,7 +4,6 @@ import { ticketService } from "./services/ticketService";
 import type { Ticket, TicketStatus } from "./types/ticketTypes";
 import type { TicketRequestDTO, TicketResponseDTO } from "./types/ticketTypes";
 
-
 import TicketCard from "./components/UserTicketCard";
 import CreateTicket from "./components/CreateTicket";
 import TicketDetailView from "./components/UserTicketDetailView";
@@ -182,7 +181,7 @@ export default function UserTicketPortal() {
                 KM
               </div>
               <span className="text-xs text-slate-600 font-medium hidden sm:block">
-                Kasun Madhawa
+                Kasun Madhawagtrhrthtrhtrrt
               </span>
             </div>
 

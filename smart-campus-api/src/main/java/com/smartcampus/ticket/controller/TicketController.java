@@ -67,7 +67,7 @@ public class TicketController {
 
     @PostMapping("/{id}/comments")
     public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,@RequestBody @NotBlank String comment) {
-        return ResponseEntity.ok(ticketService.addComment(id, "admin@example.com", comment));
+        return ResponseEntity.ok(ticketService.addComment(id, "jane.smith@example.com", comment));
     }
 
     @PutMapping("/{ticketId}/comments/{commentId}")
