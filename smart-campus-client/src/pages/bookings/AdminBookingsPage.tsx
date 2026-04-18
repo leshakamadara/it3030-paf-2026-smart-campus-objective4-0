@@ -1,40 +1,69 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
+import { ApproveRejectDialog } from "@/components/bookings/ApproveRejectDialog";
+import { BookingDetailSheet } from "@/components/bookings/BookingDetailSheet";
+import { BookingFilters, type BookingFilterState } from "@/components/bookings/BookingFilters";
+import { BookingTable } from "@/components/bookings/BookingTable";
+import { approveBooking, getAllBookings, getResources, rejectBooking } from "@/services/bookings";
 import { Button } from "@/components/ui/button";
-import { QrCodeDisplay } from "@/components/bookings/QrCodeDisplay";
-import { approveBooking, getAllBookings, rejectBooking } from "@/services/bookings";
-import type { Booking, BookingStatus } from "@/types/booking";
+import type { Booking, ResourceSummary } from "@/types/booking";
 
-const STATUSES: BookingStatus[] = ["PENDING", "APPROVED", "REJECTED", "CANCELLED"];
+function downloadCsv(bookings: Booking[]) {
+  const lines = [
+    "bookingId,userId,resourceId,status,startTime,endTime,purpose,attendeeCount,reviewedBy,reviewReason,reviewedAt",
+    ...bookings.map((item) =>
+      [
+        item.id,
+        item.userId,
+        item.resourceId,
+        item.status,
+        item.startTime,
+        item.endTime,
+        `"${item.purpose.replace(/"/g, '""')}"`,
+        item.attendeeCount ?? "",
+        item.reviewedBy ?? "",
+        `"${(item.reviewReason ?? "").replace(/"/g, '""')}"`,
+        item.reviewedAt ?? "",
+      ].join(","),
+    ),
+  ];
 
-function StatusPill({ status }: { status: BookingStatus }) {
-  const palette: Record<BookingStatus, string> = {
-    PENDING: "bg-[#2a2d3a] text-[#d0d6e0]",
-    APPROVED: "bg-[#153124] text-[#8ee8b0]",
-    REJECTED: "bg-[#32181f] text-[#ffb3c5]",
-    CANCELLED: "bg-[#2a2a2a] text-[#b3b3b3]",
-  };
-
-  return <span className={`rounded-full px-2 py-1 text-[10px] font-[590] ${palette[status]}`}>{status}</span>;
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "bookings-export.csv";
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 export function AdminBookingsPage() {
   const [items, setItems] = useState<Booking[]>([]);
-  const [status, setStatus] = useState<BookingStatus | "">("");
-  const [resourceId, setResourceId] = useState("");
-  const [userId, setUserId] = useState("");
+  const [filters, setFilters] = useState<BookingFilterState>({
+    status: "",
+    resourceId: "",
+    userId: "",
+    fromTime: "",
+    toTime: "",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [approvedBooking, setApprovedBooking] = useState<Booking | null>(null);
+  const [activeMode, setActiveMode] = useState<"approve" | "reject" | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [detailBooking, setDetailBooking] = useState<Booking | null>(null);
+  const [resources, setResources] = useState<ResourceSummary[]>([]);
 
   async function load() {
     setLoading(true);
     setError(null);
     try {
       const response = await getAllBookings({
-        status: status || undefined,
-        resourceId: resourceId || undefined,
-        userId: userId || undefined,
+        status: filters.status || undefined,
+        resourceId: filters.resourceId || undefined,
+        userId: filters.userId || undefined,
+        fromTime: filters.fromTime ? new Date(filters.fromTime).toISOString() : undefined,
+        toTime: filters.toTime ? new Date(filters.toTime).toISOString() : undefined,
         page: 0,
         size: 20,
       });
@@ -47,27 +76,43 @@ export function AdminBookingsPage() {
   }
 
   useEffect(() => {
+    void getResources()
+      .then((result) => {
+        setResources(result);
+      })
+      .catch(() => {
+        setResources([]);
+      });
+
     void load();
   }, []);
 
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      const aPending = a.status === "PENDING" ? 0 : 1;
+      const bPending = b.status === "PENDING" ? 0 : 1;
+      if (aPending !== bPending) {
+        return aPending - bPending;
+      }
+
+      return Date.parse(b.createdAt) - Date.parse(a.createdAt);
+    });
+  }, [items]);
+
   async function handleApprove(id: string) {
     try {
-      const approved = await approveBooking(id);
-      setApprovedBooking(approved);
+      await approveBooking(id);
+      toast.success("Booking approved");
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Approve failed");
     }
   }
 
-  async function handleReject(id: string) {
-    const reason = window.prompt("Enter rejection reason");
-    if (!reason) {
-      return;
-    }
-
+  async function handleReject(id: string, reason: string) {
     try {
       await rejectBooking(id, { reason });
+      toast.success("Booking rejected");
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Reject failed");
@@ -75,79 +120,56 @@ export function AdminBookingsPage() {
   }
 
   return (
-    <section className="space-y-4 rounded-xl border border-[#ffffff14] bg-[#0f1011] p-4">
-      <h3 className="text-sm font-[590] text-[#f7f8f8]">Admin booking moderation</h3>
+    <section className="space-y-4">
+      <header className="rounded-xl border border-[#ffffff14] bg-[#0f1011] p-4">
+        <h2 className="text-lg font-[590] tracking-tight text-[#f7f8f8]">Admin Booking Moderation</h2>
+        <p className="text-sm text-[#8a8f98]">Filter, inspect, and review campus booking requests.</p>
+      </header>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        <select
-          value={status}
-          onChange={(event) => setStatus(event.target.value as BookingStatus | "")}
-          className="h-10 rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0]"
+      <BookingFilters value={filters} resources={resources} onChange={setFilters} onApply={() => void load()} />
+
+      <div className="flex justify-end">
+        <Button
+          onClick={() => downloadCsv(sortedItems)}
+          className="border border-[#ffffff14] bg-[#191a1b] text-[#d0d6e0] hover:bg-[#25272a]"
         >
-          <option value="">All statuses</option>
-          {STATUSES.map((entry) => (
-            <option key={entry} value={entry}>
-              {entry}
-            </option>
-          ))}
-        </select>
-
-        <input
-          value={resourceId}
-          onChange={(event) => setResourceId(event.target.value)}
-          placeholder="Filter by resource UUID"
-          className="h-10 rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0]"
-        />
-
-        <input
-          value={userId}
-          onChange={(event) => setUserId(event.target.value)}
-          placeholder="Filter by user UUID"
-          className="h-10 rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0]"
-        />
+          Export CSV
+        </Button>
       </div>
-
-      <Button onClick={() => void load()} className="bg-[#5e6ad2] text-white hover:bg-[#7170ff]">
-        Apply filters
-      </Button>
 
       {error && <p className="rounded-lg border border-[#ff6a8b4d] bg-[#2a1018] p-3 text-sm text-[#ffc2d0]">{error}</p>}
       {loading && <p className="text-sm text-[#8a8f98]">Loading all bookings...</p>}
 
-      <div className="space-y-3">
-        {items.map((booking) => (
-          <article key={booking.id} className="rounded-lg border border-[#ffffff14] bg-[#08090a] p-3">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-[510] text-[#f7f8f8]">{booking.purpose}</p>
-              <StatusPill status={booking.status} />
-            </div>
-            <p className="mt-1 text-xs text-[#8a8f98]">Resource {booking.resourceId}</p>
-            <p className="text-xs text-[#8a8f98]">User {booking.userId}</p>
-            <p className="text-xs text-[#62666d]">{new Date(booking.startTime).toLocaleString()} - {new Date(booking.endTime).toLocaleString()}</p>
+      <BookingTable
+        bookings={sortedItems}
+        onApprove={(bookingId) => {
+          setSelectedBookingId(bookingId);
+          setActiveMode("approve");
+        }}
+        onReject={(bookingId) => {
+          setSelectedBookingId(bookingId);
+          setActiveMode("reject");
+        }}
+        onOpenDetail={(booking) => setDetailBooking(booking)}
+      />
 
-            {booking.status === "PENDING" && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button
-                  onClick={() => void handleApprove(booking.id)}
-                  className="border border-[#1f4d33] bg-[#163623] text-[#9af0bc] hover:bg-[#1e442d]"
-                >
-                  Approve
-                </Button>
-                <Button
-                  onClick={() => void handleReject(booking.id)}
-                  className="border border-[#5a2031] bg-[#341522] text-[#ffc2d0] hover:bg-[#462030]"
-                >
-                  Reject
-                </Button>
-              </div>
-            )}
-          </article>
-        ))}
-      </div>
+      <ApproveRejectDialog
+        open={activeMode !== null && selectedBookingId !== null}
+        mode={activeMode === "reject" ? "reject" : "approve"}
+        bookingId={selectedBookingId ?? ""}
+        onClose={() => {
+          setActiveMode(null);
+          setSelectedBookingId(null);
+        }}
+        onConfirmApprove={async (bookingId) => {
+          await handleApprove(bookingId);
+        }}
+        onConfirmReject={async (bookingId, reason) => {
+          await handleReject(bookingId, reason);
+        }}
+      />
 
-      {approvedBooking && (
-        <QrCodeDisplay token={approvedBooking.qrCodeToken} base64Image={approvedBooking.qrCodeImageBase64} />
-      )}
+      <BookingDetailSheet booking={detailBooking} open={detailBooking !== null} onClose={() => setDetailBooking(null)} />
     </section>
   );
 }
