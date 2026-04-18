@@ -5,6 +5,7 @@ import type {
   BookingQrVerificationResponse,
   BookingRejectPayload,
   BookingStatus,
+  ResourceSummary,
 } from "@/types/booking";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
@@ -130,5 +131,62 @@ export function cancelBooking(id: string): Promise<Booking> {
 }
 
 export function verifyQrToken(token: string): Promise<BookingQrVerificationResponse> {
-  return request<BookingQrVerificationResponse>(`/api/bookings/qr/${token}`);
+  return request<BookingQrVerificationResponse>(`/api/bookings/qr/${encodeURIComponent(token)}`);
+}
+
+function normalizeResource(raw: unknown): ResourceSummary | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+
+  const item = raw as Record<string, unknown>;
+  const idValue = item.id ?? item.resourceId ?? item.uuid;
+  if (typeof idValue !== "string" || idValue.trim().length === 0) {
+    return null;
+  }
+
+  return {
+    id: idValue,
+    name:
+      typeof item.name === "string"
+        ? item.name
+        : typeof item.resourceName === "string"
+          ? item.resourceName
+          : typeof item.title === "string"
+            ? item.title
+            : undefined,
+    type:
+      typeof item.type === "string"
+        ? item.type
+        : typeof item.resourceType === "string"
+          ? item.resourceType
+          : typeof item.category === "string"
+            ? item.category
+            : undefined,
+    imageUrl:
+      typeof item.imageUrl === "string"
+        ? item.imageUrl
+        : typeof item.thumbnailUrl === "string"
+          ? item.thumbnailUrl
+          : typeof item.image === "string"
+            ? item.image
+            : undefined,
+  };
+}
+
+export async function getResources(): Promise<ResourceSummary[]> {
+  const data = await request<unknown>("/api/resources");
+
+  if (Array.isArray(data)) {
+    return data.map(normalizeResource).filter((item): item is ResourceSummary => item !== null);
+  }
+
+  if (data && typeof data === "object") {
+    const content = (data as { content?: unknown }).content;
+    if (Array.isArray(content)) {
+      return content.map(normalizeResource).filter((item): item is ResourceSummary => item !== null);
+    }
+  }
+
+  return [];
 }
