@@ -6,6 +6,8 @@ import com.smartcampus.auth.service.JwtService;
 import com.smartcampus.user.UserService;
 import com.smartcampus.user.dto.UserResponse;
 import com.smartcampus.user.entity.User;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "Authentication and session management endpoints")
 public class AuthController {
 
     private final AuthenticationService authenticationService;
@@ -36,6 +39,7 @@ public class AuthController {
 
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('USER','TECHNICIAN','ADMIN','SUPER_ADMIN')")
+    @Operation(summary = "Get current user", description = "Returns the authenticated user profile")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
@@ -51,6 +55,7 @@ public class AuthController {
 
     @GetMapping("/refresh")
     @PreAuthorize("hasAnyRole('USER','TECHNICIAN','ADMIN','SUPER_ADMIN')")
+    @Operation(summary = "Refresh JWT", description = "Issues a fresh JWT for the authenticated user")
     public ResponseEntity<?> refresh(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
@@ -68,11 +73,13 @@ public class AuthController {
 
     @PostMapping("/logout")
     @PreAuthorize("hasAnyRole('USER','TECHNICIAN','ADMIN','SUPER_ADMIN')")
+    @Operation(summary = "Logout", description = "Client-driven logout endpoint for stateless JWT sessions")
     public ResponseEntity<Void> logout() {
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/dummy-login")
+    @Operation(summary = "Dummy login", description = "Development-only endpoint to create/login a user and receive a JWT")
     public ResponseEntity<?> dummyLogin(@RequestBody DummyLoginRequest request) {
         if (!allowDummyLogin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
