@@ -14,7 +14,7 @@ public interface TicketService {
     TicketResponseDTO createTicket(TicketRequestDTO request, String userEmail) throws IOException;
     TicketResponseDTO getTicketById(Long id);
     List<TicketResponseDTO> getAllTickets();
-    TicketResponseDTO updateTicketStatus(Long id, Status newStatus, String technicianEmail);
+    TicketResponseDTO updateTicketStatus(Long id, Status newStatus, String technicianEmail, String notes);
     CommentDTO addComment(Long ticketId, String userEmail, String commentText);
     CommentDTO updateComment(Long ticketId, Long commentId, String userEmail, String commentText);
     boolean deleteComment(Long ticketId, Long commentId, String userEmail);

@@ -100,7 +100,7 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public TicketResponseDTO updateTicketStatus(Long id, Status newStatus, String technicianEmail) {
+    public TicketResponseDTO updateTicketStatus(Long id, Status newStatus, String technicianEmail, String notes) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
 
@@ -110,6 +110,14 @@ public class TicketServiceImpl implements TicketService {
 
         ticket.setStatus(newStatus);
         ticket.setTechnician(technician);
+
+        // Set resolution or rejection notes based on status
+        if (newStatus == Status.RESOLVED && notes != null && !notes.trim().isEmpty()) {
+            ticket.setResolutionNote(notes);
+        } else if (newStatus == Status.REJECTED && notes != null && !notes.trim().isEmpty()) {
+            ticket.setRejectionReason(notes);
+        }
+
         Ticket updatedTicket = ticketRepository.save(ticket);
 
         return convertToDTO(updatedTicket);
@@ -316,6 +324,8 @@ public class TicketServiceImpl implements TicketService {
         dto.setStatus(ticket.getStatus());
         dto.setCreatedBy(ticket.getCreatedBy().getEmail());
         dto.setTechnician(ticket.getTechnician() != null ? ticket.getTechnician().getEmail() : null);
+        dto.setResolutionNote(ticket.getResolutionNote());
+        dto.setRejectionReason(ticket.getRejectionReason());
 
         // Convert attachments
         List<AttachmentDTO> attachmentDTOs = ticket.getAttachments().stream()

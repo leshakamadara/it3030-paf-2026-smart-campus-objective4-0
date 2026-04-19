@@ -45,17 +45,12 @@ export default function UserTicketPortal() {
       .map((attachment) => attachment.cloudinarySecureUrl || attachment.cloudinaryUrl || attachment.linkUrl)
       .filter(Boolean) as string[],
     attachments: ticket.attachments
-      .map((attachment) => ({ id: attachment.id, cloudinaryUrl: attachment.cloudinaryUrl, cloudinarySecureUrl: attachment.cloudinarySecureUrl })),
-    comments: ticket.comments.map((comment) => ({
-      id: comment.id.toString(),
-      authorId: comment.createdBy,
-      authorName: comment.createdByName ?? comment.createdBy,
-      authorRole: "USER",
-      content: comment.comment,
-      createdAt: comment.createdAt,
-    })),
+      .map((attachment) => ({ id: attachment.id, cloudinaryUrl: attachment.cloudinaryUrl, cloudinarySecureUrl: attachment.cloudinarySecureUrl, createdAt: attachment.createdAt })),
+    comments: ticket.comments,
     createdAt: ticket.createdAt,
-    updatedAt: ticket.createdAt,
+    updatedAt: ticket.updatedAt,
+    resolutionNote: ticket.resolutionNote,
+    rejectionReason: ticket.rejectionReason,
   });
 
   const fetchTickets = async () => {
@@ -100,16 +95,11 @@ export default function UserTicketPortal() {
         images: created.attachments
           .map((attachment) => attachment.cloudinarySecureUrl || attachment.cloudinaryUrl || attachment.linkUrl)
           .filter(Boolean) as string[],
-        comments: created.comments.map((comment) => ({
-          id: comment.id.toString(),
-          authorId: comment.createdBy,
-          authorName: comment.createdByName ?? comment.createdBy,
-          authorRole: "USER",
-          content: comment.comment,
-          createdAt: comment.createdAt,
-        })),
+        comments: created.comments,
         createdAt: created.createdAt,
-        updatedAt: created.createdAt,
+        updatedAt: created.updatedAt,
+        resolutionNote: created.resolutionNote,
+        rejectionReason: created.rejectionReason,
       };
 
       setTickets([t, ...tickets]);
@@ -120,6 +110,12 @@ export default function UserTicketPortal() {
   };
 
   const handleDelete = async (backendId: number) => {
+    const ticket = tickets.find((t) => (t.backendId ?? parseInt(t.id.replace(/^TKT-/, ""), 10)) === backendId);
+    if (!ticket || ticket.status !== "OPEN") {
+      setError("Only open tickets can be deleted.");
+      return;
+    }
+
     try {
       await ticketService.delete(backendId);
       setTickets(tickets.filter((t) => (t.backendId ?? parseInt(t.id.replace(/^TKT-/, ""), 10)) !== backendId));
@@ -275,11 +271,11 @@ export default function UserTicketPortal() {
                       setSelectedId(t.id);
                       navigate("detail");
                     }}
-                    onDelete={(id) => {
+                    onDelete={t.status === "OPEN" ? (id) => {
                       if (confirm("Are you sure you want to delete this ticket?")) {
                         handleDelete(id);
                       }
-                    }}
+                    } : undefined}
                   />
                 ))}
               </div>
@@ -304,11 +300,11 @@ export default function UserTicketPortal() {
               handleUpdate(updated);
               setSelectedId(updated.id);
             }}
-            onDelete={(id) => {
+            onDelete={selectedTicket.status === "OPEN" ? (id) => {
               if (confirm("Are you sure you want to delete this ticket?")) {
                 handleDelete(id);
               }
-            }}
+            } : undefined}
           />
         )}
       </main>

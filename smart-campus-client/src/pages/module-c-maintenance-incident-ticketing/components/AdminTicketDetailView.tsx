@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import type { TicketResponseDTO, CommentDTO } from "../types/ticketTypes";
 import { ticketService } from "../services/ticketService";
@@ -46,6 +46,8 @@ export const AdminTicketDetailView = ({
   const isTech = (currentUser?.role || CURRENT_USER.role) === "TECHNICIAN" || (currentUser?.role || CURRENT_USER.role) === "ADMIN";
 
   const nextStatuses = STATUS_FLOW[ticket.status];
+
+  const commentsContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Comments (BACKEND PERSISTED)
   const addComment = async () => {
@@ -107,6 +109,14 @@ export const AdminTicketDetailView = ({
     })();
     return () => { mounted = false; };
   }, []);
+
+  // auto-scroll comments container to bottom when comments change
+  useEffect(() => {
+    const el = commentsContainerRef.current;
+    if (!el) return;
+    // scroll to bottom
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [ticket.comments]);
 
   //  Workflow Actions 
   const advanceStatus = async (status: TicketResponseDTO["status"]) => {
@@ -247,6 +257,64 @@ export const AdminTicketDetailView = ({
               </div>
             </div>
 
+            {/* Ticket Reasons Table */}
+            {(ticket.resolutionNote || ticket.rejectionReason) && (
+              <div>
+                <p className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">
+                  Ticket Resolution Details
+                </p>
+                <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                  <table className="w-full">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Type</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Reason/Details</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {ticket.resolutionNote && (
+                        <tr className="hover:bg-slate-25">
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center gap-2 px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-full">
+                              <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                              Resolution
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-700 max-w-xs">
+                            <div className="line-clamp-3">{ticket.resolutionNote}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full border border-emerald-200">
+                              ✓ Completed
+                            </span>
+                          </td>
+                        </tr>
+                      )}
+                      {ticket.rejectionReason && (
+                        <tr className="hover:bg-slate-25">
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center gap-2 px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
+                              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                              Rejection
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-700 max-w-xs">
+                            <div className="line-clamp-3">{ticket.rejectionReason}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 text-xs font-medium rounded-full border border-red-200">
+                              ✗ Rejected
+                            </span>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* Attachments / Evidence — always visible */}
             <div>
               <p className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">Attachments</p>
@@ -281,7 +349,8 @@ export const AdminTicketDetailView = ({
                 Comments ({ticket.comments?.length || 0})
               </p>
 
-              <div className="space-y-6">
+              <div className="mb-4">
+                <div ref={commentsContainerRef} className="bg-white border border-slate-200 rounded-2xl p-4 max-h-80 overflow-y-auto space-y-6">
                 {(ticket.comments || []).slice().sort((a: CommentDTO, b: CommentDTO) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((c: CommentDTO) => {
                   const user = currentUser || CURRENT_USER;
                   const authorLabel = c.createdByName ?? c.createdBy ?? "Unknown User";
@@ -292,8 +361,6 @@ export const AdminTicketDetailView = ({
                     .join("")
                     .slice(0, 2)
                     .toUpperCase() || "??";
-                  const canModerate = (user?.role || CURRENT_USER.role) === "ADMIN" || (user?.role || CURRENT_USER.role) === "TECHNICIAN";
-                  // CommentDTO has `createdBy` (email) and optionally `createdByName` (display name).
                   const userIdentifier = (user?.username || user?.email || user?.id || null);
                   const isOwn = !!(c.createdBy && userIdentifier && (c.createdBy === userIdentifier));
 
@@ -309,8 +376,7 @@ export const AdminTicketDetailView = ({
                       updatedAt={c.updatedAt}
                       initials={initials}
                       isOwn={isOwn}
-                      isTech={isStaffComment}
-                      isStaff={canModerate}
+                      isTech={!isStaffComment}
                       onEdit={async (id) => {
                         const newText = prompt("Edit comment:", c.comment);
                         if (newText !== null && newText.trim() !== "") await editComment(Number(id), newText);
@@ -322,29 +388,32 @@ export const AdminTicketDetailView = ({
                   );
                 })}
 
-                {/* Add Comment */}
-                <div className="flex items-start gap-4 pt-6 border-t border-slate-200 mt-6">
-                  <Avatar initials={CURRENT_USER.avatar} />
+                )
+                </div>
+              </div>
 
-                  <div className="flex-1">
-                    <textarea
-                      className="w-full border border-slate-300 rounded-2xl px-4 py-3 text-sm resize-none placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all bg-white"
-                      rows={4}
-                      placeholder="Add a comment..."
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      disabled={loading}
-                    />
+              {/* Add Comment (outside scrollable box) */}
+              <div className="flex items-start gap-4 pt-4 border-t border-slate-100">
+                <Avatar initials={CURRENT_USER.avatar} />
 
-                    <div className="flex justify-end mt-4">
-                      <button
-                        onClick={addComment}
-                        disabled={!comment.trim() || loading}
-                        className="bg-violet-600 text-white px-6 py-3 rounded-2xl text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
-                      >
-                        {loading ? "Posting..." : "Post Comment"}
-                      </button>
-                    </div>
+                <div className="flex-1">
+                  <textarea
+                    className="w-full border border-slate-300 rounded-2xl px-4 py-3 text-sm resize-none placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all bg-white"
+                    rows={4}
+                    placeholder="Add a comment..."
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    disabled={loading}
+                  />
+
+                  <div className="flex justify-end mt-4">
+                    <button
+                      onClick={addComment}
+                      disabled={!comment.trim() || loading}
+                      className="bg-violet-600 text-white px-6 py-3 rounded-2xl text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
+                    >
+                      {loading ? "Posting..." : "Post Comment"}
+                    </button>
                   </div>
                 </div>
               </div>

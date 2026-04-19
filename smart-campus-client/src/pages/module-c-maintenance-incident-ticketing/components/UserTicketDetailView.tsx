@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ticketService } from "../services/ticketService";
-import type { Ticket, Comment, TicketResponseDTO, CommentDTO } from "../types/ticketTypes";
+import type { Ticket, CommentDTO } from "../types/ticketTypes";
 import { STATUS_META, PRIORITY_META, CATEGORIES } from "../constants/constants";
 import { CURRENT_USER } from "../constants/constants";
 import { timeAgo, formatDate } from "../utills/helpers";
@@ -20,8 +20,6 @@ export default function TicketDetailView({
 }) {
   
   const [comment, setComment] = useState("");
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
   const [currentUser, setCurrentUser] = useState<any | null>(null);
 
   useEffect(() => {
@@ -37,100 +35,115 @@ export default function TicketDetailView({
     return () => { mounted = false; };
   }, []);
 
-  const formatCommentAuthorName = (value: any) => {
-    if (!value) return "Unknown User";
-    const text = String(value).trim();
-    if (!text) return "Unknown User";
-    if (text.includes("@")) {
-      const local = text.split("@")[0];
-      return local
-        .split(/[._-]+/)
-        .filter(Boolean)
-        .map((part) => part[0].toUpperCase() + part.slice(1).toLowerCase())
-        .join(" ");
-    }
-    return text
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((part) => part[0].toUpperCase() + part.slice(1).toLowerCase())
-      .join(" ");
-  };
-
-  const getCommentInitials = (name: string) => {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    if (parts.length === 0) return "?";
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  };
-
-  const getCommentAuthorLabel = (comment: any) => {
-    const rawAuthor = comment.authorName ?? comment.authorId ?? "";
-    return formatCommentAuthorName(rawAuthor);
-  };
-
-  const normalize = (val: any) => String(val || "").trim().toLowerCase();
+  useEffect(() => {
+    const el = commentsContainerRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [ticket.comments]);
 
   const [loadingCommentAction, setLoadingCommentAction] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ open: boolean; commentId?: string }>(
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ open: boolean; commentId?: number }>(
     { open: false }
   );
+
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const sm = STATUS_META[ticket.status];
   const pm = PRIORITY_META[ticket.priority];
   const cat = CATEGORIES.find((c) => c.value === ticket.category);
 
-  const addComment = () => {
+  const commentsContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const addComment = async () => {
     if (!comment.trim()) return;
-    (async () => {
-      try {
-        setLoadingCommentAction(true);
-        const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
-        await ticketService.addComment(backendId, comment.trim());
-        const full = await ticketService.getWithAttachments(backendId);
-        onUpdate({ ...ticket, ...mapResponseToTicket(full), comments: mapDtoCommentsToComments(full.comments) });
-        setComment("");
-      } catch (err) {
-        console.error("Failed to add comment:", err);
-      } finally {
-        setLoadingCommentAction(false);
-      }
-    })();
-  };
-
-  const saveEdit = (id: string) => {
-    (async () => {
-      try {
-        setLoadingCommentAction(true);
-        const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
-        const numericId = typeof id === "string" && id.startsWith("c-") ? Number(id.replace(/^c-/, "")) : Number(id);
-        await ticketService.editComment(backendId, numericId as any, editText);
-        const full = await ticketService.getWithAttachments(backendId);
-        onUpdate({ ...ticket, ...mapResponseToTicket(full), comments: mapDtoCommentsToComments(full.comments) });
-        setEditId(null);
-      } catch (err) {
-        console.error("Failed to save edited comment:", err);
-      } finally {
-        setLoadingCommentAction(false);
-      }
-    })();
-  };
-
-  const deleteComment = (id: string) => {
-    setShowDeleteConfirm({ open: true, commentId: id });
-  };
-
-  // actually perform delete after confirmation
-  const confirmDelete = async (id: string) => {
     try {
       setLoadingCommentAction(true);
       const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
-      const numericId = typeof id === "string" && id.startsWith("c-") ? Number(id.replace(/^c-/, "")) : Number(id);
-      await ticketService.deleteComment(backendId, numericId as any);
+      await ticketService.addComment(backendId, comment);
       const full = await ticketService.getWithAttachments(backendId);
-      onUpdate({ ...ticket, ...mapResponseToTicket(full), comments: mapDtoCommentsToComments(full.comments) });
-      setShowDeleteConfirm({ open: false });
+      onUpdate({
+        id: ticket.id,
+        backendId: ticket.backendId,
+        title: full.title,
+        category: full.category || '',
+        description: full.description,
+        priority: full.priority,
+        status: full.status,
+        resourceLocation: full.resourceLocation || '',
+        images: full.attachments.map(a => a.cloudinarySecureUrl || a.cloudinaryUrl || a.linkUrl).filter(Boolean) as string[],
+        attachments: full.attachments.map(a => ({ id: a.id, cloudinaryUrl: a.cloudinaryUrl, cloudinarySecureUrl: a.cloudinarySecureUrl, createdAt: a.createdAt })),
+        assignedToName: full.assignedToName,
+        resolutionNote: full.resolutionNote,
+        rejectionReason: full.rejectionReason,
+        comments: full.comments,
+        createdAt: full.createdAt,
+        updatedAt: full.updatedAt
+      });
+      setComment("");
+    } catch (err) {
+      console.error("Failed to add comment:", err);
+    } finally {
+      setLoadingCommentAction(false);
+    }
+  };
+
+  const editComment = async (id: number, newText: string) => {
+    if (!newText.trim()) return;
+    try {
+      setLoadingCommentAction(true);
+      const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
+      await ticketService.editComment(backendId, id, newText);
+      const full = await ticketService.getWithAttachments(backendId);
+      onUpdate({
+        id: ticket.id,
+        backendId: ticket.backendId,
+        title: full.title,
+        category: full.category || '',
+        description: full.description,
+        priority: full.priority,
+        status: full.status,
+        resourceLocation: full.resourceLocation || '',
+        images: full.attachments.map(a => a.cloudinarySecureUrl || a.cloudinaryUrl || a.linkUrl).filter(Boolean) as string[],
+        attachments: full.attachments.map(a => ({ id: a.id, cloudinaryUrl: a.cloudinaryUrl, cloudinarySecureUrl: a.cloudinarySecureUrl, createdAt: a.createdAt })),
+        assignedToName: full.assignedToName,
+        resolutionNote: full.resolutionNote,
+        rejectionReason: full.rejectionReason,
+        comments: full.comments,
+        createdAt: full.createdAt,
+        updatedAt: full.updatedAt
+      });
+    } catch (err) {
+      console.error("Failed to edit comment:", err);
+    } finally {
+      setLoadingCommentAction(false);
+    }
+  };
+
+  const deleteComment = async (id: number) => {
+    try {
+      setLoadingCommentAction(true);
+      const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
+      await ticketService.deleteComment(backendId, id);
+      const full = await ticketService.getWithAttachments(backendId);
+      onUpdate({
+        id: ticket.id,
+        backendId: ticket.backendId,
+        title: full.title,
+        category: full.category || '',
+        description: full.description,
+        priority: full.priority,
+        status: full.status,
+        resourceLocation: full.resourceLocation || '',
+        images: full.attachments.map(a => a.cloudinarySecureUrl || a.cloudinaryUrl || a.linkUrl).filter(Boolean) as string[],
+        attachments: full.attachments.map(a => ({ id: a.id, cloudinaryUrl: a.cloudinaryUrl, cloudinarySecureUrl: a.cloudinarySecureUrl, createdAt: a.createdAt })),
+        assignedToName: full.assignedToName,
+        resolutionNote: full.resolutionNote,
+        rejectionReason: full.rejectionReason,
+        comments: full.comments,
+        createdAt: full.createdAt,
+        updatedAt: full.updatedAt
+      });
     } catch (err) {
       console.error("Failed to delete comment:", err);
-      setShowDeleteConfirm({ open: false });
     } finally {
       setLoadingCommentAction(false);
     }
@@ -148,15 +161,6 @@ export default function TicketDetailView({
   const [localImageFile, setLocalImageFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const resetLocalFields = () => {
-    setLocalTitle(ticket.title);
-    setLocalDescription(ticket.description);
-    setLocalCategory(ticket.category);
-    setLocalPriority(ticket.priority);
-    setLocalResourceLocation(ticket.resourceLocation);
-    setLocalImageFile(null);
-  };
-
   const handleSave = async () => {
     const backendId = ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10);
     setSaving(true);
@@ -165,14 +169,30 @@ export default function TicketDetailView({
       formData.append("title", localTitle);
       formData.append("description", localDescription);
       formData.append("priority", localPriority);
-      formData.append("category", localCategory);
-      formData.append("resourceLocation", localResourceLocation);
+      formData.append("category", localCategory || '');
+      formData.append("resourceLocation", localResourceLocation || '');
       if (localImageFile) formData.append("imageFile", localImageFile);
 
-      // Send update and then fetch ticket with attachments to get canonical attachments list
       await ticketService.update(backendId, formData as any);
       const full = await ticketService.getWithAttachments(backendId);
-      onUpdate({ ...ticket, ...mapResponseToTicket(full) });
+      onUpdate({
+        id: ticket.id,
+        backendId: ticket.backendId,
+        title: full.title,
+        category: full.category || '',
+        description: full.description,
+        priority: full.priority,
+        status: full.status,
+        resourceLocation: full.resourceLocation || '',
+        images: full.attachments.map(a => a.cloudinarySecureUrl || a.cloudinaryUrl || a.linkUrl).filter(Boolean) as string[],
+        attachments: full.attachments.map(a => ({ id: a.id, cloudinaryUrl: a.cloudinaryUrl, cloudinarySecureUrl: a.cloudinarySecureUrl, createdAt: a.createdAt })),
+        assignedToName: full.assignedToName,
+        resolutionNote: full.resolutionNote,
+        rejectionReason: full.rejectionReason,
+        comments: full.comments,
+        createdAt: full.createdAt,
+        updatedAt: full.updatedAt
+      });
       setIsEditing(false);
     } catch (err) {
       console.error("Failed to update ticket:", err);
@@ -186,45 +206,37 @@ export default function TicketDetailView({
     try {
       await ticketService.deleteAttachment(attachmentId);
       const full = await ticketService.getWithAttachments(backendId);
-      onUpdate({ ...ticket, ...mapResponseToTicket(full) });
+      onUpdate({
+        id: ticket.id,
+        backendId: ticket.backendId,
+        title: full.title,
+        category: full.category || '',
+        description: full.description,
+        priority: full.priority,
+        status: full.status,
+        resourceLocation: full.resourceLocation || '',
+        images: full.attachments.map(a => a.cloudinarySecureUrl || a.cloudinaryUrl || a.linkUrl).filter(Boolean) as string[],
+        attachments: full.attachments.map(a => ({ id: a.id, cloudinaryUrl: a.cloudinaryUrl, cloudinarySecureUrl: a.cloudinarySecureUrl, createdAt: a.createdAt })),
+        assignedToName: full.assignedToName,
+        resolutionNote: full.resolutionNote,
+        rejectionReason: full.rejectionReason,
+        comments: full.comments,
+        createdAt: full.createdAt,
+        updatedAt: full.updatedAt
+      });
     } catch (err) {
       console.error("Failed to delete image:", err);
     }
   };
 
   const handleCancelEdit = () => {
-    resetLocalFields();
+    setLocalTitle(ticket.title);
+    setLocalDescription(ticket.description);
+    setLocalCategory(ticket.category);
+    setLocalPriority(ticket.priority);
+    setLocalResourceLocation(ticket.resourceLocation);
+    setLocalImageFile(null);
     setIsEditing(false);
-  };
-
-  const mapResponseToTicket = (resp: any): Partial<Ticket> => {
-    return {
-      title: resp.title,
-      description: resp.description,
-      category: resp.category,
-      priority: resp.priority,
-      resourceLocation: resp.resourceLocation,
-      images: resp.attachments ? resp.attachments.map((a: any) => a.cloudinarySecureUrl || a.cloudinaryUrl || a.linkUrl).filter((u: any) => u) : ticket.images,
-      attachments: resp.attachments ? resp.attachments.map((a: any) => ({ id: a.id, cloudinaryUrl: a.cloudinaryUrl, cloudinarySecureUrl: a.cloudinarySecureUrl })) : ticket.attachments,
-      updatedAt: resp.updatedAt || new Date().toISOString(),
-    };
-  };
-
-  const mapDtoCommentsToComments = (dtos: CommentDTO[] = []) => {
-    return dtos.map((c: CommentDTO) => {
-      const rawAuthor = (c as any).createdByName ?? (c as any).createdBy ?? "";
-      const name = formatCommentAuthorName(rawAuthor);
-      return {
-        id: typeof (c as any).id === "number" ? `c-${(c as any).id}` : String((c as any).id),
-        authorId: String((c as any).createdBy ?? ""),
-        authorName: name,
-        authorRole: (c as any).createdByRole ?? (c as any).authorRole ?? "USER",
-        content: (c as any).comment ?? (c as any).content ?? "",
-        createdAt: (c as any).createdAt,
-        updatedAt: (c as any).updatedAt,
-        initials: getCommentInitials(name),
-      };
-    });
   };
 
   return (
@@ -262,23 +274,14 @@ export default function TicketDetailView({
         </div>
 
         {/* Assigned technician */}
-        {ticket.assignedToName && (
-          <div className="flex items-center gap-3 p-3 bg-violet-50 rounded-xl border border-violet-100 mb-4">
-            <div className="w-8 h-8 rounded-full bg-violet-200 text-violet-700 text-xs font-bold flex items-center justify-center shrink-0">
-              {ticket.assignedToName.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-            </div>
-            <div>
-              <p className="text-xs text-violet-500 font-medium">Assigned Technician</p>
-              <p className="text-sm font-semibold text-violet-800">{ticket.assignedToName}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onDelete && onDelete(ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10))}
-                className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
-              >
-                Delete Ticket
-              </button>
-            </div>
+        {ticket.status === "OPEN" && onDelete && (
+          <div className="mb-4">
+            <button
+              onClick={() => onDelete && onDelete(ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10))}
+              className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
+            >
+              Delete Ticket
+            </button>
           </div>
         )}
 
@@ -288,42 +291,94 @@ export default function TicketDetailView({
           <p className="text-sm text-slate-700 leading-relaxed">{ticket.description}</p>
         </div>
 
-        {/* Resolution note */}
-        {ticket.resolutionNote && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
-            <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">✓ Resolution</p>
-            <p className="text-sm text-emerald-800 leading-relaxed">{ticket.resolutionNote}</p>
-          </div>
-        )}
-
-        {/* Rejection */}
-        {ticket.rejectionReason && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-            <p className="text-xs font-bold text-red-600 uppercase tracking-widest mb-2">✗ Rejected</p>
-            <p className="text-sm text-red-700">{ticket.rejectionReason}</p>
+        {/* Ticket Reasons Table */}
+        {(ticket.resolutionNote || ticket.rejectionReason) && (
+          <div className="mb-4">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Ticket Resolution Details</p>
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Reason/Details</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {ticket.resolutionNote && (
+                    <tr className="hover:bg-slate-25">
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-2 px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-full">
+                          <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                          Resolution
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-700 max-w-xs">
+                        <div className="line-clamp-3">{ticket.resolutionNote}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full border border-emerald-200">
+                          ✓ Completed
+                        </span>
+                      </td>
+                    </tr>
+                  )}
+                  {ticket.rejectionReason && (
+                    <tr className="hover:bg-slate-25">
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-2 px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
+                          <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                          Rejection
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-700 max-w-xs">
+                        <div className="line-clamp-3">{ticket.rejectionReason}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 text-xs font-medium rounded-full border border-red-200">
+                          ✗ Rejected
+                        </span>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
         {/* Images */}
-        {(ticket.attachments && ticket.attachments.length > 0) || (ticket.images && ticket.images.length > 0) ? (
+        {ticket.attachments && ticket.attachments.length > 0 ? (
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-              Evidence ({(ticket.attachments && ticket.attachments.length) || ticket.images.length})
+              Evidence ({ticket.attachments.length})
             </p>
-            <div className="grid grid-cols-3 gap-2">
-              {ticket.attachments && ticket.attachments.length > 0
-                ? ticket.attachments.map((a) => (
-                    <div key={a.id} className="relative">
-                      <img src={a.cloudinarySecureUrl || a.cloudinaryUrl} alt="" className="w-full h-24 object-cover rounded-xl border border-slate-200" />
-
-                    </div>
-                  ))
-                : ticket.images.map((img, i) => (
-                    <img key={i} src={img} alt="" className="w-full h-24 object-cover rounded-xl border border-slate-200" />
-                  ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {ticket.attachments.map((attachment) => (
+                <div key={attachment.id} className="border border-slate-200 rounded-2xl p-4 bg-slate-50 shadow-sm">
+                  {attachment.cloudinaryUrl && (
+                    <img
+                      src={attachment.cloudinaryUrl}
+                      alt="Attachment"
+                      onClick={() => setSelectedImage(attachment.cloudinaryUrl!)}
+                      className="h-40 w-full object-cover rounded-xl border border-slate-200 mb-3 cursor-pointer hover:opacity-90 transition-opacity"
+                    />
+                  )}
+                  <p className="text-xs text-slate-500 font-medium text-center">
+                    Uploaded: {new Date(attachment.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+              Evidence
+            </p>
+            <div className="text-base text-slate-500 italic p-4 border border-slate-200 rounded-2xl bg-slate-50 text-center">No attachments uploaded for this ticket.</div>
+          </div>
+        )}
 
         {/* Meta footer */}
         <div className="flex items-center justify-between text-xs text-slate-400 mt-5 pt-4 border-t border-slate-100">
@@ -408,34 +463,35 @@ export default function TicketDetailView({
 
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-                  Evidence ({(ticket.attachments && ticket.attachments.length) || ticket.images.length})
+                  Evidence ({ticket.attachments ? ticket.attachments.length : 0})
                   </p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {ticket.attachments && ticket.attachments.length > 0
                  ? ticket.attachments.map((a) => (
-                    <div key={a.id} className="relative">
-                      <img src={a.cloudinarySecureUrl || a.cloudinaryUrl} alt="" className="w-full h-24 object-cover rounded-xl border border-slate-200" />
+                    <div key={a.id} className="border border-slate-200 rounded-2xl p-4 bg-slate-50 shadow-sm relative">
+                      <img src={a.cloudinaryUrl} alt="" className="h-40 w-full object-cover rounded-xl border border-slate-200 mb-3" />
                       {ticket.status === "OPEN" && isEditing && (
                         <button
                           onClick={() => handleDeleteImage(a.id)}
-                          className="absolute top-1 right-1 w-7 h-7 bg-red-50 text-red-600 rounded-md flex items-center justify-center hover:bg-red-100"
+                          className="absolute top-2 right-2 w-7 h-7 bg-red-50 text-red-600 rounded-md flex items-center justify-center hover:bg-red-100"
                           title="Delete image"
                         >
                           🗑
                         </button>
                       )}
+                      <p className="text-xs text-slate-500 font-medium text-center">
+                        Uploaded: {new Date(a.createdAt).toLocaleDateString()}
+                      </p>
                     </div>
                   ))
-                : ticket.images.map((img, i) => (
-                    <img key={i} src={img} alt="" className="w-full h-24 object-cover rounded-xl border border-slate-200" />
-                  ))}
+                : null}
             </div>
           </div>
 
                 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">🖼️ Add Evidence Image</label>
-                  {(ticket.attachments && ticket.attachments.length >= 3) || (ticket.images && ticket.images.length >= 3) ? (
+                  {(ticket.attachments && ticket.attachments.length >= 3) ? (
                     <p className="text-sm text-red-600 font-semibold">You can only have up to 3 images. Please remove existing images to upload new ones.</p>
                   ) : (
                     <div className="relative">
@@ -499,47 +555,45 @@ export default function TicketDetailView({
           </div>
         )}
 
-        <div className="space-y-5 mb-6">
-          {( 
-            // ensure comments are oldest -> newest so newest appear last
-            (ticket.comments || []).slice().sort((a: any, b: any) => {
-              const ta = new Date(a.createdAt).getTime();
-              const tb = new Date(b.createdAt).getTime();
-              return ta - tb;
-            })
-          ).map((c) => {
-
+        <div className="mb-6">
+          <div ref={commentsContainerRef} className="bg-white border border-slate-200 rounded-2xl p-4 max-h-72 overflow-y-auto space-y-5">
+          {(ticket.comments || []).slice().sort((a: CommentDTO, b: CommentDTO) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((c: CommentDTO) => {
             const user = currentUser || CURRENT_USER;
-            const authorName = getCommentAuthorLabel(c);
-            const userIdentifier = normalize((user?.username || user?.email || user?.id));
-            const commentAuthor = normalize((c as any).createdBy ?? (c as any).authorId ?? authorName);
-            const isOwn = !!(userIdentifier && commentAuthor && userIdentifier === commentAuthor);
-            const role = (user as any)?.role || "USER";
-            const isStaff = role === "USER" ;
-            const isTech = c.authorRole === "USER" ;
-            const initials = c.initials || getCommentInitials(authorName);
+            const authorLabel = c.createdByName ?? c.createdBy ?? "Unknown User";
+            const initials = authorLabel
+              .split(/\s+/)
+              .filter(Boolean)
+              .map((n: string) => n[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase() || "??";
+            const userIdentifier = (user?.username || user?.email || user?.id || null);
+            const isOwn = !!(c.createdBy && userIdentifier && (c.createdBy === userIdentifier));
 
+            const isStaffComment = c.createdByRole === "ADMIN" || c.createdByRole === "TECHNICIAN";
+
+            
             return (
               <CommentBubble
-                id={c.id}
-                authorName={authorName}
-                authorRole={c.authorRole}
-                content={c.content}
+                id={String(c.id)}
+                authorName={authorLabel}
+                content={c.comment}
                 createdAt={c.createdAt}
                 updatedAt={c.updatedAt}
                 initials={initials}
                 isOwn={isOwn}
-                isTech={isTech}
-                isStaff={isStaff}
-                onEdit={(id) => { setEditId(id); setEditText(c.content); }}
-                onDelete={(id) => deleteComment(id)}
-                isEditing={editId === c.id}
-                editText={editText}
-                setEditText={(v) => setEditText(v)}
-                saveEdit={(id) => saveEdit(id)}
+                isTech={isStaffComment}
+                onEdit={async (id) => {
+                  const newText = prompt("Edit comment:", c.comment);
+                  if (newText !== null && newText.trim() !== "") await editComment(Number(id), newText);
+                }}
+                onDelete={async (id) => {
+                  setShowDeleteConfirm({ open: true, commentId: Number(id) });
+                }}
               />
             );
           })}
+          </div>
         </div>
 
         {/* Comment input */}
@@ -555,6 +609,7 @@ export default function TicketDetailView({
                 placeholder="Add a comment or ask a question…"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
+                disabled={loadingCommentAction}
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addComment(); }}
               />
               <div className="flex items-center justify-between mt-2">
@@ -575,11 +630,30 @@ export default function TicketDetailView({
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
               <h3 className="text-lg font-semibold mb-4">Delete Comment</h3>
-              <p className="text-sm text-slate-600 mb-4">Are you sure you want to delete this comment?</p>
+              <p className="text-sm text-slate-600 mb-4">Are you sure you want to delete this comment? This action cannot be undone.</p>
               <div className="flex justify-end gap-2">
                 <button onClick={() => setShowDeleteConfirm({ open: false })} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded">Cancel</button>
-                <button onClick={() => confirmDelete(showDeleteConfirm.commentId!)} disabled={loadingCommentAction} className="px-4 py-2 bg-red-600 text-white rounded">{loadingCommentAction ? 'Deleting…' : 'Delete'}</button>
+                <button onClick={() => showDeleteConfirm.commentId && deleteComment(showDeleteConfirm.commentId)} disabled={loadingCommentAction} className="px-4 py-2 bg-red-600 text-white rounded">{loadingCommentAction ? 'Deleting…' : 'Delete'}</button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {selectedImage && (
+          <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
+            <div className="relative w-full max-w-5xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute right-3 top-3 z-10 rounded-full bg-slate-900/80 text-white w-10 h-10 flex items-center justify-center hover:bg-slate-900"
+                aria-label="Close image preview"
+              >
+                ✕
+              </button>
+              <img
+                src={selectedImage}
+                alt="Attachment preview"
+                className="w-full max-h-[90vh] object-contain rounded-3xl border border-slate-200 bg-white shadow-2xl"
+              />
             </div>
           </div>
         )}

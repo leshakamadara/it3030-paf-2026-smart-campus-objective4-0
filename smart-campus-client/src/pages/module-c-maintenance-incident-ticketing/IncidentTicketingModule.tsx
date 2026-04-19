@@ -23,6 +23,7 @@ export default function IncidentTicketingModule() {
   const [filterPriority, setFilterPriority] = useState<Priority | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "priority">("date");
+  const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc"); // desc = newest first
   const [currentUser, setCurrentUser] = useState<any | null>(null);
 
   // Fetch tickets on component mount
@@ -77,7 +78,11 @@ export default function IncidentTicketingModule() {
   };
 
   const filtered = tickets
-    .filter((t) => filterStatus === "ALL" || t.status === filterStatus)
+    .filter((t) => {
+      // Default: show all except REJECTED when filterStatus is "ALL"
+      if (filterStatus === "ALL") return t.status !== "REJECTED";
+      return t.status === filterStatus;
+    })
     .filter(
       (t) => filterPriority === "ALL" || t.priority === filterPriority
     )
@@ -88,11 +93,14 @@ export default function IncidentTicketingModule() {
         t.id.toString().toLowerCase().includes(search.toLowerCase()) ||
         (t.description && t.description.toLowerCase().includes(search.toLowerCase()))
     )
-    .sort((a, b) =>
-      sortBy === "priority"
-        ? PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
-        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    .sort((a, b) => {
+      if (sortBy === "priority") {
+        return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+      }
+      // date sort — use ticket id as proxy (higher id = newer)
+      const diffId = Number(a.id) - Number(b.id);
+      return sortDirection === "desc" ? -diffId : diffId;
+    });
 
   const stats = {
     total: tickets.length,
@@ -163,13 +171,16 @@ export default function IncidentTicketingModule() {
         </div>
 
         {/* Workflow pipeline */}
-        <div className="bg-white border border-slate-200 rounded-xl px-4 py-3 mb-5 flex items-center justify-between">
+          <div className="bg-white border border-slate-200 rounded-xl px-4 py-3 mb-5 flex items-center justify-between">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Workflow</p>
           <WorkflowPipeline tickets={tickets} />
-          <div className="flex items-center gap-1 text-xs text-slate-400">
-            <span className="bg-red-50 border border-red-200 text-red-600 px-2 py-0.5 rounded-full">
+          <div className="flex items-center gap-1 text-xs">
+            <button
+              onClick={() => setFilterStatus((s) => (s === "REJECTED" ? "ALL" : "REJECTED"))}
+              className={`px-2 py-1 rounded-full text-[12px] font-semibold transition-colors border ${filterStatus === "REJECTED" ? "bg-red-600 text-white border-red-600" : "bg-red-50 text-red-600 border-red-200"}`}
+            >
               ✗ Rejected: {tickets.filter(t => t.status === "REJECTED").length}
-            </span>
+            </button>
           </div>
         </div>
 
@@ -186,16 +197,30 @@ export default function IncidentTicketingModule() {
           </div>
 
           <div className="flex items-center gap-2">
-            <select
-              className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-300 text-slate-600"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as TicketStatus | "ALL")}
-            >
-              <option value="ALL">All Statuses</option>
-              {(["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "REJECTED"] as TicketStatus[]).map((s) => (
-                <option key={s} value={s}>{STATUS_META[s].label}</option>
+            <div className="flex items-center gap-2">
+              {(
+                [
+                  { key: "ALL", label: "All" },
+                  { key: "OPEN", label: STATUS_META.OPEN.label },
+                  { key: "IN_PROGRESS", label: STATUS_META.IN_PROGRESS.label },
+                  { key: "RESOLVED", label: STATUS_META.RESOLVED.label },
+                  { key: "CLOSED", label: STATUS_META.CLOSED.label },
+                  { key: "REJECTED", label: STATUS_META.REJECTED.label },
+                ] as { key: TicketStatus | "ALL"; label: string }[]
+              ).map((s) => (
+                <button
+                  key={s.key}
+                  onClick={() => setFilterStatus(s.key)}
+                  className={`px-3 py-2 text-xs font-medium rounded-full transition-colors border ${
+                    filterStatus === s.key
+                      ? "bg-violet-600 text-white border-violet-600"
+                      : "text-slate-600 bg-white border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  {s.label}
+                </button>
               ))}
-            </select>
+            </div>
 
             <select
               className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-300 text-slate-600"
@@ -209,15 +234,26 @@ export default function IncidentTicketingModule() {
             </select>
 
             <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-white">
-              {(["date", "priority"] as const).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSortBy(s)}
-                  className={`px-3 py-2 text-xs font-medium transition-colors ${sortBy === s ? "bg-violet-600 text-white" : "text-slate-500 hover:bg-slate-50"}`}
-                >
-                  {s === "date" ? "Newest" : "Priority"}
-                </button>
-              ))}
+              <button
+                onClick={() => {
+                  if (sortBy === "date") {
+                    setSortDirection((d) => (d === "desc" ? "asc" : "desc"));
+                  } else {
+                    setSortBy("date");
+                    setSortDirection("desc");
+                  }
+                }}
+                className={`px-3 py-2 text-xs font-medium transition-colors ${sortBy === "date" ? "bg-violet-600 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+              >
+                {sortBy === "date" ? (sortDirection === "desc" ? "Newest" : "Oldest") : "Date"}
+              </button>
+
+              <button
+                onClick={() => setSortBy("priority")}
+                className={`px-3 py-2 text-xs font-medium transition-colors ${sortBy === "priority" ? "bg-violet-600 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+              >
+                Priority
+              </button>
             </div>
           </div>
         </div>

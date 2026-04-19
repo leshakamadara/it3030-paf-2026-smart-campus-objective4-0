@@ -61,8 +61,8 @@ public class TicketController {
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<TicketResponseDTO> updateStatus(@PathVariable Long id,@RequestParam Status status) {
-        return ResponseEntity.ok(ticketService.updateTicketStatus(id, status, "admin@example.com"));
+    public ResponseEntity<TicketResponseDTO> updateStatus(@PathVariable Long id,@RequestParam Status status, @RequestParam(required = false) String notes) {
+        return ResponseEntity.ok(ticketService.updateTicketStatus(id, status, "admin@example.com", notes));
     }
 
     @PostMapping("/{id}/comments")

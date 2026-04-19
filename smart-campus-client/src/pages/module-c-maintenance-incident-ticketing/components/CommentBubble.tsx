@@ -11,7 +11,6 @@ type Props = {
   initials?: string;
   isOwn?: boolean;
   isTech?: boolean;
-  isStaff?: boolean;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   isEditing?: boolean;
@@ -31,7 +30,6 @@ export default function CommentBubble(props: Props) {
     initials,
     isOwn,
     isTech,
-    isStaff,
     onEdit,
     onDelete,
     isEditing,
@@ -54,12 +52,12 @@ export default function CommentBubble(props: Props) {
 
   return (
     <div
-      className={`flex items-start gap-3 ${isTech ? 'justify-end' : 'justify-start'}`}
+      className={`flex items-start gap-3 ${isTech ? 'justify-start' : 'justify-end'}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Avatar — other users only, left side */}
-      {!isTech && (
+      {/* Avatar — for tech on left, for user on right */}
+      {isTech && (
         <div
           className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
             isTech ? 'bg-violet-100 text-violet-700' : 'bg-sky-100 text-sky-800'
@@ -69,9 +67,9 @@ export default function CommentBubble(props: Props) {
         </div>
       )}
 
-      <div className={`max-w-[75%] flex flex-col ${isTech ? 'items-end' : 'items-start'}`}>
+      <div className={`max-w-[75%] flex flex-col ${isTech ? 'items-start' : 'items-end'}`}>
         {/* Author name row */}
-        <div className={`flex items-center gap-2 mb-1 ${isTech ? 'flex-row-reverse' : 'flex-row'}`}>
+        <div className={`flex items-center gap-2 mb-1 ${isTech ? 'flex-row' : 'flex-row-reverse'}`}>
           <span className="text-[13px] font-semibold text-slate-800">
             {isOwn ? 'You' : computedAuthorName}
           </span>
@@ -111,8 +109,8 @@ export default function CommentBubble(props: Props) {
             <div
               className={`p-3 text-sm leading-relaxed ${
                 isTech
-                  ? 'bg-violet-100 text-violet-900 rounded-tl-2xl rounded-tr-sm rounded-bl-2xl rounded-br-2xl'
-                  : 'bg-slate-100 text-slate-900 rounded-tr-2xl rounded-tl-sm rounded-br-2xl rounded-bl-2xl'
+                  ? 'bg-violet-100 text-violet-900 rounded-tr-2xl rounded-tl-sm rounded-br-2xl rounded-bl-2xl'
+                  : 'bg-slate-100 text-slate-900 rounded-tl-2xl rounded-tr-sm rounded-br-2xl rounded-bl-2xl'
               }`}
             >
               <div className="break-words">{content}</div>
@@ -127,7 +125,7 @@ export default function CommentBubble(props: Props) {
             </div>
 
             {/* Edit / Delete actions — shown on hover */}
-            {(isOwn || isStaff) && hovered && (
+            {hovered && !isTech && (onEdit || onDelete) && (
               <div
                 className={`flex gap-3 mt-1 ${isTech ? 'justify-end' : 'justify-start'}`}
               >
@@ -153,18 +151,14 @@ export default function CommentBubble(props: Props) {
         )}
       </div>
 
-      {/* Avatar — current user only, right side */}
-      {isTech && (
-        <div className="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 bg-violet-600 text-white">
+      {/* Avatar — for user on right */}
+      {!isTech && (
+        <div
+          className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 bg-sky-100 text-sky-800`}
+        >
           {computedInitials}
         </div>
       )}
-
-
-
-
-
-      
     </div>
   );
 }

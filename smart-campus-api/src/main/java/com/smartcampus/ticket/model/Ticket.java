@@ -51,6 +51,12 @@ public class Ticket {
     @Enumerated(EnumType.STRING)
     private Status status; // OPEN, IN_PROGRESS, RESOLVED, CLOSED, REJECTED
 
+    @Column(columnDefinition = "TEXT")
+    private String resolutionNote;
+
+    @Column(columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User createdBy;

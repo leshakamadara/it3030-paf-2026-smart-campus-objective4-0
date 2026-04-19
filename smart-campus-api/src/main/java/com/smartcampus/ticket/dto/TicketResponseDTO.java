@@ -28,4 +28,6 @@ public class TicketResponseDTO {
     private List<AttachmentDTO> attachments;
     
     private List<CommentDTO> comments;
+    private String resolutionNote;
+    private String rejectionReason;
 }

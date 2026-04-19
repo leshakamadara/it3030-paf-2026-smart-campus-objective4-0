@@ -49,6 +49,10 @@ export interface TicketResponseDTO {
   attachments: AttachmentDTO[];
   comments: CommentDTO[];
   createdAt: string;
+  updatedAt: string;
+  resolutionNote?: string;
+  rejectionReason?: string;
+  assignedToName?: string;
 }
 
 // Frontend types (for backward compatibility)
@@ -81,11 +85,11 @@ export interface Ticket {
   status: TicketStatus;
   resourceLocation: string;
   images: string[];
-  attachments?: Array<{ id: number; cloudinaryUrl?: string; cloudinarySecureUrl?: string }>;
+  attachments?: Array<{ id: number; cloudinaryUrl?: string; cloudinarySecureUrl?: string; createdAt: string }>;
   assignedToName?: string;
   resolutionNote?: string;
   rejectionReason?: string;
-  comments: Comment[];
+  comments: CommentDTO[];
   createdAt: string;
   updatedAt: string;
 }

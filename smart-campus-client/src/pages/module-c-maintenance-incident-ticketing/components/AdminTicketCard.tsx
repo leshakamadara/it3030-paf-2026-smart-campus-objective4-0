@@ -1,6 +1,7 @@
 import type { TicketResponseDTO } from "../types/ticketTypes";
 import { Badge } from "./Badge";
 import { PriorityDot } from "./PriorityDot";
+import { timeAgo, formatDate } from "../utills/helpers";
 
 export const TicketCard = ({
   ticket,
@@ -28,5 +29,23 @@ export const TicketCard = ({
     <p className="text-xs text-slate-400 line-clamp-1 mb-3">
       📝 {ticket.description ? ticket.description.substring(0, 50) + (ticket.description.length > 50 ? "..." : "") : "No description"}
     </p>
+    <div className="flex items-center justify-between text-xs text-slate-400">
+      <div />
+      {
+        (() => {
+          const candidates = [
+            (ticket as any).createdAt,
+            (ticket as any).created_at,
+            (ticket as any).created,
+            (ticket as any).createdOn,
+            (ticket as any).updatedAt,
+            (ticket as any).updated_at,
+          ];
+          const iso = candidates.find((c) => !!c && !isNaN(new Date(c).getTime()));
+          if (!iso) return <div>—</div>;
+          return <div title={formatDate(iso)}>{timeAgo(iso)}</div>;
+        })()
+      }
+    </div>
   </button>
 );
