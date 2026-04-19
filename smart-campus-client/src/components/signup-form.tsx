@@ -1,0 +1,158 @@
+import { useState } from "react"
+
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  FieldError,
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldSeparator,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+
+interface SignupFormProps extends React.ComponentProps<"form"> {
+  loading?: boolean
+  errorMessage?: string | null
+  onCampusRegister: (payload: {
+    fullName: string
+    email: string
+    password: string
+    confirmPassword: string
+  }) => void
+  onGoogleSignIn: () => void
+  onNavigateToSignIn: () => void
+}
+
+export function SignupForm({
+  className,
+  loading = false,
+  errorMessage,
+  onCampusRegister,
+  onGoogleSignIn,
+  onNavigateToSignIn,
+  ...props
+}: SignupFormProps) {
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    onCampusRegister({
+      fullName: fullName.trim(),
+      email: email.trim(),
+      password,
+      confirmPassword,
+    })
+  }
+
+  return (
+    <form
+      className={cn("flex flex-col gap-6 rounded-2xl border border-[#d0d6e0] bg-[#ffffff] p-6 text-[#191a1b] md:p-8", className)}
+      onSubmit={handleSubmit}
+      {...props}
+    >
+      <FieldGroup>
+        <div className="flex flex-col items-center gap-1 text-center">
+          <h1 className="text-2xl font-[590] tracking-[-0.028em]">Create your campus account</h1>
+          <p className="text-sm text-balance text-[#62666d]">
+            Register to access bookings, tickets, and campus services.
+          </p>
+        </div>
+        {errorMessage ? <FieldError>{errorMessage}</FieldError> : null}
+        <Field>
+          <FieldLabel htmlFor="name">Full Name</FieldLabel>
+          <Input
+            id="name"
+            type="text"
+            placeholder="John Doe"
+            required
+            className="border-[#d0d6e0] bg-[#f5f6f7] text-[#191a1b]"
+            value={fullName}
+            onChange={(event) => setFullName(event.target.value)}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            id="email"
+            type="email"
+            placeholder="you@campus.edu"
+            required
+            className="border-[#d0d6e0] bg-[#f5f6f7] text-[#191a1b]"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+          <FieldDescription>
+            Use your official campus email for role-based access assignment.
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <Input
+            id="password"
+            type="password"
+            required
+            className="border-[#d0d6e0] bg-[#f5f6f7] text-[#191a1b]"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+          <FieldDescription>
+            Must be at least 8 characters long.
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
+          <Input
+            id="confirm-password"
+            type="password"
+            required
+            className="border-[#d0d6e0] bg-[#f5f6f7] text-[#191a1b]"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+          />
+          <FieldDescription>Please confirm your password.</FieldDescription>
+        </Field>
+        <Field>
+          <Button
+            type="submit"
+            disabled={loading}
+            className="border border-[#5e6ad2] bg-[#5e6ad2] text-white hover:bg-[#7170ff]"
+          >
+            {loading ? "Creating account..." : "Create account"}
+          </Button>
+        </Field>
+        <FieldSeparator className="*:data-[slot=field-separator-content]:bg-[#ffffff]">Or continue with</FieldSeparator>
+        <Field>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={onGoogleSignIn}
+            className="border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5]"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path
+                d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
+                fill="currentColor"
+              />
+            </svg>
+            Sign up with Google
+          </Button>
+          <FieldDescription className="px-6 text-center">
+            Already have an account?{" "}
+            <button
+              type="button"
+              onClick={onNavigateToSignIn}
+              className="text-[#43464b] underline underline-offset-4 hover:text-[#191a1b]"
+            >
+              Sign in
+            </button>
+          </FieldDescription>
+        </Field>
+      </FieldGroup>
+    </form>
+  )
+}
