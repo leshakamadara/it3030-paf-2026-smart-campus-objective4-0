@@ -1,102 +1,158 @@
-import { useState } from "react";
+import { type ReactNode } from "react";
+import { Link, NavLink, Navigate, Outlet, Route, Routes } from "react-router-dom";
+
+import { NotificationPanel } from "@/components/notifications/NotificationPanel";
+import { RoleBadge } from "@/components/settings/RoleBadge";
+import { UserAvatar } from "@/components/settings/UserAvatar";
 import { Button } from "@/components/ui/button";
-import { dummyLogin } from "@/services/auth";
+import { useAuth } from "@/context/AuthContext";
+import { LoginPage } from "@/pages/public/LoginPage";
+import { NotFoundPage } from "@/pages/public/NotFoundPage";
+import { OAuthCallbackPage } from "@/pages/public/OAuthCallbackPage";
+import { QrCheckInPage } from "@/pages/public/QrCheckInPage";
+import { AdminUsersPage } from "@/pages/settings/AdminUsersPage";
+import { NotificationPrefsPage } from "@/pages/settings/NotificationPrefsPage";
+import { ProfilePage } from "@/pages/settings/ProfilePage";
 
-export function App() {
-  const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<any | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { isAuthenticated } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const result = await dummyLogin({ email, fullName: fullName || undefined });
-      setToken(result.token);
-      setUser(result.user);
-      if (result.token) {
-        localStorage.setItem("authToken", result.token);
-      }
-    } catch (err: any) {
-      setError(err.message ?? "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function SuperAdminRoute({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  if (user?.role !== "SUPER_ADMIN") {
+    return <Navigate to="/settings/profile" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AuthenticatedLayout() {
+  const { user, clearSession } = useAuth();
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-6">
-        <div>
-          <h1 className="text-xl font-semibold">Dummy Auth Tester</h1>
-          <p className="text-sm text-muted-foreground">
-            Use this simple form to hit the backend authentication API while the real UI
-            is being designed.
-          </p>
+    <div className="min-h-svh bg-[#08090a] text-[#f7f8f8]">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0f1011]/90 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="text-sm font-[590] tracking-[0.02em] text-[#f7f8f8]">
+              Smart Campus
+            </Link>
+            <nav className="flex items-center gap-2">
+              <NavLink
+                to="/settings/profile"
+                className={({ isActive }) =>
+                  isActive
+                    ? "rounded-md border border-white/10 bg-[#191a1b] px-3 py-1 text-xs text-[#f7f8f8]"
+                    : "rounded-md px-3 py-1 text-xs text-[#8a8f98] hover:text-[#d0d6e0]"
+                }
+              >
+                Profile
+              </NavLink>
+              <NavLink
+                to="/settings/notifications"
+                className={({ isActive }) =>
+                  isActive
+                    ? "rounded-md border border-white/10 bg-[#191a1b] px-3 py-1 text-xs text-[#f7f8f8]"
+                    : "rounded-md px-3 py-1 text-xs text-[#8a8f98] hover:text-[#d0d6e0]"
+                }
+              >
+                Notifications
+              </NavLink>
+              {isSuperAdmin && (
+                <NavLink
+                  to="/admin/users"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "rounded-md border border-white/10 bg-[#191a1b] px-3 py-1 text-xs text-[#f7f8f8]"
+                      : "rounded-md px-3 py-1 text-xs text-[#8a8f98] hover:text-[#d0d6e0]"
+                  }
+                >
+                  Admin Users
+                </NavLink>
+              )}
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <NotificationPanel />
+            {user?.role && <RoleBadge role={user.role} />}
+            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#191a1b] px-2 py-1">
+              <UserAvatar name={user?.fullName ?? "Campus User"} avatarUrl={user?.avatarUrl as string | null | undefined} />
+              <span className="hidden text-xs text-[#d0d6e0] sm:inline">{user?.fullName ?? "User"}</span>
+            </div>
+            <Button
+              onClick={clearSession}
+              className="h-9 rounded-md border border-[#5a2031] bg-[#341522] px-3 text-xs text-[#ffc2d0] hover:bg-[#462030]"
+            >
+              Sign out
+            </Button>
+          </div>
         </div>
+      </header>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              placeholder="student@example.com"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium" htmlFor="fullName">
-              Full name (optional)
-            </label>
-            <input
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              placeholder="Jane Doe"
-            />
-          </div>
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Dummy login / sign up"}
-          </Button>
-        </form>
-
-        {error && <p className="text-sm text-red-500">{error}</p>}
-
-        {token && (
-          <div className="space-y-2 rounded-md border p-3 text-xs break-all">
-            <div className="font-semibold">JWT token</div>
-            <div>{token}</div>
-          </div>
-        )}
-
-        {user && (
-          <div className="space-y-2 rounded-md border p-3 text-xs">
-            <div className="font-semibold">User payload</div>
-            <pre className="whitespace-pre-wrap break-all">
-              {JSON.stringify(user, null, 2)}
-            </pre>
-          </div>
-        )}
-
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
+      <Outlet />
     </div>
+  );
+}
+
+function HomePage() {
+  const { user } = useAuth();
+
+  return (
+    <main className="mx-auto w-full max-w-5xl space-y-4 px-4 py-8">
+      <section className="rounded-xl border border-white/10 bg-[#0f1011] p-8">
+        <p className="text-xs font-[510] uppercase tracking-[0.2em] text-[#7170ff]">Module E</p>
+        <h1 className="mt-2 text-3xl font-[590] tracking-[-0.044em]">Authentication and Authorization</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[#8a8f98]">
+          Welcome {user?.fullName ?? user?.email ?? "User"}. Use the profile, preferences, and admin tools from
+          the top navigation.
+        </p>
+      </section>
+
+      <section className="rounded-xl border border-[#3b3f52] bg-[#1b1d29] p-4 text-sm text-[#c9d2ff]">
+        Notification overlay UI is implemented here for integration, while full notification APIs remain part of
+        Module D backend scope.
+      </section>
+    </main>
+  );
+}
+
+export function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/auth/callback" element={<OAuthCallbackPage />} />
+      <Route path="/qr/:token" element={<QrCheckInPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<HomePage />} />
+        <Route path="settings/profile" element={<ProfilePage />} />
+        <Route path="settings/notifications" element={<NotificationPrefsPage />} />
+        <Route
+          path="admin/users"
+          element={
+            <SuperAdminRoute>
+              <AdminUsersPage />
+            </SuperAdminRoute>
+          }
+        />
+      </Route>
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 }
 
