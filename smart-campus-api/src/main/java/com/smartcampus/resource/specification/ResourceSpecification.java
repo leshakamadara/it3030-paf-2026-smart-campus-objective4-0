@@ -27,7 +27,7 @@ public class ResourceSpecification {
             Boolean hasComputers,
             Boolean hasWindows
     ) {
-        return Specification.where(nameContains(name))
+        return Specification.where(nameStartsWith(name))
                 .and(hasType(type))
                 .and(inBuilding(building))
                 .and(hasStatus(status))
@@ -43,14 +43,14 @@ public class ResourceSpecification {
                 .and(hasWindows(hasWindows));
     }
 
-    public static Specification<Resource> nameContains(String name) {
+    public static Specification<Resource> nameStartsWith(String name) {
         return (root, query, criteriaBuilder) -> {
             if (name == null || name.trim().isEmpty()) {
                 return null;
             }
             return criteriaBuilder.like(
                     criteriaBuilder.lower(root.get("name")),
-                    "%" + name.trim().toLowerCase() + "%"
+                    name.trim().toLowerCase() + "%"
             );
         };
     }

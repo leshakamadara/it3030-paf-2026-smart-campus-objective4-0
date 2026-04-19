@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Search, Plus, BarChart3, ChevronLeft, ChevronRight, X, Loader2, Info } from "lucide-react";
 import ResourceFilters from "../../components/ui/resource/ResourceFilters";
 import ResourceTable from "../../components/ui/resource/ResourceTable";
 import resourceService from "../../services/resourceService";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { getMockUser, isAdmin } from "../../lib/mockAuth";
 import type {
   PaginatedResponse,
@@ -65,7 +72,9 @@ export default function ResourceListPage() {
     };
 
     fetchResources();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [filters, debouncedSearch]);
 
   const handleApplyFilters = (newFilters: ResourceFilterValues) => {
@@ -86,76 +95,70 @@ export default function ResourceListPage() {
   };
 
   const handleNextPage = () => {
-    if (!pageData?.last)
-      setFilters((prev) => ({ ...prev, page: (prev.page ?? 0) + 1 }));
+    if (!pageData?.last) setFilters((prev) => ({ ...prev, page: (prev.page ?? 0) + 1 }));
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      {/* ── Page header ──────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden border-b border-zinc-200 bg-white">
-        {/* Rainbow accent strip */}
-        <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-indigo-500 via-violet-500 to-purple-500" />
+    <div className="min-h-screen bg-background">
+      {/* Animated gradient border */}
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-purple-500 to-pink-500 animate-gradient-x" />
 
-        {/* Subtle gradient backdrop */}
-        <div className="absolute inset-0 bg-linear-to-br from-white via-indigo-50/30 to-violet-50/20" />
-
-        {/* Decorative blobs */}
-        <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-violet-200/20 blur-3xl" />
-        <div className="absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-indigo-200/20 blur-2xl" />
-
-        <div className="relative mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:px-8">
+      {/* Page header */}
+      <div className="border-b">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-indigo-500">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <p className="text-xs font-bold uppercase tracking-widest text-primary">
                 Facilities Catalogue
               </p>
-              <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900">
+              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
                 Campus Resources
               </h1>
-              <p className="mt-1 text-sm text-zinc-500">
+              <p className="text-sm text-muted-foreground">
                 All campus facilities and assets.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="flex shrink-0 flex-wrap items-center gap-3">
-              {/* Role badge */}
-              <span className={`hidden rounded-full border px-3 py-1 text-xs font-semibold sm:inline-flex ${
-                currentUser.role === "ADMIN"
-                  ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-                  : "border-zinc-200 bg-zinc-50 text-zinc-600"
-              }`}>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="flex items-center gap-3"
+            >
+              <Badge variant="outline" className="animate-pulse">
                 {currentUser.role}
-              </span>
-
+              </Badge>
               {isAdmin() && (
                 <>
-                  <Link
-                    to="/admin/resources/create"
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition hover:bg-indigo-700"
+                  <Button asChild className="transition-all hover:scale-105 hover:shadow-md">
+                    <Link to="/admin/resources/create">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Resource
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    asChild
+                    className="transition-all hover:scale-105 hover:shadow-md"
                   >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add Resource
-                  </Link>
-                  <Link
-                    to="/admin/resources/stats"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
-                  >
-                    <svg className="h-4 w-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    Dashboard
-                  </Link>
+                    <Link to="/admin/resources/stats">
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </Button>
                 </>
               )}
-            </div>
+              <ThemeToggle />
+            </motion.div>
           </div>
         </div>
       </div>
 
-      {/* ── Body ─────────────────────────────────────────────────────────────── */}
+      {/* Body */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
           {/* Filters sidebar */}
@@ -167,198 +170,168 @@ export default function ResourceListPage() {
 
           {/* Results column */}
           <div ref={resultsRef} className="space-y-4">
-            {/* Search bar with FIXED icon visibility */}
-<div className="relative">
-  <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
-    {loading && debouncedSearch ? (
-      <svg
-        className="h-5 w-5 animate-spin text-indigo-600"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          className="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          strokeWidth="4"
-        />
-        <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-        />
-      </svg>
-    ) : (
-      <svg
-        className="h-5 w-5 text-indigo-600"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2.5}
-          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-        />
-      </svg>
-    )}
-  </div>
-  <input
-    ref={searchRef}
-    type="text"
-    value={searchQuery}
-    onChange={(e) => setSearchQuery(e.target.value)}
-    placeholder="Search Name..."
-    className="w-full rounded-2xl border border-white/50 bg-white/80 py-3.5 pl-11 pr-10 text-sm text-zinc-800 shadow-md backdrop-blur-sm outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
-  />
-  {searchQuery && (
-    <button
-      type="button"
-      onClick={() => {
-        setSearchQuery("");
-        searchRef.current?.focus();
-      }}
-      className="absolute inset-y-0 right-0 z-10 flex items-center pr-4 text-zinc-400 transition hover:text-zinc-600"
-    >
-      <svg
-        className="h-4 w-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M6 18L18 6M6 6l12 12"
-        />
-      </svg>
-    </button>
-  )}
-</div>
-            {/* Search active indicator */}
+            {/* Search bar */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2 }}
+              className="relative"
+            >
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                ref={searchRef}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search Name..."
+                className="pl-10 pr-10 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 transition-all hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => {
+                    setSearchQuery("");
+                    searchRef.current?.focus();
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </motion.div>
+
+            {/* Search hint */}
             {debouncedSearch && (
-              <div className="flex items-center gap-2 text-xs text-zinc-500">
-                <svg className="h-3.5 w-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Searching for{" "}
-                <span className="font-semibold text-indigo-700">"{debouncedSearch}"</span>
-                <span className="text-zinc-400">— A → Z order</span>
-              </div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded-md"
+              >
+                <Info className="h-3.5 w-3.5 text-primary" />
+                <span>
+                  Showing resources whose name contains{" "}
+                  <span className="font-semibold text-primary">"{debouncedSearch}"</span>
+                </span>
+              </motion.div>
             )}
 
             {/* Results header */}
-            <div className="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="font-semibold text-zinc-900">Results</h2>
-                <p className="text-sm text-zinc-500">
+            <Card className="transition-shadow hover:shadow-md">
+              <CardHeader className="py-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-medium">Results</CardTitle>
+                  {pageData && pageData.totalPages > 1 && (
+                    <span className="text-sm text-muted-foreground">
+                      Page {(pageData.number ?? 0) + 1} of {pageData.totalPages}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
                   {loading
                     ? "Loading..."
                     : pageData
-                    ? `${pageData.content.length} of ${pageData.totalElements} resource${pageData.totalElements !== 1 ? "s" : ""}`
+                    ? `${pageData.totalElements} resource${pageData.totalElements !== 1 ? "s" : ""}`
                     : "No data"}
                 </p>
-              </div>
-              {pageData && pageData.totalPages > 1 && (
-                <p className="text-sm text-zinc-500">
-                  Page {(pageData.number ?? 0) + 1} / {pageData.totalPages}
-                </p>
-              )}
-            </div>
+              </CardHeader>
+            </Card>
 
             {/* Content */}
             {loading ? (
-              <div className="flex items-center justify-center gap-3 rounded-2xl border border-zinc-200 bg-white p-16 shadow-sm">
-                <svg className="h-5 w-5 animate-spin text-indigo-400" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                <span className="text-sm text-zinc-500">Loading resources...</span>
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : error ? (
-              <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm">
-                <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
+              <Card className="border-destructive/50 bg-destructive/10">
+                <CardContent className="py-6 text-center text-destructive">
+                  {error}
+                </CardContent>
+              </Card>
             ) : (
               <>
                 <ResourceTable resources={pageData?.content ?? []} />
 
                 {/* Pagination */}
                 {pageData && pageData.totalElements > 0 && pageData.totalPages > 1 && (
-                  <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
-                    <button
-                      type="button"
-                      onClick={handlePreviousPage}
-                      disabled={pageData.first}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                      Previous
-                    </button>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <Card className="transition-shadow hover:shadow-md">
+                      <CardContent className="flex items-center justify-between py-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePreviousPage}
+                          disabled={pageData.first}
+                          className="transition-all hover:scale-105 disabled:hover:scale-100"
+                        >
+                          <ChevronLeft className="mr-1 h-4 w-4" />
+                          Previous
+                        </Button>
 
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(pageData.totalPages, 7) }, (_, i) => {
-                        const currentPage = pageData.number;
-                        const totalPages = pageData.totalPages;
-                        let page: number | null;
+                        <div className="flex items-center gap-1">
+                          {Array.from(
+                            { length: Math.min(pageData.totalPages, 7) },
+                            (_, i) => {
+                              const currentPage = pageData.number;
+                              const totalPages = pageData.totalPages;
+                              let page: number | null;
 
-                        if (totalPages <= 7) {
-                          page = i;
-                        } else if (i === 0) {
-                          page = 0;
-                        } else if (i === 6) {
-                          page = totalPages - 1;
-                        } else if (i === 1 && currentPage > 3) {
-                          page = null;
-                        } else if (i === 5 && currentPage < totalPages - 4) {
-                          page = null;
-                        } else {
-                          const start = Math.max(1, Math.min(currentPage - 1, totalPages - 5));
-                          page = start + (i - 1);
-                        }
+                              if (totalPages <= 7) {
+                                page = i;
+                              } else if (i === 0) {
+                                page = 0;
+                              } else if (i === 6) {
+                                page = totalPages - 1;
+                              } else if (i === 1 && currentPage > 3) {
+                                page = null;
+                              } else if (i === 5 && currentPage < totalPages - 4) {
+                                page = null;
+                              } else {
+                                const start = Math.max(
+                                  1,
+                                  Math.min(currentPage - 1, totalPages - 5)
+                                );
+                                page = start + (i - 1);
+                              }
 
-                        if (page === null) {
-                          return <span key={i} className="px-1 text-zinc-400">…</span>;
-                        }
+                              if (page === null) {
+                                return (
+                                  <span key={i} className="px-1 text-muted-foreground">
+                                    …
+                                  </span>
+                                );
+                              }
 
-                        return (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => setFilters((p) => ({ ...p, page }))}
-                            className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition ${
-                              page === currentPage
-                                ? "bg-indigo-600 text-white"
-                                : "text-zinc-600 hover:bg-zinc-100"
-                            }`}
-                          >
-                            {page! + 1}
-                          </button>
-                        );
-                      })}
-                    </div>
+                              return (
+                                <Button
+                                  key={i}
+                                  variant={page === currentPage ? "default" : "outline"}
+                                  size="sm"
+                                  className="h-8 w-8 transition-all hover:scale-110"
+                                  onClick={() => setFilters((p) => ({ ...p, page }))}
+                                >
+                                  {page! + 1}
+                                </Button>
+                              );
+                            }
+                          )}
+                        </div>
 
-                    <button
-                      type="button"
-                      onClick={handleNextPage}
-                      disabled={pageData.last}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      Next
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleNextPage}
+                          disabled={pageData.last}
+                          className="transition-all hover:scale-105 disabled:hover:scale-100"
+                        >
+                          Next
+                          <ChevronRight className="ml-1 h-4 w-4" />
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 )}
               </>
             )}

@@ -1,7 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Separator } from "@/components/ui/separator";
+import { Pencil, Trash2, MapPin, Users, Clock, Calendar, Loader2, AlertCircle, ChevronLeft } from "lucide-react";
 import ResourceStatusBadge from "../../components/ui/resource/ResourceStatusBadge";
-import { ConfirmDialog, useToast } from "../../components/ui/toast-system";
+import { useToast } from "../../components/ui/toast-system";
 import { isAdmin } from "../../lib/mockAuth";
 import resourceService from "../../services/resourceService";
 import type { Resource } from "../../types/resource";
@@ -17,61 +33,70 @@ interface TypeTheme {
 
 const TYPE_THEME: Record<string, TypeTheme> = {
   LECTURE_HALL: {
-    heroBg: "from-violet-50 via-purple-50/60 to-white",
+    heroBg: "from-violet-500/10 via-purple-500/5 to-background",
     accentBar: "from-violet-500 to-purple-500",
-    iconBg: "bg-violet-100",
+    iconBg: "bg-violet-500/10",
     iconText: "text-violet-600",
-    labelBg: "bg-violet-50 border-violet-200",
+    labelBg: "bg-violet-500/10 border-violet-200",
     labelText: "text-violet-700",
   },
   LAB: {
-    heroBg: "from-blue-50 via-sky-50/60 to-white",
+    heroBg: "from-blue-500/10 via-sky-500/5 to-background",
     accentBar: "from-blue-500 to-sky-500",
-    iconBg: "bg-blue-100",
+    iconBg: "bg-blue-500/10",
     iconText: "text-blue-600",
-    labelBg: "bg-blue-50 border-blue-200",
+    labelBg: "bg-blue-500/10 border-blue-200",
     labelText: "text-blue-700",
   },
   MEETING_ROOM: {
-    heroBg: "from-teal-50 via-emerald-50/60 to-white",
+    heroBg: "from-teal-500/10 via-emerald-500/5 to-background",
     accentBar: "from-teal-500 to-emerald-500",
-    iconBg: "bg-teal-100",
+    iconBg: "bg-teal-500/10",
     iconText: "text-teal-600",
-    labelBg: "bg-teal-50 border-teal-200",
+    labelBg: "bg-teal-500/10 border-teal-200",
     labelText: "text-teal-700",
   },
   PROJECTOR: {
-    heroBg: "from-amber-50 via-yellow-50/60 to-white",
+    heroBg: "from-amber-500/10 via-yellow-500/5 to-background",
     accentBar: "from-amber-500 to-orange-500",
-    iconBg: "bg-amber-100",
+    iconBg: "bg-amber-500/10",
     iconText: "text-amber-600",
-    labelBg: "bg-amber-50 border-amber-200",
+    labelBg: "bg-amber-500/10 border-amber-200",
     labelText: "text-amber-700",
   },
   CAMERA: {
-    heroBg: "from-rose-50 via-pink-50/60 to-white",
+    heroBg: "from-rose-500/10 via-pink-500/5 to-background",
     accentBar: "from-rose-500 to-pink-500",
-    iconBg: "bg-rose-100",
+    iconBg: "bg-rose-500/10",
     iconText: "text-rose-600",
-    labelBg: "bg-rose-50 border-rose-200",
+    labelBg: "bg-rose-500/10 border-rose-200",
     labelText: "text-rose-700",
   },
 };
 
 const DEFAULT_THEME: TypeTheme = {
-  heroBg: "from-zinc-50 to-slate-50",
-  accentBar: "from-zinc-500 to-slate-500",
-  iconBg: "bg-zinc-100",
-  iconText: "text-zinc-600",
-  labelBg: "bg-zinc-50 border-zinc-200",
-  labelText: "text-zinc-700",
+  heroBg: "from-muted to-background",
+  accentBar: "from-primary to-primary/90",
+  iconBg: "bg-muted",
+  iconText: "text-muted-foreground",
+  labelBg: "bg-muted border-border",
+  labelText: "text-muted-foreground",
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  LECTURE_HALL: "Lecture Hall", LAB: "Lab", MEETING_ROOM: "Meeting Room", PROJECTOR: "Projector", CAMERA: "Camera",
+  LECTURE_HALL: "Lecture Hall",
+  LAB: "Lab",
+  MEETING_ROOM: "Meeting Room",
+  PROJECTOR: "Projector",
+  CAMERA: "Camera",
 };
+
 const TYPE_ICONS: Record<string, string> = {
-  LECTURE_HALL: "🏛️", LAB: "🖥️", MEETING_ROOM: "🤝", PROJECTOR: "📽️", CAMERA: "📷",
+  LECTURE_HALL: "🏛️",
+  LAB: "🖥️",
+  MEETING_ROOM: "🤝",
+  PROJECTOR: "📽️",
+  CAMERA: "📷",
 };
 
 const FEATURES = [
@@ -83,7 +108,14 @@ const FEATURES = [
   { key: "hasWindows", label: "Windows", icon: "🪟" },
 ] as const;
 
-const formatDateTime = (value: string) => new Date(value).toLocaleString("en-US", { year:"numeric", month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" });
+const formatDateTime = (value: string) =>
+  new Date(value).toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 export default function ResourceDetailsPage() {
   const { id } = useParams();
@@ -98,20 +130,27 @@ export default function ResourceDetailsPage() {
   useEffect(() => {
     let isMounted = true;
     const fetchResource = async () => {
-      if (!id) { setError("Resource ID is missing."); setLoading(false); return; }
+      if (!id) {
+        setError("Resource ID is missing.");
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         setError("");
         const data = await resourceService.getResourceById(Number(id));
         if (isMounted) setResource(data);
       } catch (err) {
-        if (isMounted) setError(err instanceof Error ? err.message : "Failed to load resource.");
+        if (isMounted)
+          setError(err instanceof Error ? err.message : "Failed to load resource.");
       } finally {
         if (isMounted) setLoading(false);
       }
     };
     fetchResource();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   const handleDelete = async () => {
@@ -131,13 +170,10 @@ export default function ResourceDetailsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-zinc-50 via-white to-indigo-50/30">
-        <div className="flex items-center gap-3 text-zinc-500">
-          <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-          <span className="text-sm">Loading resource...</span>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Loading resource...</span>
         </div>
       </div>
     );
@@ -145,25 +181,27 @@ export default function ResourceDetailsPage() {
 
   if (error || !resource) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-indigo-50/30">
-        <div className="border-b border-white/50 bg-white/70 backdrop-blur-xl">
+      <div className="min-h-screen bg-background">
+        <div className="border-b">
           <div className="mx-auto max-w-5xl px-4 py-5 sm:px-6">
-            <Link to="/resources" className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition hover:text-zinc-900">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Resources
-            </Link>
+            <Button variant="ghost" asChild className="transition-all hover:bg-muted">
+              <Link to="/resources">
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Resources
+              </Link>
+            </Button>
           </div>
         </div>
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-          <div className="flex items-start gap-4 rounded-2xl border border-rose-200/70 bg-rose-50/80 p-6 shadow-md backdrop-blur-sm">
-            <span className="text-xl">⚠️</span>
-            <div>
-              <h2 className="font-semibold text-rose-800">Failed to load</h2>
-              <p className="mt-1 text-sm text-rose-700">{error || "Resource not found."}</p>
-            </div>
-          </div>
+          <Card className="border-destructive/50 bg-destructive/10">
+            <CardContent className="flex items-start gap-4 py-6">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              <div>
+                <h2 className="font-semibold text-destructive">Failed to load</h2>
+                <p className="text-sm text-destructive">{error || "Resource not found."}</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -175,186 +213,291 @@ export default function ResourceDetailsPage() {
   const admin = isAdmin();
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-white via-sky-50 to-blue-50">
+    <div className="min-h-screen bg-background">
+      {/* Animated background blobs */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-indigo-200/20 blur-3xl" />
-        <div className="absolute -right-40 -bottom-40 h-96 w-96 rounded-full bg-sky-200/20 blur-3xl" />
+        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-primary/10 blur-3xl animate-pulse" />
+        <div className="absolute -right-40 -bottom-40 h-96 w-96 rounded-full bg-sky-500/10 blur-3xl animate-pulse" />
       </div>
 
-      <div className="sticky top-0 z-20 border-b border-sky-100/50 bg-white/80 backdrop-blur-xl">
-        <div className={`absolute inset-x-0 top-0 h-1 bg-linear-to-r ${theme.accentBar}`} />
+      {/* Header */}
+      <div className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur-xl">
+        <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${theme.accentBar} animate-gradient-x`} />
         <div className="mx-auto max-w-5xl px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-wrap items-center justify-between gap-4 pt-1"
+          >
             <div className="flex items-center gap-4">
-              <Link to="/resources" className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition hover:text-zinc-900">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Resources
-              </Link>
-              <span className="text-zinc-300">/</span>
-              <span className="text-sm text-zinc-500">{resource.resourceCode}</span>
+              <Button variant="ghost" asChild className="transition-all hover:bg-muted">
+                <Link to="/resources">
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Resources
+                </Link>
+              </Button>
+              <span className="text-muted-foreground">/</span>
+              <span className="text-sm text-muted-foreground">{resource.resourceCode}</span>
             </div>
             <div className="flex items-center gap-3">
               <ResourceStatusBadge resource={resource} />
               {admin && (
-                <Link to={`/admin/resources/edit/${resource.id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Edit
-                </Link>
+                <Button asChild className="transition-all hover:scale-105 hover:shadow-md">
+                  <Link to={`/admin/resources/edit/${resource.id}`}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </Button>
               )}
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-2xl border border-white/50 bg-white/80 shadow-lg backdrop-blur-sm">
-          <div className={`bg-linear-to-br ${theme.heroBg} px-6 pb-6 pt-7`}>
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex items-start gap-4">
-                <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/80 text-2xl shadow-sm ${theme.iconBg}`}>
-                  {TYPE_ICONS[resource.type] ?? "📦"}
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">{resource.resourceCode}</p>
-                  <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-800">{resource.name}</h1>
-                  {resource.description && <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600">{resource.description}</p>}
-                </div>
-              </div>
-              <div className="flex shrink-0 flex-col gap-2">
-                <span className={`inline-flex w-fit items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold ${theme.labelBg} ${theme.labelText}`}>
-                  {TYPE_ICONS[resource.type]} {TYPE_LABELS[resource.type] ?? resource.type}
-                </span>
-                <span className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-zinc-200 bg-white/80 px-3 py-1.5 text-xs font-medium text-zinc-700">
-                  <svg className="h-3.5 w-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  {resource.building}
-                </span>
-                {resource.isBookable && (
-                  <span className="inline-flex w-fit items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Bookable
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-          {resource.imageUrl && <img src={resource.imageUrl} alt={resource.name} className="h-52 w-full object-cover" />}
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl border border-white/50 bg-white/80 p-6 shadow-md backdrop-blur-sm">
-            <h2 className="flex items-center gap-2 font-semibold text-zinc-800">
-              <span className={`flex h-7 w-7 items-center justify-center rounded-lg text-sm ${theme.iconBg} ${theme.iconText}`}>📋</span>
-              Resource Information
-            </h2>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              {[ { label: "Code", value: resource.resourceCode }, { label: "Type", value: TYPE_LABELS[resource.type] ?? resource.type }, { label: "Building", value: resource.building }, { label: "Capacity", value: resource.capacity != null ? `${resource.capacity} people` : "—" }, { label: "Bookable", value: resource.isBookable ? "Yes" : "No" }, { label: "Maintenance", value: resource.isUnderMaintenance ? "Active" : "None" } ].map((item) => (
-                <InfoCell key={item.label} label={item.label} value={item.value} />
-              ))}
-            </div>
-          </div>
-          <div className="rounded-2xl border border-white/50 bg-white/80 p-6 shadow-md backdrop-blur-sm">
-            <h2 className="flex items-center gap-2 font-semibold text-zinc-800">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sm text-sky-600">🕐</span>
-              Availability
-            </h2>
-            <div className="mt-5 space-y-4">
-              <div className={`rounded-xl border bg-linear-to-br ${theme.heroBg} px-4 py-4`}>
-                <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Daily Hours</p>
-                <p className="mt-2 font-mono text-2xl font-bold text-zinc-800">
-                  {resource.availableFrom.slice(0, 5)} <span className="mx-2 text-zinc-400">–</span> {resource.availableTo.slice(0, 5)}
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <InfoCell label="Created" value={formatDateTime(resource.createdAt)} />
-                <InfoCell label="Updated" value={formatDateTime(resource.updatedAt)} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-white/50 bg-white/80 p-6 shadow-md backdrop-blur-sm">
-          <h2 className="flex items-center gap-2 font-semibold text-zinc-800">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-sm text-violet-600">⚙️</span>
-            Features &amp; Amenities
-          </h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {enabledFeatures.map((f) => (
-              <div key={f.key} className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 backdrop-blur-sm">
-                <span className="text-base">{f.icon}</span>
-                <span className="text-sm font-semibold text-emerald-800">{f.label}</span>
-                <svg className="ml-auto h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            ))}
-            {disabledFeatures.map((f) => (
-              <div key={f.key} className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 backdrop-blur-sm">
-                <span className="text-base opacity-40">{f.icon}</span>
-                <span className="text-sm font-medium text-zinc-400">{f.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {admin && (
-          <div className="overflow-hidden rounded-2xl border border-rose-200/70 bg-white/80 shadow-md backdrop-blur-sm">
-            <div className="h-1 bg-linear-to-r from-rose-400 to-red-500" />
-            <div className="p-6">
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        {/* Hero Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className={`border-t-4 ${theme.accentBar} overflow-hidden transition-shadow hover:shadow-xl`}>
+            <CardHeader>
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-rose-200 bg-rose-100">
-                    <svg className="h-5 w-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                  <div className={`rounded-lg p-3 ${theme.iconBg} transition-transform group-hover:scale-110`}>
+                    <span className="text-2xl">{TYPE_ICONS[resource.type] ?? "📦"}</span>
                   </div>
                   <div>
-                    <h2 className="font-semibold text-rose-800">Danger Zone</h2>
-                    <p className="mt-1 text-sm text-rose-700">Deleting this resource is permanent and cannot be undone.</p>
+                    <p className="text-sm text-muted-foreground">{resource.resourceCode}</p>
+                    <h1 className="text-2xl font-bold">{resource.name}</h1>
+                    {resource.description && (
+                      <p className="mt-1 text-muted-foreground">{resource.description}</p>
+                    )}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteConfirm(true)}
-                  disabled={deleting}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-rose-300 bg-white px-5 py-2.5 text-sm font-semibold text-rose-700 shadow-sm transition hover:border-rose-400 hover:bg-rose-50 disabled:opacity-60"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  {deleting ? "Deleting..." : "Delete Resource"}
-                </button>
+                <div className="flex shrink-0 flex-col gap-2">
+                  <Badge variant="outline" className={`${theme.labelBg} transition-all hover:scale-105`}>
+                    {TYPE_ICONS[resource.type]} {TYPE_LABELS[resource.type] ?? resource.type}
+                  </Badge>
+                  <Badge variant="outline" className="gap-1 transition-all hover:scale-105">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {resource.building}
+                  </Badge>
+                  {resource.isBookable && (
+                    <Badge variant="secondary" className="gap-1 animate-pulse">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Bookable
+                    </Badge>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
+            </CardHeader>
+            {resource.imageUrl && (
+  <div className="px-6 pb-6">
+    <div className="relative overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+      <img
+        src={resource.imageUrl}
+        alt={resource.name}
+        className="h-52 w-full object-contain transition-transform duration-500 hover:scale-[1.02]"
+        onError={(e) => {
+          // Fallback if image fails to load
+          const target = e.target as HTMLImageElement;
+          target.style.display = 'none';
+          const parent = target.parentElement;
+          if (parent) {
+            parent.classList.add('flex', 'items-center', 'justify-center', 'bg-muted');
+            const span = document.createElement('span');
+            span.className = 'text-4xl opacity-50';
+            span.textContent = TYPE_ICONS[resource.type] ?? '📦';
+            parent.appendChild(span);
+          }
+        }}
+      />
+    </div>
+  </div>
+)}
+          </Card>
+        </motion.div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Info Card */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="transition-shadow hover:shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg">Resource Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <InfoRow label="Code" value={resource.resourceCode} />
+                <InfoRow label="Type" value={TYPE_LABELS[resource.type] ?? resource.type} />
+                <InfoRow
+                  label="Building"
+                  value={resource.building}
+                  icon={<MapPin className="h-4 w-4" />}
+                />
+                <InfoRow
+                  label="Capacity"
+                  value={resource.capacity != null ? `${resource.capacity} people` : "—"}
+                  icon={<Users className="h-4 w-4" />}
+                />
+                <InfoRow label="Bookable" value={resource.isBookable ? "Yes" : "No"} />
+                <InfoRow
+                  label="Under Maintenance"
+                  value={resource.isUnderMaintenance ? "Yes" : "No"}
+                />
+                <Separator />
+                <InfoRow
+                  label="Created"
+                  value={formatDateTime(resource.createdAt)}
+                  icon={<Calendar className="h-4 w-4" />}
+                />
+                <InfoRow label="Last Updated" value={formatDateTime(resource.updatedAt)} />
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Availability Card */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="transition-shadow hover:shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg">Availability</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className={`rounded-lg bg-gradient-to-br ${theme.heroBg} p-4 text-center transition-all hover:scale-[1.02]`}>
+                  <Clock className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
+                  <p className="font-mono text-2xl font-bold">
+                    {resource.availableFrom.slice(0, 5)} – {resource.availableTo.slice(0, 5)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Daily hours</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Features Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="transition-shadow hover:shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-lg">Features & Amenities</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {enabledFeatures.map((f) => (
+                  <div
+                    key={f.key}
+                    className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3 transition-all hover:scale-[1.02] hover:shadow-md cursor-default"
+                  >
+                    <span className="text-xl">{f.icon}</span>
+                    <span className="font-medium text-primary">{f.label}</span>
+                    <Badge variant="secondary" className="ml-auto">
+                      ✓
+                    </Badge>
+                  </div>
+                ))}
+                {disabledFeatures.map((f) => (
+                  <div
+                    key={f.key}
+                    className="flex items-center gap-3 rounded-lg border bg-muted p-3 text-muted-foreground transition-all hover:scale-[1.02] cursor-default"
+                  >
+                    <span className="text-xl opacity-40">{f.icon}</span>
+                    <span className="font-medium">{f.label}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Danger Zone (Admin only) */}
+        {admin && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="border-destructive/50 transition-shadow hover:shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-medium">Delete this resource</p>
+                    <p className="text-sm text-muted-foreground">
+                      Once deleted, it will be permanently removed. This action cannot be undone.
+                    </p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="transition-all hover:scale-105 hover:shadow-md"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Resource
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
       </div>
 
-      <ConfirmDialog
-        open={showDeleteConfirm}
-        title="Delete this resource?"
-        description={`"${resource.name}" will be permanently removed. This action cannot be undone.`}
-        confirmLabel="Yes, Delete"
-        cancelLabel="Cancel"
-        variant="danger"
-        loading={deleting}
-        onConfirm={handleDelete}
-        onCancel={() => setShowDeleteConfirm(false)}
-      />
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <strong>{resource.name}</strong>. This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all hover:scale-105"
+            >
+              {deleting ? "Deleting..." : "Yes, delete resource"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-function InfoCell({ label, value }: { label: string; value: string }) {
+function InfoRow({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string;
+  icon?: React.ReactNode;
+}) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white/50 p-3 backdrop-blur-sm">
-      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{label}</p>
-      <p className="mt-1 wrap-break-word text-sm font-semibold text-zinc-800">{value}</p>
+    <div className="flex items-center justify-between transition-all hover:bg-muted/50 p-1 rounded">
+      <span className="text-sm text-muted-foreground flex items-center gap-2">
+        {icon}
+        {label}
+      </span>
+      <span className="font-medium">{value}</span>
     </div>
   );
 }

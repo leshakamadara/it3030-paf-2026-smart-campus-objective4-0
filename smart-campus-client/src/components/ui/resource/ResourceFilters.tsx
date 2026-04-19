@@ -1,4 +1,18 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Filter, Sparkles } from "lucide-react";
 import type {
   ResourceFilters as ResourceFilterValues,
   ResourceStatus,
@@ -13,10 +27,12 @@ interface ResourceFiltersProps {
 
 type BooleanSelectValue = "" | "true" | "false";
 
+const ALL_VALUE = "all";
+
 interface FilterFormState {
-  type: "" | ResourceType;
+  type: ResourceType | typeof ALL_VALUE;
   building: string;
-  status: "" | ResourceStatus;
+  status: ResourceStatus | typeof ALL_VALUE;
   isBookable: BooleanSelectValue;
   isUnderMaintenance: BooleanSelectValue;
   minCapacity: string;
@@ -51,9 +67,9 @@ const TYPE_LABELS: Record<ResourceType, string> = {
 };
 
 const createFormState = (filters: ResourceFilterValues): FilterFormState => ({
-  type: filters.type ?? "",
+  type: filters.type ?? ALL_VALUE,
   building: filters.building ?? "",
-  status: filters.status ?? "",
+  status: filters.status ?? ALL_VALUE,
   isBookable:
     filters.isBookable === undefined ? "" : (String(filters.isBookable) as BooleanSelectValue),
   isUnderMaintenance:
@@ -85,12 +101,12 @@ const parseOptionalNumber = (value: string): number | undefined => {
 };
 
 const FEATURES = [
-  { key: "hasProjector", label: "Projector", icon: "📽️" },
-  { key: "hasAc", label: "AC", icon: "❄️" },
-  { key: "hasWhiteboard", label: "Whiteboard", icon: "✏️" },
-  { key: "hasWifi", label: "Wi-Fi", icon: "📶" },
-  { key: "hasComputers", label: "Computers", icon: "💻" },
-  { key: "hasWindows", label: "Windows", icon: "🪟" },
+  { key: "hasProjector", label: "Projector", icon: "📽️", color: "from-amber-500 to-orange-500" },
+  { key: "hasAc", label: "AC", icon: "❄️", color: "from-sky-400 to-blue-500" },
+  { key: "hasWhiteboard", label: "Whiteboard", icon: "✏️", color: "from-emerald-500 to-teal-500" },
+  { key: "hasWifi", label: "Wi-Fi", icon: "📶", color: "from-green-500 to-emerald-500" },
+  { key: "hasComputers", label: "Computers", icon: "💻", color: "from-purple-500 to-violet-500" },
+  { key: "hasWindows", label: "Windows", icon: "🪟", color: "from-rose-500 to-pink-500" },
 ] as const;
 
 export default function ResourceFilters({
@@ -98,16 +114,16 @@ export default function ResourceFilters({
   onApply,
   onReset,
 }: ResourceFiltersProps) {
-  const [form, setForm] = useState<FilterFormState>(createFormState(initialFilters));
+  const [form, setForm] = useState<FilterFormState>(() => createFormState(initialFilters));
 
   useEffect(() => {
     setForm(createFormState(initialFilters));
   }, [initialFilters]);
 
   const activeCount = [
-    form.type,
+    form.type !== ALL_VALUE ? form.type : null,
     form.building,
-    form.status,
+    form.status !== ALL_VALUE ? form.status : null,
     form.isBookable,
     form.isUnderMaintenance,
     form.minCapacity,
@@ -122,9 +138,9 @@ export default function ResourceFilters({
 
   const handleApply = () => {
     onApply({
-      type: form.type || undefined,
+      type: form.type === ALL_VALUE ? undefined : form.type,
       building: form.building.trim() || undefined,
-      status: form.status || undefined,
+      status: form.status === ALL_VALUE ? undefined : form.status,
       isBookable: toOptionalBoolean(form.isBookable),
       isUnderMaintenance: toOptionalBoolean(form.isUnderMaintenance),
       minCapacity: parseOptionalNumber(form.minCapacity),
@@ -142,265 +158,303 @@ export default function ResourceFilters({
   };
 
   const handleReset = () => {
-    setForm(createFormState({ page: 0, size: 10, sortBy: "id", direction: "asc" }));
+    const resetState = createFormState({ page: 0, size: 10, sortBy: "id", direction: "asc" });
+    setForm(resetState);
     onReset();
   };
 
   return (
-    <aside className="space-y-1">
-      {/* Header */}
-      <div className="rounded-2xl border border-white/50 bg-white/80 p-5 shadow-lg backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-indigo-100 p-1.5">
-              <svg className="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0014 13.828V19a1 1 0 01-.553.894l-4 2A1 1 0 018 21v-7.172a1 1 0 00-.293-.707L1.293 6.707A1 1 0 011 6V4z" />
-              </svg>
+    <motion.aside
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-4"
+    >
+      <Card className="relative overflow-hidden border-0 shadow-md bg-gradient-to-br from-background via-background to-primary/5 dark:to-primary/10 transition-shadow hover:shadow-lg">
+        {/* Animated gradient top border */}
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-purple-500 to-pink-500 animate-gradient-x" />
+        
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                <Filter className="h-4 w-4" />
+              </div>
+              <CardTitle className="text-base font-semibold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+                Filters
+              </CardTitle>
+              {activeCount > 0 && (
+                <Badge className="ml-2 bg-gradient-to-r from-primary to-purple-500 text-primary-foreground border-0 animate-pulse shadow-sm">
+                  {activeCount} active
+                </Badge>
+              )}
             </div>
-            <span className="text-sm font-semibold text-zinc-800">Filters</span>
             {activeCount > 0 && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
-                {activeCount}
-              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReset}
+                className="transition-all hover:bg-destructive/10 hover:text-destructive"
+              >
+                Clear all
+              </Button>
             )}
           </div>
-          {activeCount > 0 && (
-            <button
-              type="button"
-              onClick={handleReset}
-              className="text-xs font-medium text-zinc-400 transition hover:text-indigo-600"
-            >
-              Clear all
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-white/50 bg-white/80 p-5 shadow-lg backdrop-blur-sm">
-        <div className="space-y-5">
+        </CardHeader>
+        
+        <CardContent className="space-y-5">
           {/* Type */}
-          <FilterGroup label="Resource Type">
-            <select
+          <FilterGroup label="Resource Type" icon="🏷️">
+            <Select
               value={form.type}
-              onChange={(e) => setForm((p) => ({ ...p, type: e.target.value as FilterFormState["type"] }))}
-              className={selectCls}
+              onValueChange={(value) =>
+                setForm((p) => ({ ...p, type: value as ResourceType | typeof ALL_VALUE }))
+              }
             >
-              <option value="">All types</option>
-              {RESOURCE_TYPES.map((t) => (
-                <option key={t} value={t}>{TYPE_LABELS[t]}</option>
-              ))}
-            </select>
+              <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>All types</SelectItem>
+                {RESOURCE_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {TYPE_LABELS[t]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </FilterGroup>
 
           {/* Building */}
-          <FilterGroup label="Building">
-            <input
-              type="text"
+          <FilterGroup label="Building" icon="🏢">
+            <Input
               value={form.building}
               onChange={(e) => setForm((p) => ({ ...p, building: e.target.value }))}
               placeholder="Search building..."
-              className={inputCls}
+              className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50"
             />
           </FilterGroup>
 
           {/* Status */}
-          <FilterGroup label="Status">
-            <select
+          <FilterGroup label="Status" icon="📊">
+            <Select
               value={form.status}
-              onChange={(e) => setForm((p) => ({ ...p, status: e.target.value as FilterFormState["status"] }))}
-              className={selectCls}
+              onValueChange={(value) =>
+                setForm((p) => ({ ...p, status: value as ResourceStatus | typeof ALL_VALUE }))
+              }
             >
-              <option value="">All statuses</option>
-              {RESOURCE_STATUSES.map((s) => (
-                <option key={s} value={s}>{s.replaceAll("_", " ")}</option>
-              ))}
-            </select>
+              <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>All statuses</SelectItem>
+                {RESOURCE_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s.replaceAll("_", " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </FilterGroup>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent" />
+          <Separator className="bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
           {/* Bookable */}
-          <FilterGroup label="Bookable">
+          <FilterGroup label="Bookable" icon="📅">
             <div className="flex gap-2">
               {(["", "true", "false"] as BooleanSelectValue[]).map((v) => (
-                <button
+                <Button
                   key={v}
-                  type="button"
-                  onClick={() => setForm((p) => ({ ...p, isBookable: v }))}
-                  className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition ${
-                    form.isBookable === v
-                      ? "border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm"
-                      : "border-zinc-200 bg-white text-zinc-600 hover:border-indigo-300 hover:bg-indigo-50/50"
+                  variant={form.isBookable === v ? "default" : "outline"}
+                  size="sm"
+                  className={`flex-1 transition-all hover:scale-[1.02] ${
+                    form.isBookable === v 
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-md" 
+                      : "border-primary/20 hover:border-emerald-500/50 hover:bg-emerald-500/5"
                   }`}
+                  onClick={() => setForm((p) => ({ ...p, isBookable: v }))}
                 >
                   {v === "" ? "All" : v === "true" ? "Yes" : "No"}
-                </button>
+                </Button>
               ))}
             </div>
           </FilterGroup>
 
           {/* Maintenance */}
-          <FilterGroup label="Under Maintenance">
+          <FilterGroup label="Under Maintenance" icon="🔧">
             <div className="flex gap-2">
               {(["", "true", "false"] as BooleanSelectValue[]).map((v) => (
-                <button
+                <Button
                   key={v}
-                  type="button"
-                  onClick={() => setForm((p) => ({ ...p, isUnderMaintenance: v }))}
-                  className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition ${
-                    form.isUnderMaintenance === v
-                      ? "border-amber-400 bg-amber-50 text-amber-700 shadow-sm"
-                      : "border-zinc-200 bg-white text-zinc-600 hover:border-amber-300 hover:bg-amber-50/50"
+                  variant={form.isUnderMaintenance === v ? "default" : "outline"}
+                  size="sm"
+                  className={`flex-1 transition-all hover:scale-[1.02] ${
+                    form.isUnderMaintenance === v 
+                      ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-md" 
+                      : "border-primary/20 hover:border-amber-500/50 hover:bg-amber-500/5"
                   }`}
+                  onClick={() => setForm((p) => ({ ...p, isUnderMaintenance: v }))}
                 >
                   {v === "" ? "All" : v === "true" ? "Yes" : "No"}
-                </button>
+                </Button>
               ))}
             </div>
           </FilterGroup>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent" />
+          <Separator className="bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
           {/* Capacity range */}
-          <FilterGroup label="Capacity Range">
+          <FilterGroup label="Capacity Range" icon="👥">
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="mb-1 block text-xs text-zinc-500">Min</label>
-                <input
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Min</label>
+                <Input
                   type="number"
                   min="0"
                   value={form.minCapacity}
                   onChange={(e) => setForm((p) => ({ ...p, minCapacity: e.target.value }))}
                   placeholder="0"
-                  className={inputCls}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-zinc-500">Max</label>
-                <input
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Max</label>
+                <Input
                   type="number"
                   min="0"
                   value={form.maxCapacity}
                   onChange={(e) => setForm((p) => ({ ...p, maxCapacity: e.target.value }))}
                   placeholder="∞"
-                  className={inputCls}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50"
                 />
               </div>
             </div>
           </FilterGroup>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent" />
+          <Separator className="bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
           {/* Features */}
-          <FilterGroup label="Amenities">
+          <FilterGroup label="Amenities" icon="✨">
             <div className="grid grid-cols-2 gap-2">
-              {FEATURES.map((item) => (
-                <label
-                  key={item.key}
-                  className={`flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium transition ${
-                    form[item.key as keyof FilterFormState]
-                      ? "border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm"
-                      : "border-zinc-200 bg-white text-zinc-600 hover:border-indigo-300 hover:bg-indigo-50/50"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    checked={form[item.key as keyof FilterFormState] as boolean}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, [item.key]: e.target.checked }))
+              {FEATURES.map((item) => {
+                const isActive = form[item.key as keyof FilterFormState] as boolean;
+                return (
+                  <Button
+                    key={item.key}
+                    variant={isActive ? "default" : "outline"}
+                    size="sm"
+                    className={`justify-start transition-all hover:scale-[1.02] hover:shadow-sm ${
+                      isActive
+                        ? `bg-gradient-to-r ${item.color} text-white border-0 shadow-md`
+                        : "border-primary/20 hover:border-primary/50 hover:bg-primary/5"
+                    }`}
+                    onClick={() =>
+                      setForm((p) => ({
+                        ...p,
+                        [item.key]: !p[item.key as keyof FilterFormState],
+                      }))
                     }
-                  />
-                  <span>{item.icon}</span>
-                  <span>{item.label}</span>
-                </label>
-              ))}
+                  >
+                    <span className="mr-2 transition-transform group-hover:rotate-12">
+                      {item.icon}
+                    </span>
+                    {item.label}
+                  </Button>
+                );
+              })}
             </div>
           </FilterGroup>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent" />
+          <Separator className="bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
           {/* Sort */}
-          <FilterGroup label="Sort By">
+          <FilterGroup label="Sort By" icon="🔽">
             <div className="grid grid-cols-2 gap-2">
-              <select
+              <Select
                 value={form.sortBy}
-                onChange={(e) => setForm((p) => ({ ...p, sortBy: e.target.value }))}
-                className={selectCls}
+                onValueChange={(value) => setForm((p) => ({ ...p, sortBy: value }))}
               >
-                <option value="id">ID</option>
-                <option value="name">Name</option>
-                <option value="resourceCode">Code</option>
-                <option value="building">Building</option>
-                <option value="capacity">Capacity</option>
-                <option value="type">Type</option>
-              </select>
+                <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="id">ID</SelectItem>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="resourceCode">Code</SelectItem>
+                  <SelectItem value="building">Building</SelectItem>
+                  <SelectItem value="capacity">Capacity</SelectItem>
+                  <SelectItem value="type">Type</SelectItem>
+                </SelectContent>
+              </Select>
 
-              <select
+              <Select
                 value={form.direction}
-                onChange={(e) => setForm((p) => ({ ...p, direction: e.target.value as "asc" | "desc" }))}
-                className={selectCls}
+                onValueChange={(value) =>
+                  setForm((p) => ({ ...p, direction: value as "asc" | "desc" }))
+                }
               >
-                <option value="asc">A → Z</option>
-                <option value="desc">Z → A</option>
-              </select>
+                <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">A → Z</SelectItem>
+                  <SelectItem value="desc">Z → A</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </FilterGroup>
 
           {/* Page size */}
-          <FilterGroup label="Results per page">
+          <FilterGroup label="Results per page" icon="📄">
             <div className="flex gap-1.5">
               {["5", "10", "15", "20"].map((n) => (
-                <button
+                <Button
                   key={n}
-                  type="button"
-                  onClick={() => setForm((p) => ({ ...p, size: n }))}
-                  className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition ${
+                  variant={form.size === n ? "default" : "outline"}
+                  size="sm"
+                  className={`flex-1 transition-all hover:scale-[1.02] ${
                     form.size === n
-                      ? "border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm"
-                      : "border-zinc-200 bg-white text-zinc-600 hover:border-indigo-300 hover:bg-indigo-50/50"
+                      ? "bg-gradient-to-r from-primary to-purple-500 text-primary-foreground border-0 shadow-md"
+                      : "border-primary/20 hover:border-primary/50 hover:bg-primary/5"
                   }`}
+                  onClick={() => setForm((p) => ({ ...p, size: n }))}
                 >
                   {n}
-                </button>
+                </Button>
               ))}
             </div>
           </FilterGroup>
-        </div>
-
-        {/* Apply */}
-        <div className="mt-6 flex gap-2">
-          <button
-            type="button"
+        </CardContent>
+        
+        <CardFooter className="flex gap-2 pt-0 pb-4">
+          <Button
+            className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-500 text-white shadow-md transition-all hover:scale-[1.02] hover:shadow-lg"
             onClick={handleApply}
-            className="flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition hover:shadow-lg hover:shadow-indigo-200"
           >
+            <Sparkles className="mr-2 h-4 w-4" />
             Apply Filters
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="outline"
             onClick={handleReset}
-            className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50"
+            className="transition-all hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
           >
             Reset
-          </button>
-        </div>
-      </div>
-    </aside>
+          </Button>
+        </CardFooter>
+      </Card>
+    </motion.aside>
   );
 }
 
-function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterGroup({ label, icon, children }: { label: string; icon?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+        {icon && <span className="text-sm">{icon}</span>}
+        {label}
+      </p>
       {children}
     </div>
   );
 }
-
-const inputCls =
-  "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20";
-
-const selectCls =
-  "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20";

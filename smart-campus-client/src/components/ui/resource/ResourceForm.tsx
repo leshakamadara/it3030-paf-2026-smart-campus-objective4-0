@@ -1,12 +1,28 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { motion } from "framer-motion";
 import {
   useForm,
   useWatch,
   type SubmitHandler,
-  type UseFormRegisterReturn,
 } from "react-hook-form";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { AlertCircle, Upload, X, Info, Sparkles, Calendar, Clock, MapPin, Users } from "lucide-react";
 import type {
   ResourceRequest,
   ResourceStatus,
@@ -41,6 +57,57 @@ const TYPE_LABELS: Record<ResourceType, string> = {
   MEETING_ROOM: "Meeting Room",
   PROJECTOR: "Projector",
   CAMERA: "Camera",
+};
+
+// Color schemes with dark mode variants (light mode unchanged)
+const TYPE_COLORS: Record<ResourceType, {
+  gradient: string;
+  icon: string;
+  accent: string;
+  border: string;
+  lightBg: string;
+  textColor: string;
+}> = {
+  LECTURE_HALL: {
+    gradient: "from-violet-500/60 to-purple-400/50 dark:from-violet-400/70 dark:to-purple-300/60",
+    icon: "🏛️",
+    accent: "border-violet-400 bg-violet-100 text-violet-800 dark:border-violet-700 dark:bg-violet-900/30 dark:text-violet-200",
+    border: "border-l-violet-500 dark:border-l-violet-400",
+    lightBg: "bg-gradient-to-br from-violet-50 to-white dark:from-violet-950/50 dark:to-gray-900",
+    textColor: "text-violet-900 dark:text-violet-200",
+  },
+  LAB: {
+    gradient: "from-blue-500/60 to-sky-400/50 dark:from-blue-400/70 dark:to-sky-300/60",
+    icon: "🖥️",
+    accent: "border-blue-400 bg-blue-100 text-blue-800 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-200",
+    border: "border-l-blue-500 dark:border-l-blue-400",
+    lightBg: "bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/50 dark:to-gray-900",
+    textColor: "text-blue-900 dark:text-blue-200",
+  },
+  MEETING_ROOM: {
+    gradient: "from-teal-500/60 to-emerald-400/50 dark:from-teal-400/70 dark:to-emerald-300/60",
+    icon: "🤝",
+    accent: "border-teal-400 bg-teal-100 text-teal-800 dark:border-teal-700 dark:bg-teal-900/30 dark:text-teal-200",
+    border: "border-l-teal-500 dark:border-l-teal-400",
+    lightBg: "bg-gradient-to-br from-teal-50 to-white dark:from-teal-950/50 dark:to-gray-900",
+    textColor: "text-teal-900 dark:text-teal-200",
+  },
+  PROJECTOR: {
+    gradient: "from-amber-500/60 to-yellow-400/50 dark:from-amber-400/70 dark:to-yellow-300/60",
+    icon: "📽️",
+    accent: "border-amber-400 bg-amber-100 text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200",
+    border: "border-l-amber-500 dark:border-l-amber-400",
+    lightBg: "bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/50 dark:to-gray-900",
+    textColor: "text-amber-900 dark:text-amber-200",
+  },
+  CAMERA: {
+    gradient: "from-rose-500/60 to-pink-400/50 dark:from-rose-400/70 dark:to-pink-300/60",
+    icon: "📷",
+    accent: "border-rose-400 bg-rose-100 text-rose-800 dark:border-rose-700 dark:bg-rose-900/30 dark:text-rose-200",
+    border: "border-l-rose-500 dark:border-l-rose-400",
+    lightBg: "bg-gradient-to-br from-rose-50 to-white dark:from-rose-950/50 dark:to-gray-900",
+    textColor: "text-rose-900 dark:text-rose-200",
+  },
 };
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -131,7 +198,12 @@ type ResourceFormOutput = z.output<typeof resourceFormSchema>;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const normalizeTime = (value?: string) => (value?.length >= 5 ? value.slice(0, 5) : value ?? "");
+const normalizeTime = (value?: string) => {
+  if (value && value.length >= 5) {
+    return value.slice(0, 5);
+  }
+  return value ?? "";
+};
 
 const toBackendTime = (value: string) => (value.length === 5 ? `${value}:00` : value);
 
@@ -226,6 +298,22 @@ export default function ResourceForm({
   const currentStatus = watchedValues.status ?? "ACTIVE";
   const isOutOfService = currentStatus === "OUT_OF_SERVICE";
   const availableFrom = watchedValues.availableFrom ?? "";
+  const availableTo = watchedValues.availableTo ?? "";
+  const selectedType = watchedValues.type ?? "LAB";
+  const typeColor = TYPE_COLORS[selectedType] || TYPE_COLORS.LAB;
+
+  // Auto-correct availableTo when availableFrom changes
+  useEffect(() => {
+    if (availableFrom && availableTo && availableTo <= availableFrom) {
+      // Set to 1 hour later, capped at 23:59
+      const [hours, minutes] = availableFrom.split(':').map(Number);
+      let newHours = hours + 1;
+      if (newHours >= 24) newHours = 23;
+      const newTime = `${String(newHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+      setValue('availableTo', newTime, { shouldValidate: true });
+      trigger('availableTo');
+    }
+  }, [availableFrom, availableTo, setValue, trigger]);
 
   useEffect(() => {
     if (initialValues?.imageUrl) setImagePreview(initialValues.imageUrl);
@@ -262,9 +350,9 @@ export default function ResourceForm({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    register("status").onChange(e);
-    if (e.target.value === "OUT_OF_SERVICE") {
+  const handleStatusChange = (value: string) => {
+    setValue("status", value as ResourceStatus, { shouldValidate: true });
+    if (value === "OUT_OF_SERVICE") {
       setValue("isBookable", false, { shouldValidate: true });
       setValue("isUnderMaintenance", false, { shouldValidate: true });
       trigger(["isBookable", "isUnderMaintenance", "status"]);
@@ -304,86 +392,116 @@ export default function ResourceForm({
   };
 
   const charCount = (field: keyof typeof FIELD_LIMITS) => {
-    const val = String(watchedValues[field] ?? "");
+    const rawValue = watchedValues[field];
+    const val = rawValue != null ? String(rawValue) : "";
     const max = FIELD_LIMITS[field];
     return { len: val.length, max, atLimit: val.length >= max };
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  };
+
   return (
-    <form onSubmit={handleSubmit(submitHandler)} noValidate className="space-y-8">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/50 bg-white/80 p-6 shadow-lg backdrop-blur-sm">
-        <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-indigo-100/30 blur-3xl" />
-        <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-sky-100/20 blur-3xl" />
-        <div className="relative z-10 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-indigo-500">
-              {mode === "create" ? "New Entry" : "Editing Entry"}
-            </p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight text-zinc-800">
-              {mode === "create" ? "Create Resource" : "Edit Resource"}
-            </h2>
-            <p className="mt-1.5 text-sm text-zinc-500">
-              Fields marked with <span className="text-rose-500">*</span> are required.
-            </p>
+    <motion.form
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      onSubmit={handleSubmit(submitHandler)}
+      noValidate
+      className="space-y-6"
+    >
+      {/* Header Card */}
+      <Card className={`overflow-hidden border-0 shadow-md ${typeColor.lightBg}`}>
+        <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${typeColor.gradient}`} />
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="text-3xl font-bold flex items-center gap-2">
+                <span className={`bg-gradient-to-r ${typeColor.gradient} bg-clip-text text-transparent`}>
+                  {mode === "create" ? "Create Resource" : "Edit Resource"}
+                </span>
+                <Sparkles className="h-5 w-5 text-amber-500 dark:text-amber-400" />
+              </CardTitle>
+              <CardDescription className="flex items-center gap-1 text-gray-800 dark:text-gray-300 font-medium">
+                Fields marked with <span className="text-rose-600 dark:text-rose-400 font-bold">*</span> are required.
+              </CardDescription>
+            </div>
+            <Badge variant="outline" className={`${typeColor.accent} border-2 font-semibold px-3 py-1`}>
+              {mode === "create" ? "✨ New" : "✏️ Editing"}
+            </Badge>
           </div>
-          <span className="rounded-full border border-indigo-200 bg-indigo-50/80 px-3 py-1 text-xs font-medium text-indigo-700 backdrop-blur-sm">
-            {mode === "create" ? "Draft" : "Editing"}
-          </span>
-        </div>
+        </CardHeader>
         {formError && (
-          <div className="relative z-10 mt-4 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/80 px-4 py-3 backdrop-blur-sm">
-            <svg className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-sm text-rose-700">{formError}</p>
-          </div>
+          <CardContent className="pb-6">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-start gap-2 rounded-md bg-rose-50 dark:bg-rose-950/50 p-3 text-sm text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{formError}</span>
+            </motion.div>
+          </CardContent>
         )}
-      </div>
+      </Card>
 
       {/* Section 1: Basic Information */}
-      <FormSection
-        label="01"
-        title="Basic Information"
-        description="Core identity fields for this resource."
-        accentColor="indigo"
+      <SectionCard 
+        title="Basic Information" 
+        description="Core identity fields for this resource." 
+        icon={<MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
+        accentColor="border-l-blue-500 dark:border-l-blue-400"
+        lightBg="bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/50 dark:to-gray-900"
+        textColor="text-gray-900 dark:text-gray-100"
       >
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <Field label="Resource Code" required error={errors.resourceCode?.message} counter={charCount("resourceCode")}>
-            <input
-              type="text"
+            <Input
               {...register("resourceCode")}
               maxLength={FIELD_LIMITS.resourceCode}
               placeholder="e.g. LAB-001"
-              className={inputCls(!!errors.resourceCode)}
               autoComplete="off"
+              className="transition-all duration-200 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
             />
           </Field>
           <Field label="Name" required error={errors.name?.message} counter={charCount("name")}>
-            <input
-              type="text"
+            <Input
               {...register("name")}
               maxLength={FIELD_LIMITS.name}
               placeholder="e.g. Computer Lab 1"
-              className={inputCls(!!errors.name)}
               autoComplete="off"
+              className="transition-all duration-200 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
             />
           </Field>
           <Field label="Type" required error={errors.type?.message}>
-            <select {...register("type")} className={inputCls(!!errors.type)}>
-              {RESOURCE_TYPES.map((t) => (
-                <option key={t} value={t}>{TYPE_LABELS[t]}</option>
-              ))}
-            </select>
+            <Select
+              value={watchedValues.type}
+              onValueChange={(value) => setValue("type", value as ResourceType, { shouldValidate: true })}
+            >
+              <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                {RESOURCE_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    <span className="flex items-center gap-2">
+                      <span>{TYPE_COLORS[t].icon}</span>
+                      {TYPE_LABELS[t]}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field label="Building" required error={errors.building?.message} counter={charCount("building")}>
-            <input
-              type="text"
+            <Input
               {...register("building")}
               maxLength={FIELD_LIMITS.building}
               placeholder="e.g. Engineering Block A"
-              className={inputCls(!!errors.building)}
               autoComplete="off"
+              className="transition-all duration-200 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
             />
           </Field>
           <Field
@@ -392,267 +510,415 @@ export default function ResourceForm({
             error={errors.status?.message}
             hint={isOutOfService ? "Out-of-service resources are automatically non-bookable" : undefined}
           >
-            <select {...register("status")} onChange={handleStatusChange} className={inputCls(!!errors.status)}>
-              {RESOURCE_STATUSES.map((s) => (
-                <option key={s} value={s}>{s.replaceAll("_", " ")}</option>
-              ))}
-            </select>
+            <Select value={watchedValues.status} onValueChange={handleStatusChange}>
+              <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                {RESOURCE_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s.replaceAll("_", " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field label="Capacity" error={errors.capacity?.message} hint="Number of people this resource can accommodate">
-            <input
-              type="number"
-              {...register("capacity")}
-              min="0"
-              max="99999"
-              step="1"
-              placeholder="e.g. 40"
-              className={inputCls(!!errors.capacity)}
-              onKeyDown={(e) => { if ([".", "e", "E", "+", "-"].includes(e.key)) e.preventDefault(); }}
-              onInput={(e) => { const t = e.target as HTMLInputElement; if (Number(t.value) > 99999) t.value = "99999"; }}
-            />
+            <div className="relative">
+              <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
+              <Input
+                type="number"
+                {...register("capacity")}
+                min="0"
+                max="99999"
+                step="1"
+                placeholder="e.g. 40"
+                className="pl-9 transition-all duration-200 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                onKeyDown={(e) => {
+                  if ([".", "e", "E", "+", "-"].includes(e.key)) e.preventDefault();
+                }}
+              />
+            </div>
           </Field>
           <div className="md:col-span-2">
             <Field label="Description" error={errors.description?.message} counter={charCount("description")}>
-              <textarea
+              <Textarea
                 {...register("description")}
                 maxLength={FIELD_LIMITS.description}
                 rows={4}
                 placeholder="Briefly describe this resource..."
-                className={`${inputCls(!!errors.description)} resize-none`}
+                className="transition-all duration-200 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 resize-none"
               />
             </Field>
           </div>
         </div>
-      </FormSection>
+      </SectionCard>
 
       {/* Section 2: Image Upload */}
-      <FormSection
-        label="02"
-        title="Resource Image"
-        description="Upload a representative photo. Accepted formats: JPEG, PNG, WebP, GIF (max 5 MB)."
-        accentColor="sky"
+      <SectionCard 
+        title="Resource Image" 
+        description="Upload a representative photo. Accepted formats: JPEG, PNG, WebP, GIF (max 5 MB)." 
+        icon={<Upload className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
+        accentColor="border-l-emerald-500 dark:border-l-emerald-400"
+        lightBg="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/50 dark:to-gray-900"
+        textColor="text-gray-900 dark:text-gray-100"
       >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={ACCEPTED_IMAGE_EXTENSIONS}
-          onChange={handleImageFile}
-          className="sr-only"
-          id="image-upload"
-        />
-        {imagePreview ? (
-          <div className="relative overflow-hidden rounded-2xl border border-white/50 shadow-md">
-            <img src={imagePreview} alt="Preview" className="h-56 w-full object-cover" />
-            <div className="absolute inset-0 flex items-end justify-between gap-3 bg-linear-to-t from-black/40 via-transparent to-transparent p-4">
-              <span className="text-xs font-medium text-white/90">Image uploaded</span>
-              <div className="flex gap-2">
-                <label
-                  htmlFor="image-upload"
-                  className="cursor-pointer rounded-lg border border-white/30 bg-white/20 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition hover:bg-white/30"
-                >
-                  Replace
-                </label>
-                <button
+        <div className="space-y-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPTED_IMAGE_EXTENSIONS}
+            onChange={handleImageFile}
+            className="hidden"
+            id="image-upload"
+          />
+          {imagePreview ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="relative overflow-hidden rounded-lg border-2 border-emerald-300 dark:border-emerald-700 group bg-gray-50 dark:bg-gray-800"
+            >
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="h-56 w-full object-contain transition-transform duration-500 group-hover:scale-105" 
+              />
+              <div className="absolute inset-x-0 bottom-0 flex justify-end gap-2 bg-gradient-to-t from-black/50 to-transparent p-4">
+                <Button
                   type="button"
-                  onClick={handleRemoveImage}
-                  className="rounded-lg border border-white/30 bg-white/20 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition hover:bg-rose-500/40"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="transition-all hover:scale-105 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium"
                 >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Replace
+                </Button>
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="destructive" 
+                  onClick={handleRemoveImage} 
+                  className="transition-all hover:scale-105 bg-rose-600 hover:bg-rose-700 dark:bg-rose-700 dark:hover:bg-rose-600 text-white font-medium"
+                >
+                  <X className="mr-2 h-4 w-4" />
                   Remove
-                </button>
+                </Button>
               </div>
-            </div>
-          </div>
-        ) : (
-          <label
-            htmlFor="image-upload"
-            className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-300 bg-linear-to-br from-sky-50/50 to-indigo-50/30 px-6 py-12 text-center transition hover:border-indigo-400 hover:bg-white/50"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-200 bg-white shadow-sm transition group-hover:shadow-md">
-              <svg className="h-5 w-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-zinc-700">Click to browse image</p>
-              <p className="mt-1 text-xs text-zinc-400">JPEG · PNG · WebP · GIF · Max 5 MB</p>
-            </div>
-          </label>
-        )}
-        {imageError && <p className="mt-2 flex items-center gap-1.5 text-xs text-rose-500">{imageError}</p>}
-        {errors.imageUrl && <p className="mt-2 flex items-center gap-1.5 text-xs text-rose-500">{errors.imageUrl.message}</p>}
-      </FormSection>
+            </motion.div>
+          ) : (
+            <motion.div
+              whileHover={{ scale: 1.01, borderColor: "#10b981" }}
+              className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-emerald-300 dark:border-emerald-700 p-8 transition-all bg-white dark:bg-gray-800"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="mb-2 h-10 w-10 text-emerald-500 dark:text-emerald-400 transition-transform group-hover:scale-110" />
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Click to browse image</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">JPEG · PNG · WebP · GIF · Max 5 MB</p>
+            </motion.div>
+          )}
+          {imageError && <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">{imageError}</p>}
+          {errors.imageUrl && <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">{errors.imageUrl.message}</p>}
+        </div>
+      </SectionCard>
 
       {/* Section 3: Availability & State */}
-      <FormSection label="03" title="Availability & State" description="Set operational hours and booking status." accentColor="emerald">
-        {isOutOfService && (
-          <div className="mb-5 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/80 px-4 py-3 backdrop-blur-sm">
-            <svg className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-            </svg>
-            <p className="text-sm text-rose-700">
-              This resource is <strong>Out of Service</strong> — it cannot be bookable or under maintenance.
-            </p>
+      <SectionCard 
+        title="Availability & State" 
+        description="Set operational hours and booking status." 
+        icon={<Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />}
+        accentColor="border-l-amber-500 dark:border-l-amber-400"
+        lightBg="bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/50 dark:to-gray-900"
+        textColor="text-gray-900 dark:text-gray-100"
+      >
+        <div className="space-y-4">
+          {isOutOfService && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="flex items-start gap-2 rounded-md bg-amber-50 dark:bg-amber-950/50 p-3 text-sm text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-800"
+            >
+              <Info className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                This resource is <strong>Out of Service</strong> — it cannot be bookable or under maintenance.
+              </span>
+            </motion.div>
+          )}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Available From" required error={errors.availableFrom?.message} hint="Daily start time">
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
+                <Input
+                  type="time"
+                  {...register("availableFrom", { onChange: () => trigger("availableTo") })}
+                  className="pl-9 transition-all duration-200 focus:ring-2 focus:ring-amber-400 dark:focus:ring-amber-500 focus:border-amber-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                />
+              </div>
+            </Field>
+            <Field label="Available To" required error={errors.availableTo?.message} hint="Must be later than start time">
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
+                <Input 
+                  type="time" 
+                  {...register("availableTo")} 
+                  min={availableFrom || undefined} 
+                  className="pl-9 transition-all duration-200 focus:ring-2 focus:ring-amber-400 dark:focus:ring-amber-500 focus:border-amber-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" 
+                />
+              </div>
+            </Field>
           </div>
-        )}
-        <div className="grid gap-5 md:grid-cols-2">
-          <Field label="Available From" required error={errors.availableFrom?.message} hint="Daily start time">
-            <input type="time" {...register("availableFrom", { onChange: () => trigger("availableTo") })} className={inputCls(!!errors.availableFrom)} />
-          </Field>
-          <Field label="Available To" required error={errors.availableTo?.message} hint="Must be later than start time">
-            <input type="time" {...register("availableTo")} min={availableFrom || undefined} className={inputCls(!!errors.availableTo)} />
-          </Field>
+          <Separator className="my-2 bg-amber-200 dark:bg-amber-800" />
+          <div className="grid gap-6 md:grid-cols-2">
+            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2 p-4 rounded-lg border-2 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/30">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="isBookable" className="font-medium flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
+                  <Calendar className="h-4 w-4" />
+                  Bookable
+                </Label>
+                <Switch
+                  id="isBookable"
+                  checked={isBookable}
+                  onCheckedChange={handleBookableChange}
+                  disabled={isUnderMaintenance || isOutOfService}
+                  className="data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-500"
+                />
+              </div>
+              <p className="text-sm text-gray-700 dark:text-gray-300">Allow users to make reservations</p>
+              {isUnderMaintenance && !isOutOfService && (
+                <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">
+                  Cannot be bookable while under maintenance
+                </p>
+              )}
+              {errors.isBookable && <p className="text-xs text-rose-600 dark:text-rose-400">{errors.isBookable.message}</p>}
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.01 }} className="space-y-2 p-4 rounded-lg border-2 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="isUnderMaintenance" className="font-medium flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                  <Info className="h-4 w-4" />
+                  Under Maintenance
+                </Label>
+                <Switch
+                  id="isUnderMaintenance"
+                  checked={isUnderMaintenance}
+                  onCheckedChange={handleMaintenanceChange}
+                  disabled={isBookable || isOutOfService}
+                  className="data-[state=checked]:bg-amber-600 dark:data-[state=checked]:bg-amber-500"
+                />
+              </div>
+              <p className="text-sm text-gray-700 dark:text-gray-300">Temporarily mark as unavailable for upkeep</p>
+              {isBookable && !isOutOfService && (
+                <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">
+                  Cannot be under maintenance while bookable
+                </p>
+              )}
+              {errors.isUnderMaintenance && (
+                <p className="text-xs text-rose-600 dark:text-rose-400">{errors.isUnderMaintenance.message}</p>
+              )}
+            </motion.div>
+          </div>
         </div>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <ToggleCard
-            id="isBookable"
-            label="Bookable"
-            description="Allow users to make reservations"
-            checked={isBookable}
-            disabled={isUnderMaintenance || isOutOfService}
-            disabledReason={isOutOfService ? "Out-of-service resources cannot be bookable" : "Cannot be bookable while under maintenance"}
-            onChange={handleBookableChange}
-            error={errors.isBookable?.message}
-            accentColor="emerald"
-          />
-          <ToggleCard
-            id="isUnderMaintenance"
-            label="Under Maintenance"
-            description="Temporarily mark as unavailable for upkeep"
-            checked={isUnderMaintenance}
-            disabled={isBookable || isOutOfService}
-            disabledReason={isOutOfService ? "Out-of-service resources do not use maintenance mode" : "Cannot be under maintenance while bookable"}
-            onChange={handleMaintenanceChange}
-            error={errors.isUnderMaintenance?.message}
-            accentColor="amber"
-          />
-        </div>
-      </FormSection>
+      </SectionCard>
 
       {/* Section 4: Features */}
-      <FormSection label="04" title="Features & Facilities" description="Tag the amenities available." accentColor="violet">
+      <SectionCard 
+        title="Features & Facilities" 
+        description="Tag the amenities available." 
+        icon={<Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
+        accentColor="border-l-purple-500 dark:border-l-purple-400"
+        lightBg="bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/50 dark:to-gray-900"
+        textColor="text-gray-900 dark:text-gray-100"
+      >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURE_ITEMS.map((item) => (
             <FeatureToggle
               key={item.key}
               label={item.label}
               icon={item.icon}
-              register={register(item.key as keyof ResourceFormValues as any)}
               checked={!!watchedValues[item.key as keyof ResourceFormValues]}
+              onChange={(checked) =>
+                setValue(item.key as keyof ResourceFormValues, checked, { shouldValidate: true })
+              }
             />
           ))}
         </div>
-      </FormSection>
+      </SectionCard>
 
       {/* Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/50 bg-white/80 p-5 shadow-lg backdrop-blur-sm">
-        <button
-          type="submit"
-          disabled={submitting}
-          className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-indigo-500 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition hover:shadow-lg disabled:opacity-60"
-        >
-          {submitting && <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>}
-          {submitting ? (mode === "create" ? "Creating..." : "Saving...") : (submitLabel ?? (mode === "create" ? "Create Resource" : "Save Changes"))}
-        </button>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="flex items-center justify-between sticky bottom-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-lg"
+      >
+        <Button type="submit" disabled={submitting} className="min-w-32 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md transition-all hover:scale-105 font-semibold">
+          {submitting ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              {mode === "create" ? "Creating..." : "Saving..."}
+            </span>
+          ) : (
+            submitLabel ?? (mode === "create" ? "✨ Create Resource" : "💾 Save Changes")
+          )}
+        </Button>
         {mode === "edit" && onDelete && (
-          <button
-            type="button"
-            onClick={deleteHandler}
-            disabled={deleting}
-            className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-5 py-2.5 text-sm font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-50 disabled:opacity-60"
-          >
-            {deleting ? "Deleting..." : "Delete Resource"}
-          </button>
+          <Button type="button" variant="destructive" onClick={deleteHandler} disabled={deleting} className="bg-rose-600 hover:bg-rose-700 dark:bg-rose-700 dark:hover:bg-rose-600 transition-all hover:scale-105 font-semibold text-white">
+            {deleting ? "Deleting..." : "🗑️ Delete Resource"}
+          </Button>
+        )}
+      </motion.div>
+    </motion.form>
+  );
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function SectionCard({
+  title,
+  description,
+  icon,
+  accentColor,
+  lightBg,
+  textColor,
+  children,
+}: {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  accentColor: string;
+  lightBg: string;
+  textColor: string;
+  children: ReactNode;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card className={`overflow-hidden border-l-4 ${accentColor} shadow-sm hover:shadow-md transition-shadow ${lightBg}`}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
+              {icon}
+            </div>
+            <div>
+              <CardTitle className={`text-lg font-bold ${textColor}`}>{title}</CardTitle>
+              <CardDescription className="text-gray-700 dark:text-gray-300">{description}</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {children}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+function Field({
+  label,
+  required,
+  error,
+  hint,
+  counter,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  error?: string;
+  hint?: string;
+  counter?: { len: number; max: number; atLimit: boolean };
+  children: ReactNode;
+}) {
+  const progressPercent = counter ? (counter.len / counter.max) * 100 : 0;
+  
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <Label className="flex items-center gap-1 text-gray-800 dark:text-gray-200 font-medium">
+          {label}
+          {required && <span className="text-rose-600 dark:text-rose-400">*</span>}
+        </Label>
+        {counter && (
+          <div className="flex items-center gap-2">
+            <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <motion.div
+                className={`h-full ${counter.atLimit ? 'bg-rose-500 dark:bg-rose-400' : 'bg-blue-500 dark:bg-blue-400'}`}
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
+            <span
+              className={`text-xs tabular-nums font-medium ${
+                counter.atLimit ? "text-rose-600 dark:text-rose-400" : "text-gray-600 dark:text-gray-400"
+              }`}
+            >
+              {counter.len}/{counter.max}
+            </span>
+          </div>
         )}
       </div>
-    </form>
+      {children}
+      {error && <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">{error}</p>}
+      {!error && hint && <p className="text-xs text-gray-600 dark:text-gray-400">{hint}</p>}
+    </div>
   );
 }
 
-// ─── Sub-components (FormSection, Field, ToggleCard, FeatureToggle) ───────────
-// (Keep the same but with updated styling for modern look)
-
-function FormSection({ label, title, description, children, accentColor }: { label: string; title: string; description?: string; children: ReactNode; accentColor: string }) {
-  const colorMap: Record<string, string> = {
-    indigo: "bg-indigo-100 text-indigo-700 border-indigo-200",
-    sky: "bg-sky-100 text-sky-700 border-sky-200",
-    emerald: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    violet: "bg-violet-100 text-violet-700 border-violet-200",
+function FeatureToggle({
+  label,
+  icon,
+  checked,
+  onChange,
+}: {
+  label: string;
+  icon: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  const handleCardClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-switch]')) return;
+    onChange(!checked);
   };
+
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/50 bg-white/80 p-6 shadow-lg backdrop-blur-sm">
-      <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-current opacity-5 blur-3xl" style={{ color: `var(--${accentColor}-500)` }} />
-      <div className="relative z-10 mb-6 flex items-start gap-4">
-        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-xs font-bold ${colorMap[accentColor]}`}>{label}</span>
-        <div>
-          <h3 className="font-semibold text-zinc-800">{title}</h3>
-          {description && <p className="mt-0.5 text-sm text-zinc-500">{description}</p>}
-        </div>
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className={`flex cursor-pointer items-center gap-3 rounded-lg border-2 p-3 transition-all ${
+        checked
+          ? "border-purple-400 dark:border-purple-500 bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/40 dark:to-purple-800/30 shadow-sm"
+          : "border-gray-300 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-purple-50/50 dark:hover:bg-purple-900/20 bg-white dark:bg-gray-800"
+      }`}
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onChange(!checked);
+        }
+      }}
+    >
+      <span className="text-xl pointer-events-none">{icon}</span>
+      <span className={`text-sm font-semibold pointer-events-none ${checked ? 'text-purple-800 dark:text-purple-200' : 'text-gray-800 dark:text-gray-200'}`}>
+        {label}
+      </span>
+      <div data-switch className="ml-auto">
+        <Switch
+          checked={checked}
+          onCheckedChange={onChange}
+          className="data-[state=checked]:bg-purple-600 dark:data-[state=checked]:bg-purple-500"
+        />
       </div>
-      {children}
-    </div>
+    </motion.div>
   );
 }
-
-function Field({ label, required, error, hint, counter, children }: { label: string; required?: boolean; error?: string; hint?: string; counter?: { len: number; max: number; atLimit: boolean }; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-zinc-700">{label}{required && <span className="ml-1 text-rose-500">*</span>}</label>
-        {counter && <span className={`text-xs tabular-nums ${counter.atLimit ? "font-semibold text-rose-500" : "text-zinc-400"}`}>{counter.len}/{counter.max}</span>}
-      </div>
-      {children}
-      {error && <p className="flex items-center gap-1 text-xs text-rose-500">{error}</p>}
-      {!error && hint && <p className="text-xs text-zinc-400">{hint}</p>}
-    </div>
-  );
-}
-
-function ToggleCard({ id, label, description, checked, disabled, disabledReason, onChange, error, accentColor }: any) {
-  const accent = accentColor === "emerald"
-    ? { ring: "ring-emerald-500/20", bg: "bg-emerald-50/80", border: "border-emerald-200", dot: "bg-emerald-500" }
-    : { ring: "ring-amber-500/20", bg: "bg-amber-50/80", border: "border-amber-200", dot: "bg-amber-500" };
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor={id}
-        className={`group flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition backdrop-blur-sm ${
-          disabled ? "cursor-not-allowed border-zinc-200 bg-zinc-50/80 opacity-50"
-          : checked ? `${accent.bg} ${accent.border} ring-1 ${accent.ring}`
-          : "border-zinc-200 bg-white/80 hover:border-zinc-300"
-        }`}
-      >
-        <input id={id} type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} className="sr-only" />
-        <div className={`flex h-5 w-5 items-center justify-center rounded border-2 transition ${checked ? `${accent.dot} border-transparent` : "border-zinc-300 bg-white"}`}>
-          {checked && <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-zinc-800">{label}</p>
-          <p className="text-xs text-zinc-500">{description}</p>
-        </div>
-      </label>
-      {disabled && <p className="flex items-center gap-1 text-xs text-zinc-400"><svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/></svg>{disabledReason}</p>}
-      {error && !disabled && <p className="flex items-center gap-1 text-xs text-rose-500">{error}</p>}
-    </div>
-  );
-}
-
-function FeatureToggle({ label, icon, register, checked }: { label: string; icon: string; register: UseFormRegisterReturn; checked: boolean }) {
-  return (
-    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition ${
-      checked ? "border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm" : "border-zinc-200 bg-white text-zinc-700 hover:border-indigo-300 hover:bg-indigo-50/50"
-    }`}>
-      <input type="checkbox" {...register} className="sr-only" />
-      <span className="text-base">{icon}</span>
-      <span className="text-sm font-medium">{label}</span>
-      {checked && <svg className="ml-auto h-4 w-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/></svg>}
-    </label>
-  );
-}
-
-const inputCls = (hasError: boolean) =>
-  `w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-zinc-800 outline-none transition placeholder:text-zinc-400 ${
-    hasError ? "border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20" : "border-zinc-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
-  }`;
 
 const FEATURE_ITEMS = [
   { key: "hasProjector", label: "Projector", icon: "📽️" },
