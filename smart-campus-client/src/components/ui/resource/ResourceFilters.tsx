@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Filter, Sparkles } from "lucide-react";
+import { Filter } from "lucide-react";
 import type {
   ResourceFilters as ResourceFilterValues,
   ResourceStatus,
@@ -116,9 +116,88 @@ export default function ResourceFilters({
 }: ResourceFiltersProps) {
   const [form, setForm] = useState<FilterFormState>(() => createFormState(initialFilters));
 
+  const buildingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const capacityTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInitialMount = useRef(true);
+  const prevFiltersRef = useRef<string>("");
+  const formRef = useRef(form); // Ref to hold latest form state for debounced callbacks
+
+  // Keep formRef in sync with form state
+  useEffect(() => {
+    formRef.current = form;
+  }, [form]);
+
+  // Helper to build filters from a given form state (used in debounced callbacks)
+  const buildFiltersFromState = (state: FilterFormState): ResourceFilterValues => ({
+    type: state.type === ALL_VALUE ? undefined : state.type,
+    building: state.building.trim() || undefined,
+    status: state.status === ALL_VALUE ? undefined : state.status,
+    isBookable: toOptionalBoolean(state.isBookable),
+    isUnderMaintenance: toOptionalBoolean(state.isUnderMaintenance),
+    minCapacity: parseOptionalNumber(state.minCapacity),
+    maxCapacity: parseOptionalNumber(state.maxCapacity),
+    hasProjector: state.hasProjector || undefined,
+    hasAc: state.hasAc || undefined,
+    hasWhiteboard: state.hasWhiteboard || undefined,
+    hasWifi: state.hasWifi || undefined,
+    hasComputers: state.hasComputers || undefined,
+    hasWindows: state.hasWindows || undefined,
+    sortBy: state.sortBy,
+    direction: state.direction,
+    size: parseOptionalNumber(state.size) ?? 10,
+    page: 0,
+  });
+
+  // Build filter payload from current form (used for immediate updates)
+  const buildFilters = useCallback(
+    (): ResourceFilterValues => buildFiltersFromState(form),
+    [form]
+  );
+
+  // Sync with external filter changes (e.g., from parent reset)
   useEffect(() => {
     setForm(createFormState(initialFilters));
   }, [initialFilters]);
+
+  // Auto-apply filters when form changes (except on initial mount, and only if filters actually changed)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const newFilters = buildFilters();
+    const filterKey = JSON.stringify(newFilters);
+
+    if (filterKey !== prevFiltersRef.current) {
+      prevFiltersRef.current = filterKey;
+      onApply(newFilters);
+    }
+  }, [buildFilters, onApply]);
+
+  // Immediate update handlers (for selects, buttons, checkboxes)
+  const updateForm = useCallback((updates: Partial<FilterFormState>) => {
+    setForm((prev) => ({ ...prev, ...updates }));
+  }, []);
+
+  // Debounced handlers for text inputs – use formRef to get latest state
+  const handleBuildingChange = (value: string) => {
+    setForm((prev) => ({ ...prev, building: value }));
+    if (buildingTimeout.current) clearTimeout(buildingTimeout.current);
+    buildingTimeout.current = setTimeout(() => {
+      const latestForm = formRef.current;
+      onApply(buildFiltersFromState(latestForm));
+    }, 400);
+  };
+
+  const handleCapacityChange = (field: "minCapacity" | "maxCapacity", value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (capacityTimeout.current) clearTimeout(capacityTimeout.current);
+    capacityTimeout.current = setTimeout(() => {
+      const latestForm = formRef.current;
+      onApply(buildFiltersFromState(latestForm));
+    }, 500);
+  };
 
   const activeCount = [
     form.type !== ALL_VALUE ? form.type : null,
@@ -136,27 +215,6 @@ export default function ResourceFilters({
     form.hasWindows,
   ].filter(Boolean).length;
 
-  const handleApply = () => {
-    onApply({
-      type: form.type === ALL_VALUE ? undefined : form.type,
-      building: form.building.trim() || undefined,
-      status: form.status === ALL_VALUE ? undefined : form.status,
-      isBookable: toOptionalBoolean(form.isBookable),
-      isUnderMaintenance: toOptionalBoolean(form.isUnderMaintenance),
-      minCapacity: parseOptionalNumber(form.minCapacity),
-      maxCapacity: parseOptionalNumber(form.maxCapacity),
-      hasProjector: form.hasProjector || undefined,
-      hasAc: form.hasAc || undefined,
-      hasWhiteboard: form.hasWhiteboard || undefined,
-      hasWifi: form.hasWifi || undefined,
-      hasComputers: form.hasComputers || undefined,
-      hasWindows: form.hasWindows || undefined,
-      sortBy: form.sortBy,
-      direction: form.direction,
-      size: parseOptionalNumber(form.size) ?? 10,
-    });
-  };
-
   const handleReset = () => {
     const resetState = createFormState({ page: 0, size: 10, sortBy: "id", direction: "asc" });
     setForm(resetState);
@@ -171,9 +229,8 @@ export default function ResourceFilters({
       className="space-y-4"
     >
       <Card className="relative overflow-hidden border-0 shadow-md bg-gradient-to-br from-background via-background to-primary/5 dark:to-primary/10 transition-shadow hover:shadow-lg">
-        {/* Animated gradient top border */}
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-purple-500 to-pink-500 animate-gradient-x" />
-        
+
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -201,14 +258,14 @@ export default function ResourceFilters({
             )}
           </div>
         </CardHeader>
-        
+
         <CardContent className="space-y-5">
           {/* Type */}
           <FilterGroup label="Resource Type" icon="🏷️">
             <Select
               value={form.type}
               onValueChange={(value) =>
-                setForm((p) => ({ ...p, type: value as ResourceType | typeof ALL_VALUE }))
+                updateForm({ type: value as ResourceType | typeof ALL_VALUE })
               }
             >
               <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50">
@@ -229,7 +286,7 @@ export default function ResourceFilters({
           <FilterGroup label="Building" icon="🏢">
             <Input
               value={form.building}
-              onChange={(e) => setForm((p) => ({ ...p, building: e.target.value }))}
+              onChange={(e) => handleBuildingChange(e.target.value)}
               placeholder="Search building..."
               className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50"
             />
@@ -240,7 +297,7 @@ export default function ResourceFilters({
             <Select
               value={form.status}
               onValueChange={(value) =>
-                setForm((p) => ({ ...p, status: value as ResourceStatus | typeof ALL_VALUE }))
+                updateForm({ status: value as ResourceStatus | typeof ALL_VALUE })
               }
             >
               <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50">
@@ -268,11 +325,11 @@ export default function ResourceFilters({
                   variant={form.isBookable === v ? "default" : "outline"}
                   size="sm"
                   className={`flex-1 transition-all hover:scale-[1.02] ${
-                    form.isBookable === v 
-                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-md" 
+                    form.isBookable === v
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-md"
                       : "border-primary/20 hover:border-emerald-500/50 hover:bg-emerald-500/5"
                   }`}
-                  onClick={() => setForm((p) => ({ ...p, isBookable: v }))}
+                  onClick={() => updateForm({ isBookable: v })}
                 >
                   {v === "" ? "All" : v === "true" ? "Yes" : "No"}
                 </Button>
@@ -289,11 +346,11 @@ export default function ResourceFilters({
                   variant={form.isUnderMaintenance === v ? "default" : "outline"}
                   size="sm"
                   className={`flex-1 transition-all hover:scale-[1.02] ${
-                    form.isUnderMaintenance === v 
-                      ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-md" 
+                    form.isUnderMaintenance === v
+                      ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-md"
                       : "border-primary/20 hover:border-amber-500/50 hover:bg-amber-500/5"
                   }`}
-                  onClick={() => setForm((p) => ({ ...p, isUnderMaintenance: v }))}
+                  onClick={() => updateForm({ isUnderMaintenance: v })}
                 >
                   {v === "" ? "All" : v === "true" ? "Yes" : "No"}
                 </Button>
@@ -312,7 +369,7 @@ export default function ResourceFilters({
                   type="number"
                   min="0"
                   value={form.minCapacity}
-                  onChange={(e) => setForm((p) => ({ ...p, minCapacity: e.target.value }))}
+                  onChange={(e) => handleCapacityChange("minCapacity", e.target.value)}
                   placeholder="0"
                   className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50"
                 />
@@ -323,7 +380,7 @@ export default function ResourceFilters({
                   type="number"
                   min="0"
                   value={form.maxCapacity}
-                  onChange={(e) => setForm((p) => ({ ...p, maxCapacity: e.target.value }))}
+                  onChange={(e) => handleCapacityChange("maxCapacity", e.target.value)}
                   placeholder="∞"
                   className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50"
                 />
@@ -348,12 +405,7 @@ export default function ResourceFilters({
                         ? `bg-gradient-to-r ${item.color} text-white border-0 shadow-md`
                         : "border-primary/20 hover:border-primary/50 hover:bg-primary/5"
                     }`}
-                    onClick={() =>
-                      setForm((p) => ({
-                        ...p,
-                        [item.key]: !p[item.key as keyof FilterFormState],
-                      }))
-                    }
+                    onClick={() => updateForm({ [item.key]: !isActive } as any)}
                   >
                     <span className="mr-2 transition-transform group-hover:rotate-12">
                       {item.icon}
@@ -372,7 +424,7 @@ export default function ResourceFilters({
             <div className="grid grid-cols-2 gap-2">
               <Select
                 value={form.sortBy}
-                onValueChange={(value) => setForm((p) => ({ ...p, sortBy: value }))}
+                onValueChange={(value) => updateForm({ sortBy: value })}
               >
                 <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50">
                   <SelectValue />
@@ -389,9 +441,7 @@ export default function ResourceFilters({
 
               <Select
                 value={form.direction}
-                onValueChange={(value) =>
-                  setForm((p) => ({ ...p, direction: value as "asc" | "desc" }))
-                }
+                onValueChange={(value) => updateForm({ direction: value as "asc" | "desc" })}
               >
                 <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/30 bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/50">
                   <SelectValue />
@@ -417,7 +467,7 @@ export default function ResourceFilters({
                       ? "bg-gradient-to-r from-primary to-purple-500 text-primary-foreground border-0 shadow-md"
                       : "border-primary/20 hover:border-primary/50 hover:bg-primary/5"
                   }`}
-                  onClick={() => setForm((p) => ({ ...p, size: n }))}
+                  onClick={() => updateForm({ size: n })}
                 >
                   {n}
                 </Button>
@@ -425,21 +475,14 @@ export default function ResourceFilters({
             </div>
           </FilterGroup>
         </CardContent>
-        
-        <CardFooter className="flex gap-2 pt-0 pb-4">
-          <Button
-            className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-500 text-white shadow-md transition-all hover:scale-[1.02] hover:shadow-lg"
-            onClick={handleApply}
-          >
-            <Sparkles className="mr-2 h-4 w-4" />
-            Apply Filters
-          </Button>
+
+        <CardFooter className="pt-0 pb-4">
           <Button
             variant="outline"
             onClick={handleReset}
-            className="transition-all hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+            className="w-full transition-all hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
           >
-            Reset
+            Reset All Filters
           </Button>
         </CardFooter>
       </Card>
@@ -447,7 +490,15 @@ export default function ResourceFilters({
   );
 }
 
-function FilterGroup({ label, icon, children }: { label: string; icon?: string; children: React.ReactNode }) {
+function FilterGroup({
+  label,
+  icon,
+  children,
+}: {
+  label: string;
+  icon?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">

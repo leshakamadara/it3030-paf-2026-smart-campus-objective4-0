@@ -215,26 +215,24 @@ export default function ResourceListPage() {
               </motion.div>
             )}
 
-            {/* Results header */}
-            <Card className="transition-shadow hover:shadow-md">
-              <CardHeader className="py-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-medium">Results</CardTitle>
-                  {pageData && pageData.totalPages > 1 && (
-                    <span className="text-sm text-muted-foreground">
-                      Page {(pageData.number ?? 0) + 1} of {pageData.totalPages}
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {loading
-                    ? "Loading..."
-                    : pageData
-                    ? `${pageData.totalElements} resource${pageData.totalElements !== 1 ? "s" : ""}`
-                    : "No data"}
-                </p>
-              </CardHeader>
-            </Card>
+            {/* Ultra-compact results header */}
+<div className="flex items-center justify-between py-1 px-1 text-muted-foreground border-b border-border/30">
+  <span className="text-[12px] font-medium">Results</span>
+  <div className="flex items-center gap-2">
+    {pageData && pageData.totalPages > 1 && (
+      <span className="text-[12px] tabular-nums">
+        Pg {(pageData.number ?? 0) + 1}/{pageData.totalPages}
+      </span>
+    )}
+    <span className="text-[12px] tabular-nums">
+      {loading
+        ? "…"
+        : pageData
+        ? `${pageData.totalElements} item${pageData.totalElements !== 1 ? "s" : ""}`
+        : "—"}
+    </span>
+  </div>
+</div>
 
             {/* Content */}
             {loading ? (

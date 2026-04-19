@@ -83,34 +83,35 @@ function ResourceCard({ resource }: { resource: Resource }) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -8, transition: { duration: 0.2 } }}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
       className="h-full"
     >
-      <Card className={`group overflow-hidden border-l-4 ${cfg.borderAccent} transition-all duration-300 hover:shadow-xl`}>
-        <div className="relative h-44 w-full overflow-hidden">
+      <Card className={`group overflow-hidden border-l-4 ${cfg.borderAccent} transition-all duration-300 hover:shadow-lg`}>
+        {/* Reduced image height */}
+        <div className="relative h-36 w-full overflow-hidden">
           {hasImage ? (
             <>
               <img
                 src={resource.imageUrl!}
                 alt={resource.name}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </>
           ) : (
             <div className={`flex h-full w-full items-center justify-center ${cfg.imageBg} transition-colors duration-300 group-hover:bg-opacity-80`}>
-              <span className={`text-5xl opacity-60 ${cfg.imageIconColor} transition-transform duration-300 group-hover:scale-110`}>
+              <span className={`text-4xl opacity-60 ${cfg.imageIconColor} transition-transform duration-300 group-hover:scale-105`}>
                 {cfg.icon}
               </span>
             </div>
           )}
           
-          <div className="absolute right-3 top-3 z-10">
+          <div className="absolute right-2 top-2 z-10">
             <ResourceStatusBadge resource={resource} />
           </div>
           {resource.isBookable && (
-            <div className="absolute left-3 top-3 z-10">
-              <Badge variant="secondary" className="gap-1 backdrop-blur-sm bg-background/80">
+            <div className="absolute left-2 top-2 z-10">
+              <Badge variant="secondary" className="gap-1 text-xs py-0.5 backdrop-blur-sm bg-background/80">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Bookable
               </Badge>
@@ -118,29 +119,30 @@ function ResourceCard({ resource }: { resource: Resource }) {
           )}
         </div>
 
-        <CardContent className="p-4">
+        {/* Reduced padding and font sizes */}
+        <CardContent className="p-3">
           <Badge 
             variant="outline" 
-            className={`mb-2 ${cfg.chipBg} transition-all duration-200 group-hover:scale-105`}
+            className={`mb-1.5 text-xs ${cfg.chipBg} transition-all duration-200 group-hover:scale-105`}
           >
             {cfg.icon} {cfg.label}
           </Badge>
-          <h3 className="truncate text-base font-semibold group-hover:text-primary transition-colors">
+          <h3 className="truncate text-sm font-semibold group-hover:text-primary transition-colors">
             {resource.name}
           </h3>
           <p className="text-xs text-muted-foreground">{resource.resourceCode}</p>
-          <p className="mt-2 flex items-center gap-1.5 text-sm">
-            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+          <p className="mt-1.5 flex items-center gap-1 text-xs">
+            <MapPin className="h-3 w-3 text-muted-foreground" />
             <span className="truncate">{resource.building}</span>
           </p>
-          <div className="mt-3 border-t pt-3">
+          <div className="mt-2 border-t pt-2">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <Users className="h-3.5 w-3.5" />
+                <Users className="h-3 w-3" />
                 {resource.capacity != null ? `${resource.capacity} seats` : "—"}
               </span>
-              <span className="flex items-center gap-1 font-mono">
-                <Clock className="h-3.5 w-3.5" />
+              <span className="flex items-center gap-1 font-mono text-xs">
+                <Clock className="h-3 w-3" />
                 {resource.availableFrom.slice(0, 5)}–{resource.availableTo.slice(0, 5)}
               </span>
             </div>
@@ -148,7 +150,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
           <Button 
             variant="outline" 
             size="sm" 
-            className={`mt-4 w-full transition-all duration-300 ${cfg.viewBtn} group-hover:border-primary group-hover:bg-primary/10`} 
+            className={`mt-3 w-full h-8 text-xs transition-all duration-300 ${cfg.viewBtn} group-hover:border-primary group-hover:bg-primary/10`} 
             asChild
           >
             <Link to={`/resources/${resource.id}`}>View Details</Link>
@@ -166,7 +168,7 @@ interface ResourceTableProps {
 export default function ResourceTable({ resources }: ResourceTableProps) {
   if (resources.length === 0) {
     return (
-      <Card className="py-16 text-center">
+      <Card className="py-12 text-center">
         <CardContent className="flex flex-col items-center gap-3">
           <div className="rounded-full bg-muted p-3">
             <AlertCircle className="h-6 w-6 text-muted-foreground" />
@@ -179,7 +181,7 @@ export default function ResourceTable({ resources }: ResourceTableProps) {
   }
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {resources.map((resource) => (
         <ResourceCard key={resource.id} resource={resource} />
       ))}
