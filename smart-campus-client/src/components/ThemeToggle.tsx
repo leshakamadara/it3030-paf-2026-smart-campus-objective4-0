@@ -5,11 +5,13 @@ import { useTheme } from "@/components/theme-provider";
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
+  const nextTheme = theme === "system" ? "dark" : theme === "dark" ? "light" : "system";
+
   return (
     <Button
       variant="outline"
       size="icon"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      onClick={() => setTheme(nextTheme)}
       className="rounded-full"
     >
       <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

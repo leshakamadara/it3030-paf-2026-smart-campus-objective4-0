@@ -405,7 +405,7 @@ export default function ResourceFilters({
                         ? `bg-gradient-to-r ${item.color} text-white border-0 shadow-md`
                         : "border-primary/20 hover:border-primary/50 hover:bg-primary/5"
                     }`}
-                    onClick={() => updateForm({ [item.key]: !isActive } as any)}
+                    onClick={() => updateForm({ [item.key]: !isActive } as Partial<FilterFormState>)}
                   >
                     <span className="mr-2 transition-transform group-hover:rotate-12">
                       {item.icon}
