@@ -14,6 +14,11 @@ import { SignupPage } from "@/pages/public/SignupPage";
 import { AdminUsersPage } from "@/pages/settings/AdminUsersPage";
 import { NotificationPrefsPage } from "@/pages/settings/NotificationPrefsPage";
 import { ProfilePage } from "@/pages/settings/ProfilePage";
+import AdminResourceCreatePage from "@/pages/resource/AdminResourceCreatePage";
+import AdminResourceEditPage from "@/pages/resource/AdminResourceEditPage";
+import ResourceDetailsPage from "@/pages/resource/ResourceDetailsPage";
+import ResourceListPage from "@/pages/resource/ResourceListPage";
+import ResourceStatsPage from "@/pages/resource/ResourceStatsPage";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -126,7 +131,7 @@ function HomePage() {
   );
 }
 
-export function App() {
+export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -152,10 +157,13 @@ export function App() {
             </SuperAdminRoute>
           }
         />
+        <Route path="admin/resources/create" element={<AdminResourceCreatePage />} />
+        <Route path="admin/resources/edit/:id" element={<AdminResourceEditPage />} />
+        <Route path="admin/resources/stats" element={<ResourceStatsPage />} />
+        <Route path="resources/:id" element={<ResourceDetailsPage />} />
+        <Route path="resources" element={<ResourceListPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
-
-export default App;
