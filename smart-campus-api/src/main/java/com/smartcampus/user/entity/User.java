@@ -40,7 +40,11 @@ public class User {
     @Column(name = "google_sub", unique = true, length = 255)
     private String googleSub;
 
+    @Column(name = "password_hash", length = 255)
+    private String passwordHash;
+
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false, columnDefinition = "user_role")
     private Role role = Role.USER;
 
@@ -134,6 +138,14 @@ public class User {
 
     public void setGoogleSub(String googleSub) {
         this.googleSub = googleSub;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public Instant getLastLoginAt() {

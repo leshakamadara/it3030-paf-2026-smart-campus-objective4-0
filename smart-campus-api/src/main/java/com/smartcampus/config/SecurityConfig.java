@@ -54,6 +54,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/oauth2/**", "/login/oauth2/**", "/error").permitAll()
                 .requestMatchers("/api/auth/dummy-login").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/auth/me", "/api/auth/refresh").hasAnyRole("USER", "TECHNICIAN", "ADMIN", "SUPER_ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/auth/logout").hasAnyRole("USER", "TECHNICIAN", "ADMIN", "SUPER_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/users/me", "/api/users/me/profile").hasAnyRole("USER", "TECHNICIAN", "ADMIN", "SUPER_ADMIN")
@@ -91,4 +92,5 @@ public class SecurityConfig {
         expressionHandler.setRoleHierarchy(roleHierarchy);
         return expressionHandler;
     }
+
 }

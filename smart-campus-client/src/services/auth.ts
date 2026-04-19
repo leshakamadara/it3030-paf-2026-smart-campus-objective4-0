@@ -23,6 +23,18 @@ export interface DummyLoginRequest {
   fullName?: string;
 }
 
+export interface CampusSignInRequest {
+  email: string;
+  password: string;
+}
+
+export interface CampusRegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export interface DummyLoginResponse {
   token: string | null;
   user: AuthUser;
@@ -49,7 +61,7 @@ export function clearStoredToken() {
 }
 
 export async function fetchCurrentUser(token: string): Promise<MeResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/me`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
     method: "GET",
     headers: {
       Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}`,
@@ -81,5 +93,47 @@ export async function dummyLogin(data: DummyLoginRequest): Promise<DummyLoginRes
   const token = response.headers.get("Authorization");
   const payload = (await response.json()) as { token: string | null; user: AuthUser };
 
+  return { token: token ?? payload.token, user: payload.user };
+}
+
+export async function campusSignIn(data: CampusSignInRequest): Promise<DummyLoginResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "Invalid email or password");
+  }
+
+  const token = response.headers.get("Authorization");
+  const payload = (await response.json()) as { token: string | null; user: AuthUser };
+  return { token: token ?? payload.token, user: payload.user };
+}
+
+export async function campusRegister(data: CampusRegisterRequest): Promise<DummyLoginResponse> {
+  if (data.password !== data.confirmPassword) {
+    throw new Error("Passwords do not match");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "Registration failed");
+  }
+
+  const token = response.headers.get("Authorization");
+  const payload = (await response.json()) as { token: string | null; user: AuthUser };
   return { token: token ?? payload.token, user: payload.user };
 }

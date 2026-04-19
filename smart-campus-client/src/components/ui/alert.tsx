@@ -7,7 +7,7 @@ function Alert({ className, ...props }: React.ComponentProps<"div">) {
     <div
       role="alert"
       className={cn(
-        "relative w-full rounded-lg border border-white/10 bg-[#191a1b] px-4 py-3 text-sm text-[#d0d6e0]",
+        "relative w-full rounded-lg border border-[#d0d6e0] bg-[#f3f4f5] px-4 py-3 text-sm text-[#43464b]",
         className
       )}
       {...props}
@@ -20,7 +20,7 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"h5">) {
 }
 
 function AlertDescription({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("text-sm text-[#8a8f98]", className)} {...props} />
+  return <div className={cn("text-sm text-[#62666d]", className)} {...props} />
 }
 
 export { Alert, AlertDescription, AlertTitle }

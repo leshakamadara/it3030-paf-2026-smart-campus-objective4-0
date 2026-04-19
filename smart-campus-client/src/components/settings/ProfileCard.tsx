@@ -17,12 +17,12 @@ export function ProfileCard({ profile }: ProfileCardProps) {
         <div className="flex items-center gap-4">
           <UserAvatar name={profile.fullName} avatarUrl={profile.avatarUrl} size="lg" />
           <div>
-            <h3 className="text-xl font-[590] tracking-[-0.02em] text-[#f7f8f8]">{profile.fullName}</h3>
-            <p className="text-sm text-[#8a8f98]">{profile.email}</p>
+            <h3 className="text-xl font-[590] tracking-[-0.02em] text-[#191a1b]">{profile.fullName}</h3>
+            <p className="text-sm text-[#62666d]">{profile.email}</p>
           </div>
         </div>
 
-        <div className="grid gap-3 rounded-lg border border-white/10 bg-[#191a1b] p-4 text-sm text-[#d0d6e0] sm:grid-cols-2">
+        <div className="grid gap-3 rounded-lg border border-[#d0d6e0] bg-[#f3f4f5] p-4 text-sm text-[#43464b] sm:grid-cols-2">
           <div>
             <p className="text-xs uppercase tracking-[0.12em] text-[#62666d]">Role</p>
             <div className="mt-1">
@@ -31,17 +31,17 @@ export function ProfileCard({ profile }: ProfileCardProps) {
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.12em] text-[#62666d]">Account status</p>
-            <p className="mt-1 font-[510] text-[#f7f8f8]">{profile.active ? "Active" : "Inactive"}</p>
+            <p className="mt-1 font-[510] text-[#191a1b]">{profile.active ? "Active" : "Inactive"}</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.12em] text-[#62666d]">Last login</p>
-            <p className="mt-1 font-[510] text-[#f7f8f8]">
+            <p className="mt-1 font-[510] text-[#191a1b]">
               {profile.lastLoginAt ? new Date(profile.lastLoginAt).toLocaleString() : "Not available"}
             </p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.12em] text-[#62666d]">Google sub</p>
-            <p className="mt-1 truncate font-mono text-xs text-[#8a8f98]">{profile.googleSub ?? "-"}</p>
+            <p className="mt-1 truncate font-mono text-xs text-[#62666d]">{profile.googleSub ?? "-"}</p>
           </div>
         </div>
 

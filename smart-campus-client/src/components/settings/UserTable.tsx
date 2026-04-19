@@ -41,9 +41,9 @@ export function UserTable({
   }, [users, roleFilter, normalizedSearch]);
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/10 bg-[#0f1011]">
+    <div className="overflow-x-auto rounded-xl border border-[#d0d6e0] bg-[#ffffff]">
       <table className="min-w-full text-left text-sm">
-        <thead className="border-b border-white/10 bg-[#121316] text-xs uppercase tracking-[0.12em] text-[#8a8f98]">
+        <thead className="border-b border-[#d0d6e0] bg-[#f3f4f5] text-xs uppercase tracking-[0.12em] text-[#62666d]">
           <tr>
             <th className="px-3 py-3">User</th>
             <th className="px-3 py-3">Role</th>
@@ -56,13 +56,13 @@ export function UserTable({
           {filtered.map((user) => {
             const isCurrentUser = currentUserId === user.id;
             return (
-              <tr key={user.id} className="border-b border-white/5 bg-[#0f1011]">
+              <tr key={user.id} className="border-b border-[#e6e6e6] bg-[#ffffff]">
                 <td className="px-3 py-3">
                   <div className="flex items-center gap-3">
                     <UserAvatar name={user.fullName} avatarUrl={user.avatarUrl} />
                     <div>
-                      <p className="text-xs font-[510] text-[#f7f8f8]">{user.fullName}</p>
-                      <p className="text-xs text-[#8a8f98]">{user.email}</p>
+                      <p className="text-xs font-[510] text-[#191a1b]">{user.fullName}</p>
+                      <p className="text-xs text-[#62666d]">{user.email}</p>
                     </div>
                   </div>
                 </td>
@@ -77,11 +77,11 @@ export function UserTable({
                   </div>
                 </td>
                 <td className="px-3 py-3">
-                  <span className={user.active ? "text-[#8ee8b0]" : "text-[#ffc2d0]"}>
+                  <span className={user.active ? "text-[#1f8a44]" : "text-[#8f3346]"}>
                     {user.active ? "Active" : "Inactive"}
                   </span>
                 </td>
-                <td className="px-3 py-3 text-xs text-[#8a8f98]">
+                <td className="px-3 py-3 text-xs text-[#62666d]">
                   {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "-"}
                 </td>
                 <td className="px-3 py-3">
@@ -97,7 +97,7 @@ export function UserTable({
 
           {filtered.length === 0 && (
             <tr>
-              <td className="px-3 py-8 text-center text-sm text-[#8a8f98]" colSpan={5}>
+              <td className="px-3 py-8 text-center text-sm text-[#62666d]" colSpan={5}>
                 No users match your current filters.
               </td>
             </tr>

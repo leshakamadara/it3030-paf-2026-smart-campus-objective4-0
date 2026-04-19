@@ -90,7 +90,7 @@ export function AdminUsersPage() {
               <select
                 value={roleFilter}
                 onChange={(event) => setRoleFilter(event.target.value as Role | "ALL")}
-                className="h-10 w-full rounded-md border border-white/10 bg-[#08090a] px-3 text-sm text-[#d0d6e0] focus:border-[#7170ff] focus:outline-none"
+                className="h-10 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b] focus:border-[#7170ff] focus:outline-none"
               >
                 <option value="ALL">All roles</option>
                 <option value="USER">USER</option>
@@ -101,7 +101,7 @@ export function AdminUsersPage() {
             </div>
           </div>
 
-          {error && <p className="text-xs text-[#ffc2d0]">{error}</p>}
+          {error && <p className="text-xs text-[#8f3346]">{error}</p>}
 
           <UserTable
             users={users}

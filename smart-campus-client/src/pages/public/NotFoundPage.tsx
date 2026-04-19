@@ -7,7 +7,7 @@ export function NotFoundPage() {
     <main className="grid min-h-svh place-items-center bg-[#f7f8f8] px-6 text-center text-[#191a1b]">
       <section className="w-full max-w-md space-y-4 rounded-xl border border-[#d0d6e0] bg-white p-8 shadow-[0_6px_30px_rgba(0,0,0,0.08)]">
         <p className="text-xs font-[510] uppercase tracking-[0.2em] text-[#7a7fad]">Page not found</p>
-        <h1 className="text-5xl font-[590] tracking-[-0.056em] text-[#08090a]">404</h1>
+        <h1 className="text-5xl font-[590] tracking-[-0.056em] text-[#191a1b]">404</h1>
         <p className="text-sm text-[#62666d]">We could not find that route. Use the portal home to continue.</p>
         <div className="pt-2">
           <Link to="/">

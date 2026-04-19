@@ -1,33 +1,27 @@
-import { cn } from "@/lib/utils";
+import * as React from "react"
+import { Switch as SwitchPrimitive } from "radix-ui"
 
-interface SwitchProps {
-  checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
-  disabled?: boolean;
-  className?: string;
-}
+import { cn } from "@/lib/utils"
 
-export function Switch({ checked, onCheckedChange, disabled = false, className }: SwitchProps) {
+function Switch({
+  className,
+  ...props
+}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      disabled={disabled}
-      onClick={() => onCheckedChange(!checked)}
+    <SwitchPrimitive.Root
+      data-slot="switch"
       className={cn(
-        "relative h-6 w-11 rounded-full border border-white/10 transition",
-        checked ? "bg-[#5e6ad2]" : "bg-[#191a1b]",
-        disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
-        className,
+        "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-[#d0d6e0] bg-[#f3f4f5] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition-colors data-[state=checked]:border-[#5e6ad2]/70 data-[state=checked]:bg-[#5e6ad2] hover:data-[state=checked]:bg-[#7170ff] focus-visible:ring-2 focus-visible:ring-[#7170ff]/40 disabled:cursor-not-allowed disabled:opacity-50",
+        className
       )}
+      {...props}
     >
-      <span
-        className={cn(
-          "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
-          checked ? "translate-x-5" : "translate-x-0.5",
-        )}
+      <SwitchPrimitive.Thumb
+        data-slot="switch-thumb"
+        className="block size-5 rounded-full bg-[#f7f8f8] shadow-[0_1px_2px_rgba(0,0,0,0.45)] transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0.5"
       />
-    </button>
-  );
+    </SwitchPrimitive.Root>
+  )
 }
+
+export { Switch }

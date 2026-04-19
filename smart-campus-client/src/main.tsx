@@ -10,7 +10,7 @@ import { AuthProvider } from "@/context/AuthContext.tsx"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="light" storageKey="theme-campus-light">
       <BrowserRouter>
         <AuthProvider>
           <App />

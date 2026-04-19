@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -18,9 +19,11 @@ import com.smartcampus.user.repository.UserRepository;
 public class AuthenticationService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthenticationService(UserRepository userRepository) {
+    public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User processOAuth2User(OAuth2User oAuth2User) {
@@ -71,6 +74,51 @@ public class AuthenticationService {
         if (!StringUtils.hasText(user.getFullName())) {
             user.setFullName(StringUtils.hasText(fullName) ? fullName : email);
         }
+        if (user.getNotificationPrefs() == null || user.getNotificationPrefs().isEmpty()) {
+            user.setNotificationPrefs(defaultNotificationPrefs());
+        }
+
+        return userRepository.save(user);
+    }
+
+    public User registerCampusUser(String email, String fullName, String rawPassword) {
+        if (!StringUtils.hasText(email) || !StringUtils.hasText(rawPassword)) {
+            throw new IllegalArgumentException("Email and password are required");
+        }
+
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new IllegalStateException("User already exists");
+        }
+
+        User user = new User();
+        user.setEmail(email);
+        user.setFullName(StringUtils.hasText(fullName) ? fullName : email);
+        user.setRole(Role.USER);
+        user.setActive(true);
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        user.setLastLoginAt(Instant.now());
+        user.setNotificationPrefs(defaultNotificationPrefs());
+
+        return userRepository.save(user);
+    }
+
+    public User loginCampusUser(String email, String rawPassword) {
+        if (!StringUtils.hasText(email) || !StringUtils.hasText(rawPassword)) {
+            throw new IllegalArgumentException("Email and password are required");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        if (!user.isActive()) {
+            throw new DisabledException("User account is disabled");
+        }
+
+        if (!StringUtils.hasText(user.getPasswordHash()) || !passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        user.setLastLoginAt(Instant.now());
         if (user.getNotificationPrefs() == null || user.getNotificationPrefs().isEmpty()) {
             user.setNotificationPrefs(defaultNotificationPrefs());
         }

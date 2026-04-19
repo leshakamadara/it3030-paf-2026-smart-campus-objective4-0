@@ -71,7 +71,7 @@ export function NotificationPrefsPage() {
             >
               {saving ? "Saving..." : "Save Preferences"}
             </Button>
-            {error && <p className="text-xs text-[#ffc2d0]">{error}</p>}
+            {error && <p className="text-xs text-[#8f3346]">{error}</p>}
           </div>
         </div>
       </SettingsCard>

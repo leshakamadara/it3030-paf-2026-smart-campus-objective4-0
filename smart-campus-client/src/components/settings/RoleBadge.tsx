@@ -2,10 +2,10 @@ import { Badge } from "@/components/ui/badge";
 import type { Role } from "@/services/users";
 
 const ROLE_STYLE: Record<Role, string> = {
-  USER: "border-[#3b3f52] bg-[#202433] text-[#c9d2ff]",
-  TECHNICIAN: "border-[#1f4d33] bg-[#153124] text-[#8ee8b0]",
-  ADMIN: "border-[#4f3d1e] bg-[#2e2414] text-[#ffdfa3]",
-  SUPER_ADMIN: "border-[#5a2031] bg-[#32181f] text-[#ffc2d0]",
+  USER: "border-[#cfd7ff] bg-[#eef1ff] text-[#3f4c93]",
+  TECHNICIAN: "border-[#b9e1ca] bg-[#edf9f1] text-[#1f8a44]",
+  ADMIN: "border-[#f2dfb2] bg-[#fff8e8] text-[#7b5b11]",
+  SUPER_ADMIN: "border-[#f0b8c4] bg-[#fff1f4] text-[#8f3346]",
 };
 
 export function RoleBadge({ role }: { role: Role }) {

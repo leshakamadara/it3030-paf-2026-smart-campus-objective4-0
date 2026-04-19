@@ -4,9 +4,9 @@ spring:
   application:
     name: smart-campus-api
   datasource:
-    url: jdbc:postgresql://localhost:5432/smartcampus
-    username: your_username
-    password: your_password
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/smartcampus}
+    username: ${SPRING_DATASOURCE_USERNAME:your_username}
+    password: ${SPRING_DATASOURCE_PASSWORD:your_password}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

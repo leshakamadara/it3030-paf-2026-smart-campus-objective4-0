@@ -36,7 +36,7 @@ function SheetContent({ children, side = "right", className }: SheetContentProps
   return (
     <aside
       className={cn(
-        "absolute top-0 h-full w-full max-w-md border-white/10 bg-[#0f1011] p-0 shadow-[0_0_0_1px_rgba(255,255,255,0.05)]",
+        "absolute top-0 h-full w-full max-w-md border-[#d0d6e0] bg-[#ffffff] p-0 shadow-[0_0_0_1px_rgba(255,255,255,0.05)]",
         side === "right" ? "right-0 border-l" : "left-0 border-r",
         className,
       )}
@@ -47,11 +47,11 @@ function SheetContent({ children, side = "right", className }: SheetContentProps
 }
 
 function SheetHeader({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("border-b border-white/10 p-4", className)}>{children}</div>;
+  return <div className={cn("border-b border-[#d0d6e0] p-4", className)}>{children}</div>;
 }
 
 function SheetTitle({ children, className }: { children: ReactNode; className?: string }) {
-  return <h2 className={cn("text-base font-[590] text-[#f7f8f8]", className)}>{children}</h2>;
+  return <h2 className={cn("text-base font-[590] text-[#191a1b]", className)}>{children}</h2>;
 }
 
 function SheetBody({ children, className }: { children: ReactNode; className?: string }) {

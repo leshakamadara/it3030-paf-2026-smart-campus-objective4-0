@@ -120,7 +120,7 @@ export function NotificationPanel() {
             <SheetTitle>Notifications</SheetTitle>
             <Button
               onClick={() => void handleMarkAllRead()}
-              className="h-8 rounded-md border border-white/10 bg-[#191a1b] px-3 text-xs text-[#d0d6e0] hover:bg-[#28282c]"
+              className="h-8 rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 text-xs text-[#43464b] hover:bg-[#e9ebee]"
             >
               Mark all as read
             </Button>
@@ -128,13 +128,13 @@ export function NotificationPanel() {
 
           <SheetBody className="space-y-4">
             {error && (
-              <div className="rounded-lg border border-[#5a2031] bg-[#32181f] p-3 text-xs text-[#ffc2d0]">
+              <div className="rounded-lg border border-[#f0b8c4] bg-[#fff1f4] p-3 text-xs text-[#8f3346]">
                 {error}
               </div>
             )}
 
             <section className="space-y-2">
-              <h3 className="text-xs font-[510] uppercase tracking-[0.12em] text-[#8a8f98]">Today</h3>
+              <h3 className="text-xs font-[510] uppercase tracking-[0.12em] text-[#62666d]">Today</h3>
               <div className="space-y-2">
                 {grouped.today.map((item) => (
                   <NotificationItem key={item.id} item={item} onOpen={handleOpenItem} onDelete={handleDelete} />
@@ -144,7 +144,7 @@ export function NotificationPanel() {
             </section>
 
             <section className="space-y-2">
-              <h3 className="text-xs font-[510] uppercase tracking-[0.12em] text-[#8a8f98]">Earlier</h3>
+              <h3 className="text-xs font-[510] uppercase tracking-[0.12em] text-[#62666d]">Earlier</h3>
               <div className="space-y-2">
                 {grouped.earlier.map((item) => (
                   <NotificationItem key={item.id} item={item} onOpen={handleOpenItem} onDelete={handleDelete} />

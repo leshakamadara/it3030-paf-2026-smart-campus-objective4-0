@@ -32,7 +32,7 @@ export function ProfilePage() {
   if (error) {
     return (
       <main className="mx-auto w-full max-w-3xl px-4 py-8">
-        <div className="rounded-lg border border-[#5a2031] bg-[#32181f] p-4 text-sm text-[#ffc2d0]">{error}</div>
+        <div className="rounded-lg border border-[#f0b8c4] bg-[#fff1f4] p-4 text-sm text-[#8f3346]">{error}</div>
       </main>
     );
   }
@@ -40,7 +40,7 @@ export function ProfilePage() {
   if (!profile) {
     return (
       <main className="mx-auto w-full max-w-3xl px-4 py-8">
-        <div className="rounded-lg border border-white/10 bg-[#0f1011] p-4 text-sm text-[#8a8f98]">Loading profile...</div>
+        <div className="rounded-lg border border-[#d0d6e0] bg-[#ffffff] p-4 text-sm text-[#62666d]">Loading profile...</div>
       </main>
     );
   }
