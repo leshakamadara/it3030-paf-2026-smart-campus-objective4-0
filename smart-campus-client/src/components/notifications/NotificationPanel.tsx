@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bell, Check, CheckCheck, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { NotificationItem } from "@/components/notifications/NotificationItem";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetBody, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   deleteNotification,
   getNotifications,
@@ -9,208 +12,152 @@ import {
   markAllNotificationsAsRead,
   markNotificationAsRead,
 } from "@/services/notifications";
-import type { NotificationItem, NotificationPageResponse } from "@/types/notification";
+import type { NotificationItem as NotificationModel } from "@/types/notification";
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleString();
+function isToday(dateIso: string) {
+  const date = new Date(dateIso);
+  const today = new Date();
+
+  return (
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate()
+  );
 }
 
-function buildTargetHref(notification: NotificationItem): string | null {
-  if (!notification.entityType || !notification.entityId) {
-    return null;
+function targetPathFor(notification: NotificationModel) {
+  if (notification.entityType && notification.entityId) {
+    const type = notification.entityType.toUpperCase();
+    if (type.includes("BOOKING")) {
+      return `/bookings/${notification.entityId}`;
+    }
+    if (type.includes("TICKET")) {
+      return `/tickets/${notification.entityId}`;
+    }
   }
 
-  const entityType = notification.entityType.toUpperCase();
-  if (entityType === "BOOKING") {
-    return `/bookings/${notification.entityId}`;
-  }
-  if (entityType === "TICKET") {
-    return `/tickets/${notification.entityId}`;
-  }
-
-  return null;
+  return "/";
 }
 
 export function NotificationPanel() {
-  const [page, setPage] = useState(0);
-  const [size] = useState(10);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState<NotificationModel[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [notificationPage, setNotificationPage] = useState<NotificationPageResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const notifications = useMemo(() => notificationPage?.content ?? [], [notificationPage]);
-
-  async function loadData(currentPage: number): Promise<void> {
-    setLoading(true);
-    setError(null);
-
+  async function refresh() {
     try {
-      const [pageData, count] = await Promise.all([
-        getNotifications(currentPage, size),
-        getUnreadCount(),
-      ]);
-
-      setNotificationPage(pageData);
-      setUnreadCount(count);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load notifications";
+      const [pageData, unread] = await Promise.all([getNotifications(0, 50), getUnreadCount()]);
+      setItems(pageData.content);
+      setUnreadCount(unread);
+      setError(null);
+    } catch (requestError) {
+      const message = requestError instanceof Error ? requestError.message : "Failed to load notifications";
       setError(message);
-    } finally {
-      setLoading(false);
     }
   }
 
   useEffect(() => {
-    void loadData(page);
-  }, [page]);
+    void refresh();
 
-  async function handleMarkSingleAsRead(id: string): Promise<void> {
+    const timer = setInterval(() => {
+      void refresh();
+    }, 30_000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const grouped = useMemo(() => {
+    return {
+      today: items.filter((item) => isToday(item.createdAt)),
+      earlier: items.filter((item) => !isToday(item.createdAt)),
+    };
+  }, [items]);
+
+  async function handleOpen(item: NotificationModel) {
+    if (!item.isRead) {
+      try {
+        await markNotificationAsRead(item.id);
+      } catch {
+        // Navigate anyway for better UX.
+      }
+    }
+
+    setOpen(false);
+    navigate(targetPathFor(item));
+    void refresh();
+  }
+
+  async function handleDelete(item: NotificationModel) {
     try {
-      await markNotificationAsRead(id);
-      await loadData(page);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to mark as read";
+      await deleteNotification(item.id);
+      await refresh();
+    } catch (requestError) {
+      const message = requestError instanceof Error ? requestError.message : "Failed to delete notification";
       setError(message);
     }
   }
 
-  async function handleMarkAllAsRead(): Promise<void> {
+  async function handleMarkAllRead() {
     try {
       await markAllNotificationsAsRead();
-      await loadData(page);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to mark all as read";
+      await refresh();
+    } catch (requestError) {
+      const message = requestError instanceof Error ? requestError.message : "Failed to mark notifications as read";
       setError(message);
     }
-  }
-
-  async function handleDelete(id: string): Promise<void> {
-    try {
-      await deleteNotification(id);
-      await loadData(page);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to delete notification";
-      setError(message);
-    }
-  }
-
-  function handleOpen(notification: NotificationItem): void {
-    const target = buildTargetHref(notification);
-    if (!target) {
-      return;
-    }
-
-    window.location.assign(target);
   }
 
   return (
-    <section className="w-full max-w-3xl rounded-xl border border-border bg-card p-5 shadow-sm">
-      <header className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Bell className="h-5 w-5" />
-          <h2 className="text-lg font-semibold">Notifications</h2>
-          <span className="rounded-full bg-foreground px-2 py-0.5 text-xs text-background">
-            {unreadCount} unread
-          </span>
-        </div>
-        <Button onClick={() => void handleMarkAllAsRead()} variant="outline" className="gap-2">
-          <CheckCheck className="h-4 w-4" />
-          Mark all read
-        </Button>
-      </header>
+    <>
+      <NotificationBell unreadCount={unreadCount} onClick={() => setOpen(true)} />
 
-      {error && (
-        <div className="mb-4 rounded-md border border-red-400/50 bg-red-100/60 p-3 text-sm text-red-800">
-          {error}
-        </div>
-      )}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="right">
+          <SheetHeader>
+            <SheetTitle>Notifications</SheetTitle>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => void handleMarkAllRead()}
+              className="text-xs"
+              disabled={unreadCount === 0}
+            >
+              Mark all as read
+            </Button>
+          </SheetHeader>
 
-      <div className="space-y-3">
-        {loading && <p className="text-sm text-muted-foreground">Loading notifications...</p>}
-
-        {!loading && notifications.length === 0 && (
-          <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-            You have no notifications yet.
-          </p>
-        )}
-
-        {notifications.map((notification) => (
-          <article
-            key={notification.id}
-            className={`cursor-pointer rounded-lg border p-4 transition ${
-              notification.isRead
-                ? "border-border bg-background"
-                : "border-primary/40 bg-primary/5"
-            }`}
-            onClick={() => handleOpen(notification)}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h3 className="truncate text-sm font-semibold">{notification.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{notification.message}</p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {formatDate(notification.createdAt)}
-                </p>
+          <SheetBody className="space-y-4">
+            {error && (
+              <div className="rounded-lg border border-[#5a2031]/80 bg-[#32181f]/90 p-3 text-xs text-[#ffc2d0]">
+                {error}
               </div>
+            )}
 
-              <div className="flex shrink-0 gap-2">
-                {!notification.isRead && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      void handleMarkSingleAsRead(notification.id);
-                    }}
-                    className="gap-1"
-                  >
-                    <Check className="h-4 w-4" />
-                    Read
-                  </Button>
-                )}
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    void handleDelete(notification.id);
-                  }}
-                  className="gap-1"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
+            <section className="space-y-2">
+              <h3 className="text-xs font-[510] uppercase tracking-[0.12em] text-[#8a8f98]">Today</h3>
+              <div className="space-y-2">
+                {grouped.today.map((item) => (
+                  <NotificationItem key={item.id} item={item} onOpen={handleOpen} onDelete={handleDelete} />
+                ))}
+                {grouped.today.length === 0 && <p className="text-xs text-[#62666d]">No notifications today.</p>}
               </div>
-            </div>
-          </article>
-        ))}
-      </div>
+            </section>
 
-      <footer className="mt-5 flex items-center justify-between border-t pt-4">
-        <p className="text-xs text-muted-foreground">
-          Page {(notificationPage?.page ?? 0) + 1} of {Math.max(notificationPage?.totalPages ?? 1, 1)}
-        </p>
-
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            disabled={page === 0 || loading}
-            onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            disabled={loading || (notificationPage?.last ?? true)}
-            onClick={() => setPage((prev) => prev + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      </footer>
-    </section>
+            <section className="space-y-2">
+              <h3 className="text-xs font-[510] uppercase tracking-[0.12em] text-[#8a8f98]">Earlier</h3>
+              <div className="space-y-2">
+                {grouped.earlier.map((item) => (
+                  <NotificationItem key={item.id} item={item} onOpen={handleOpen} onDelete={handleDelete} />
+                ))}
+                {grouped.earlier.length === 0 && <p className="text-xs text-[#62666d]">No older notifications.</p>}
+              </div>
+            </section>
+          </SheetBody>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
