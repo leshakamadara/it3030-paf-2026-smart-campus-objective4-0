@@ -6,6 +6,10 @@ import { RoleBadge } from "@/components/settings/RoleBadge";
 import { UserAvatar } from "@/components/settings/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { AdminBookingsPage } from "@/pages/bookings/AdminBookingsPage";
+import { BookingDetailPage } from "@/pages/bookings/BookingDetailPage";
+import { CreateBookingPage } from "@/pages/bookings/CreateBookingPage";
+import { MyBookingsPage } from "@/pages/bookings/MyBookingsPage";
 import { LoginPage } from "@/pages/public/LoginPage";
 import { NotFoundPage } from "@/pages/public/NotFoundPage";
 import { OAuthCallbackPage } from "@/pages/public/OAuthCallbackPage";
@@ -52,6 +56,16 @@ function AuthenticatedLayout() {
               Smart Campus
             </Link>
             <nav className="flex items-center gap-2">
+              <NavLink
+                to="/bookings"
+                className={({ isActive }) =>
+                  isActive
+                    ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                    : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                }
+              >
+                Bookings
+              </NavLink>
               <NavLink
                 to="/settings/profile"
                 className={({ isActive }) =>
@@ -147,6 +161,10 @@ export default function App() {
         }
       >
         <Route index element={<HomePage />} />
+        <Route path="bookings" element={<MyBookingsPage />} />
+        <Route path="bookings/new" element={<CreateBookingPage />} />
+        <Route path="bookings/:id" element={<BookingDetailPage />} />
+        <Route path="admin/bookings" element={<AdminBookingsPage />} />
         <Route path="settings/profile" element={<ProfilePage />} />
         <Route path="settings/notifications" element={<NotificationPrefsPage />} />
         <Route
