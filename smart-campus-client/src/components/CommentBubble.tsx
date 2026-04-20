@@ -113,7 +113,7 @@ export default function CommentBubble(props: Props) {
                   : 'bg-slate-100 text-slate-900 rounded-tl-2xl rounded-tr-sm rounded-br-2xl rounded-bl-2xl'
               }`}
             >
-              <div className="break-words">{content}</div>
+              <div className="wrap-break-word">{content}</div>
               <div
                 className={`text-[10px] mt-1.5 ${
                   isTech ? 'text-violet-600' : 'text-slate-500'

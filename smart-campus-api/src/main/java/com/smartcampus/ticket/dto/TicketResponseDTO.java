@@ -3,8 +3,8 @@ package com.smartcampus.ticket.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.smartcampus.enums.Priority;
-import com.smartcampus.enums.Status;
+import com.smartcampus.ticket.enums.Priority;
+import com.smartcampus.ticket.enums.Status;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,20 +1,3 @@
-<<<<<<< HEAD
-import { BrowserRouter, Routes, Route } from "react-router-dom"
-import IncidentTicketingModule from "./pages/module-c-maintenance-incident-ticketing/AdminTicketPortal"
-import UserTicketPortal from "./pages/module-c-maintenance-incident-ticketing/UserTicketPortal"
-
-export function App() {
-  return (
-
-    <BrowserRouter>
-      <Routes>
-        <Route path="/tickets" element={<IncidentTicketingModule />} />
-        <Route path="/ticket" element={<UserTicketPortal />} />
-      </Routes>
-    </BrowserRouter>
-  
-  )
-=======
 import { type ReactNode } from "react";
 import { Link, NavLink, Navigate, Outlet, Route, Routes } from "react-router-dom";
 
@@ -173,7 +156,6 @@ export function App() {
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
->>>>>>> 2aab52e4f19fa0d781e6f8c591282b5aac5f0f6f
 }
 
 export default App;

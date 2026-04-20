@@ -7,8 +7,9 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.smartcampus.enums.Priority;
-import com.smartcampus.enums.Status;
+import com.smartcampus.ticket.enums.Priority;
+import com.smartcampus.ticket.enums.Status;
+import com.smartcampus.user.entity.User;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

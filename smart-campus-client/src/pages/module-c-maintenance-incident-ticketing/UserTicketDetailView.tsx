@@ -376,12 +376,12 @@ export default function TicketDetailView({
             {!isEditing ? (
               <button 
                 onClick={() => setIsEditing(true)} 
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm hover:shadow-md"
+                className="px-4 py-2 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm hover:shadow-md"
               >
                  Edit Ticket
               </button>
             ) : (
-              <div className="w-full bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50 border-2 border-blue-300 rounded-2xl p-6 space-y-5 shadow-lg">
+              <div className="w-full bg-linear-to-br from-blue-50 via-indigo-50 to-violet-50 border-2 border-blue-300 rounded-2xl p-6 space-y-5 shadow-lg">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full">✏️ EDIT TICKET</span>
                   <span className="text-xs text-blue-600 font-semibold">Make your changes below</span>
@@ -506,7 +506,7 @@ export default function TicketDetailView({
                   <button 
                     disabled={saving} 
                     onClick={handleSave} 
-                    className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl text-sm font-bold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg uppercase tracking-wider"
+                    className="flex-1 px-4 py-3 bg-linear-to-r from-green-500 to-green-600 text-white rounded-xl text-sm font-bold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg uppercase tracking-wider"
                   >
                     {saving ? '⏳ Saving...' : '✅ Save Changes'}
                   </button>

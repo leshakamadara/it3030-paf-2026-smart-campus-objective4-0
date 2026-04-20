@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.smartcampus.enums.Priority;
+import com.smartcampus.ticket.enums.Priority;
 
 @Data
 @NoArgsConstructor

@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.smartcampus.enums.Status;
 import com.smartcampus.ticket.dto.AttachmentDTO;
 import com.smartcampus.ticket.dto.CommentDTO;
 import com.smartcampus.ticket.dto.TicketRequestDTO;
 import com.smartcampus.ticket.dto.TicketResponseDTO;
+import com.smartcampus.ticket.enums.Status;
 import com.smartcampus.ticket.service.TicketService;
 
 import java.io.IOException;

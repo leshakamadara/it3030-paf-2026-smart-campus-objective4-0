@@ -9,21 +9,21 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.smartcampus.enums.Status;
 import com.smartcampus.ticket.dto.AttachmentDTO;
 import com.smartcampus.ticket.dto.CommentDTO;
 import com.smartcampus.ticket.dto.TicketRequestDTO;
 import com.smartcampus.ticket.dto.TicketResponseDTO;
+import com.smartcampus.ticket.enums.Status;
 import com.smartcampus.ticket.exception.TicketNotFoundException;
 import com.smartcampus.ticket.exception.UserNotFoundException;
 import com.smartcampus.ticket.model.Ticket;
 import com.smartcampus.ticket.model.TicketAttachment;
 import com.smartcampus.ticket.model.TicketComment;
-import com.smartcampus.ticket.model.User;
+import com.smartcampus.user.entity.User;
 import com.smartcampus.ticket.repository.TicketAttachmentRepository;
 import com.smartcampus.ticket.repository.TicketCommentRepository;
 import com.smartcampus.ticket.repository.TicketRepository;
-import com.smartcampus.ticket.repository.UserRepository;
+import com.smartcampus.user.repository.UserRepository;
 import com.smartcampus.ticket.service.CloudinaryService;
 import com.smartcampus.ticket.service.TicketService;
 
@@ -424,8 +424,8 @@ public class TicketServiceImpl implements TicketService {
         return new CommentDTO(
                 comment.getId(),
                 comment.getCreatedBy().getEmail(),
-                comment.getCreatedBy().getName(),
-                comment.getCreatedBy().getRole(),
+                comment.getCreatedBy().getFullName(),
+                comment.getCreatedBy().getRole().name(),
                 comment.getComment(),
                 comment.getCreatedAt(),
                 comment.getUpdatedAt()
