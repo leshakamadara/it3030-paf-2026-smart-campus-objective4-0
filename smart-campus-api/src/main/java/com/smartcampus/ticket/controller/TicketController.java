@@ -3,6 +3,8 @@ package com.smartcampus.ticket.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -36,10 +38,16 @@ import org.springframework.web.multipart.MultipartFile;
 public class TicketController {
     private final TicketService ticketService;
 
+    private String getCurrentUserEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null ? authentication.getName() : null;
+    }
+
     @PostMapping("/create")
     public ResponseEntity<TicketResponseDTO> createTicket(@Valid @ModelAttribute TicketRequestDTO request) {
         try {
-            TicketResponseDTO response = ticketService.createTicket(request, "jane.smith@example.com");
+            String userEmail = getCurrentUserEmail();
+            TicketResponseDTO response = ticketService.createTicket(request, userEmail);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException iae) {
             Map<String,Object> resp = new HashMap<>();
@@ -62,12 +70,14 @@ public class TicketController {
 
     @PutMapping("/{id}/status")
     public ResponseEntity<TicketResponseDTO> updateStatus(@PathVariable Long id,@RequestParam Status status, @RequestParam(required = false) String notes) {
-        return ResponseEntity.ok(ticketService.updateTicketStatus(id, status, "admin@example.com", notes));
+        String userEmail = getCurrentUserEmail();
+        return ResponseEntity.ok(ticketService.updateTicketStatus(id, status, userEmail, notes));
     }
 
     @PostMapping("/{id}/comments")
     public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,@RequestBody @NotBlank String comment) {
-        return ResponseEntity.ok(ticketService.addComment(id, "jane.smith@example.com", comment));
+        String userEmail = getCurrentUserEmail();
+        return ResponseEntity.ok(ticketService.addComment(id, userEmail, comment));
     }
 
     @PutMapping("/{ticketId}/comments/{commentId}")
@@ -75,14 +85,15 @@ public class TicketController {
             @PathVariable Long ticketId,
             @PathVariable Long commentId,
             @RequestBody @NotBlank String comment) {
-        return ResponseEntity.ok(ticketService.updateComment(ticketId, commentId, "jane.smith@example.com", comment));
+        String userEmail = getCurrentUserEmail();
+        return ResponseEntity.ok(ticketService.updateComment(ticketId, commentId, userEmail, comment));
     }
 
     @DeleteMapping("/{ticketId}/comments/{commentId}")
     public ResponseEntity<Map<String, Object>> deleteComment(
             @PathVariable Long ticketId,
-            @PathVariable Long commentId,
-            @RequestParam(defaultValue = "jane.smith@example.com") String userEmail) {
+            @PathVariable Long commentId) {
+        String userEmail = getCurrentUserEmail();
         boolean deleted = ticketService.deleteComment(ticketId, commentId, userEmail);
         Map<String, Object> response = new HashMap<>();
         response.put("success", deleted);
@@ -99,9 +110,9 @@ public class TicketController {
     @PostMapping("/{ticketId}/attachments/upload")
     public ResponseEntity<AttachmentDTO> uploadAttachment(
             @PathVariable Long ticketId,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(defaultValue = "jane.smith@example.com") String userEmail) {
+            @RequestParam("file") MultipartFile file) {
         try {
+            String userEmail = getCurrentUserEmail();
             AttachmentDTO attachment = ticketService.uploadAttachment(ticketId, file, userEmail);
             return ResponseEntity.status(HttpStatus.CREATED).body(attachment);
         } catch (IOException e) {
@@ -114,9 +125,9 @@ public class TicketController {
      */
     @DeleteMapping("/attachments/{attachmentId}")
     public ResponseEntity<Map<String, Object>> deleteAttachment(
-            @PathVariable Long attachmentId,
-            @RequestParam(defaultValue = "jane.smith@example.com") String userEmail) {
+            @PathVariable Long attachmentId) {
         try {
+            String userEmail = getCurrentUserEmail();
             boolean deleted = ticketService.deleteAttachment(attachmentId, userEmail);
             Map<String, Object> response = new HashMap<>();
             response.put("success", deleted);
@@ -140,8 +151,8 @@ public class TicketController {
     /*Delete a ticket and its attachments */
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> deleteTicket(@PathVariable Long id,
-                                                            @RequestParam(defaultValue = "jane.smith@example.com") String userEmail) {
+    public ResponseEntity<Map<String, Object>> deleteTicket(@PathVariable Long id) {
+        String userEmail = getCurrentUserEmail();
         boolean deleted = ticketService.deleteTicket(id, userEmail);
         Map<String, Object> response = new HashMap<>();
         response.put("success", deleted);
@@ -152,9 +163,9 @@ public class TicketController {
     /* Update a ticket's editable fields. Only allowed when ticket is OPEN state only.*/
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateTicket(@PathVariable Long id,
-                                          @Valid @ModelAttribute TicketRequestDTO request,
-                                          @RequestParam(defaultValue = "jane.smith@example.com") String userEmail) {
+                                          @Valid @ModelAttribute TicketRequestDTO request) {
         try {
+            String userEmail = getCurrentUserEmail();
             TicketResponseDTO updated = ticketService.updateTicket(id, request, userEmail);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException iae) {

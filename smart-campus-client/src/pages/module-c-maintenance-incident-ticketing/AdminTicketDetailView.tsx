@@ -8,7 +8,8 @@ import {
   STATUS_META,
 } from "../../../constants/Ticket_constants/constants";
 
-import { CURRENT_USER } from "../../../constants/Ticket_constants/ticketConstants";
+import { useAuth } from "../../context/AuthContext";
+
 
 
 import { Avatar } from "../../components/Avatar";
@@ -33,7 +34,6 @@ export const AdminTicketDetailView = ({
 
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ open: boolean; commentId?: number }>(
     { open: false }
   );
@@ -42,8 +42,9 @@ export const AdminTicketDetailView = ({
   const [resolutionNote, setResolutionNote] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const isAdmin = (currentUser?.role || CURRENT_USER.role) === "ADMIN";
-  const isTech = (currentUser?.role || CURRENT_USER.role) === "TECHNICIAN" || (currentUser?.role || CURRENT_USER.role) === "ADMIN";
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
+  const isTech = user?.role === "TECHNICIAN" || user?.role === "ADMIN";
 
   const nextStatuses = STATUS_FLOW[ticket.status];
 
@@ -94,21 +95,6 @@ export const AdminTicketDetailView = ({
       setLoading(false);
     }
   };
-
-  // fetch current user
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const u = await ticketService.getCurrentUser();
-        if (mounted) setCurrentUser(u);
-      } catch (err) {
-        // fallback to constant CURRENT_USER
-        if (mounted) setCurrentUser(CURRENT_USER);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
 
   // auto-scroll comments container to bottom when comments change
   useEffect(() => {
@@ -352,7 +338,7 @@ export const AdminTicketDetailView = ({
               <div className="mb-4">
                 <div ref={commentsContainerRef} className="bg-white border border-slate-200 rounded-2xl p-4 max-h-80 overflow-y-auto space-y-6">
                 {(ticket.comments || []).slice().sort((a: CommentDTO, b: CommentDTO) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((c: CommentDTO) => {
-                  const user = currentUser || CURRENT_USER;
+                  const currentUserData = user;
                   const authorLabel = c.createdByName ?? c.createdBy ?? "Unknown User";
                   const initials = authorLabel
                     .split(/\s+/)
@@ -361,7 +347,7 @@ export const AdminTicketDetailView = ({
                     .join("")
                     .slice(0, 2)
                     .toUpperCase() || "??";
-                  const userIdentifier = (user?.username || user?.email || user?.id || null);
+                  const userIdentifier = (currentUserData?.username || currentUserData?.email || currentUserData?.id || null);
                   const isOwn = !!(c.createdBy && userIdentifier && (c.createdBy === userIdentifier));
 
                   const isStaffComment = c.createdByRole === "ADMIN" || c.createdByRole === "TECHNICIAN";
@@ -394,7 +380,7 @@ export const AdminTicketDetailView = ({
 
               {/* Add Comment (outside scrollable box) */}
               <div className="flex items-start gap-4 pt-4 border-t border-slate-100">
-                <Avatar initials={CURRENT_USER.avatar} />
+                <Avatar initials={user?.avatarUrl || "A"} />
 
                 <div className="flex-1">
                   <textarea

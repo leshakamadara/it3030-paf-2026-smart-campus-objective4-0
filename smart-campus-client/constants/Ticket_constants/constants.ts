@@ -1,6 +1,5 @@
 import type { Priority, TicketStatus } from "../../src/types/ticketTypes";
 
-export const CURRENT_USER = { id: 2, name: "Jane Smith", email: "jane.smith@example.com", avatar: "KM", role: "USER" };
 
 export const CATEGORIES = [
   { value: "Hardware Failure", icon: "🖥️" },

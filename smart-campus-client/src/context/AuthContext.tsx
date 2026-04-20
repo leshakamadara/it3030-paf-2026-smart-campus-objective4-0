@@ -11,7 +11,7 @@ interface AuthContextValue {
   clearSession: () => void
 }
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 const STORED_USER_KEY = "authUser"
 

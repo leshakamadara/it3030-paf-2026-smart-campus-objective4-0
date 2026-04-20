@@ -1,7 +1,7 @@
-import { PRIORITY_CONFIG } from "../../constants/Ticket_constants/ticketConstants";
+import {PRIORITY_META } from "../../constants/Ticket_constants/constants";
 import type { Priority } from "../types/ticketTypes";
 export const PriorityDot = ({ priority }: { priority: Priority }) => {
-  const cfg = PRIORITY_CONFIG[priority];
+  const cfg = PRIORITY_META[priority];
 
   return (
     <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${cfg.text}`}>

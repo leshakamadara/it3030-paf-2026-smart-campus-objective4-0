@@ -8,7 +8,8 @@ import {
   PRIORITY_META,
   STATUS_META,
 } from "../../../constants/Ticket_constants/constants";
-import { CURRENT_USER } from "../../../constants/Ticket_constants/ticketConstants";
+
+import { useAuth } from "../../context/AuthContext";
 
 import { TicketCard } from "../../components/AdminTicketCard";
 import { WorkflowPipeline } from "../../components/WorkflowPipeline";
@@ -24,19 +25,12 @@ export default function IncidentTicketingModule() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "priority">("date");
   const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc"); // desc = newest first
-  const [currentUser, setCurrentUser] = useState<any | null>(null);
+
+  const { user } = useAuth();
 
   // Fetch tickets on component mount
   useEffect(() => {
     fetchTickets();
-    (async () => {
-      try {
-        const u = await ticketService.getCurrentUser();
-        setCurrentUser(u);
-      } catch (err) {
-        setCurrentUser(CURRENT_USER);
-      }
-    })();
   }, []);
 
   const fetchTickets = async () => {
@@ -128,17 +122,17 @@ export default function IncidentTicketingModule() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5">
               <span className="w-7 h-7 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-semibold">
-                {(currentUser || CURRENT_USER).avatar}
+                {user?.avatarUrl || "A"}
               </span>
-              <span className="font-medium">{(currentUser || CURRENT_USER).name} </span>
+              <span className="font-medium">{user?.fullName || "User"} </span>
               <span
                 className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
-                  (currentUser || CURRENT_USER).role === "ADMIN"
+                  user?.role === "ADMIN"
                     ? "bg-amber-100 text-amber-700"
                     : "bg-slate-200 text-slate-600"
                 }`}
               >
-                {(currentUser || CURRENT_USER).role}
+                {user?.role || "USER"}
               </span>
             </div>
 

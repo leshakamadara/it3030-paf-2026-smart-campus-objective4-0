@@ -2,15 +2,15 @@
 
 -- Create ticket and comment schema for current UUID user model
 CREATE TABLE IF NOT EXISTS tickets (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     category VARCHAR(100),
     resource_location VARCHAR(255),
     description TEXT,
     priority VARCHAR(50),
     status VARCHAR(50),
-    user_id UUID NOT NULL,
-    technician_id UUID,
+    user_id VARCHAR(36) NOT NULL,
+    technician_id VARCHAR(36),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS tickets (
 
 -- Create ticket_attachments table
 CREATE TABLE IF NOT EXISTS ticket_attachments (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     link_url VARCHAR(500),
     ticket_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -28,10 +28,10 @@ CREATE TABLE IF NOT EXISTS ticket_attachments (
 
 -- Create ticket_comments table
 CREATE TABLE IF NOT EXISTS ticket_comments (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     comment TEXT,
     ticket_id BIGINT NOT NULL,
-    user_id UUID NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,

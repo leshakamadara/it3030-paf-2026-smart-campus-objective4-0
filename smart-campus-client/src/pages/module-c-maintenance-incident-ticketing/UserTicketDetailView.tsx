@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { ticketService } from "../../services/ticketService";
 import type { Ticket, CommentDTO } from "../../types/ticketTypes";
 import { STATUS_META, PRIORITY_META, CATEGORIES } from "../../../constants/Ticket_constants/constants";
-import { CURRENT_USER } from "../../../constants/Ticket_constants/constants";
 import { formatDateTime } from "../../utills/ticket_helpers";
 import StatusTracker from "../../components/StatusTracker";
 import CommentBubble from "../../components/CommentBubble";
+import { useAuth } from "../../context/AuthContext";
 
 export default function TicketDetailView({
   ticket,
@@ -18,20 +18,8 @@ export default function TicketDetailView({
 }) {
   
   const [comment, setComment] = useState("");
-  const [currentUser, setCurrentUser] = useState<any | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const u = await ticketService.getCurrentUser();
-        if (mounted) setCurrentUser(u);
-      } catch (err) {
-        if (mounted) setCurrentUser(CURRENT_USER);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
+  const { user } = useAuth();
 
   useEffect(() => {
     const el = commentsContainerRef.current;
@@ -544,7 +532,7 @@ export default function TicketDetailView({
         <div className="mb-6">
           <div ref={commentsContainerRef} className="bg-white border border-slate-200 rounded-2xl p-4 max-h-72 overflow-y-auto space-y-5">
           {(ticket.comments || []).slice().sort((a: CommentDTO, b: CommentDTO) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((c: CommentDTO) => {
-            const user = currentUser || CURRENT_USER;
+            const currentUserData = user;
             const authorLabel = c.createdByName ?? c.createdBy ?? "Unknown User";
             const initials = authorLabel
               .split(/\s+/)
@@ -553,7 +541,7 @@ export default function TicketDetailView({
               .join("")
               .slice(0, 2)
               .toUpperCase() || "??";
-            const userIdentifier = (user?.username || user?.email || user?.id || null);
+            const userIdentifier = (currentUserData?.username || currentUserData?.email || currentUserData?.id || null);
             const isOwn = !!(c.createdBy && userIdentifier && (c.createdBy === userIdentifier));
 
             const isStaffComment = c.createdByRole === "ADMIN" || c.createdByRole === "TECHNICIAN";
@@ -586,7 +574,7 @@ export default function TicketDetailView({
         {ticket.status !== "CLOSED" && ticket.status !== "REJECTED" && (
           <div className="flex gap-3 pt-4 border-t border-slate-100">
             <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-700 text-xs font-bold flex items-center justify-center shrink-0">
-              {currentUser?.avatar || currentUser?.name?.slice(0,2) || '??'}
+              {user?.avatarUrl || user?.fullName?.slice(0,2) || '??'}
             </div>
             <div className="flex-1">
               <textarea
