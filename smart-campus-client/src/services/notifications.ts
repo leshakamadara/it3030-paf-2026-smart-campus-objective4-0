@@ -1,32 +1,42 @@
-import type { NotificationItem, NotificationPageResponse } from "@/types/notification";
+import { getStoredToken } from "@/services/auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
 
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem("authToken");
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+export interface NotificationRecord {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  entityType?: string | null;
+  entityId?: string | null;
+}
 
-  if (token) {
-    headers.Authorization = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+function authHeaders(): HeadersInit {
+  const token = getStoredToken();
+  if (!token) {
+    return { "Content-Type": "application/json" };
   }
 
-  return headers;
+  return {
+    "Content-Type": "application/json",
+    Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}`,
+  };
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
-      ...getAuthHeaders(),
+      ...authHeaders(),
       ...(init?.headers ?? {}),
     },
   });
 
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
+    const text = await response.text();
+    throw new Error(text || `Notification request failed: ${response.status}`);
   }
 
   if (response.status === 204) {
@@ -36,35 +46,72 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
-export async function getNotifications(page = 0, size = 10): Promise<NotificationPageResponse> {
-  const query = new URLSearchParams({
-    page: String(page),
-    size: String(size),
-  }).toString();
+function coerceNotification(raw: unknown): NotificationRecord | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
 
-  return request<NotificationPageResponse>(`/api/notifications?${query}`);
+  const data = raw as Record<string, unknown>;
+  const id = String(data.id ?? "");
+  if (!id) {
+    return null;
+  }
+
+  const message = typeof data.message === "string" ? data.message : "";
+  const type = typeof data.type === "string" ? data.type : "NOTICE";
+
+  return {
+    id,
+    type,
+    title: typeof data.title === "string" ? data.title : type.replace(/_/g, " "),
+    message,
+    read: Boolean(data.read ?? data.isRead ?? false),
+    createdAt:
+      typeof data.createdAt === "string"
+        ? data.createdAt
+        : typeof data.timestamp === "string"
+          ? data.timestamp
+          : new Date().toISOString(),
+    entityType: typeof data.entityType === "string" ? data.entityType : null,
+    entityId: typeof data.entityId === "string" ? data.entityId : null,
+  };
+}
+
+export async function getNotifications(): Promise<NotificationRecord[]> {
+  const data = await request<unknown[]>("/api/notifications");
+  return data.map(coerceNotification).filter((item): item is NotificationRecord => item !== null);
 }
 
 export async function getUnreadCount(): Promise<number> {
-  const data = await request<{ count: number }>("/api/notifications/unread-count");
-  return data.count;
+  const data = await request<unknown>("/api/notifications/unread-count");
+  if (typeof data === "number") {
+    return data;
+  }
+
+  if (data && typeof data === "object") {
+    const count = (data as { count?: unknown }).count;
+    if (typeof count === "number") {
+      return count;
+    }
+  }
+
+  return 0;
 }
 
-export async function markNotificationAsRead(id: string): Promise<NotificationItem> {
-  return request<NotificationItem>(`/api/notifications/${id}/read`, {
+export function markNotificationAsRead(notificationId: string) {
+  return request<void>(`/api/notifications/${notificationId}/read`, {
     method: "PATCH",
   });
 }
 
-export async function markAllNotificationsAsRead(): Promise<number> {
-  const data = await request<{ updated: number }>("/api/notifications/read-all", {
+export function markAllNotificationsAsRead() {
+  return request<void>("/api/notifications/read-all", {
     method: "PATCH",
   });
-  return data.updated;
 }
 
-export async function deleteNotification(id: string): Promise<void> {
-  await request<void>(`/api/notifications/${id}`, {
+export function deleteNotification(notificationId: string) {
+  return request<void>(`/api/notifications/${notificationId}`, {
     method: "DELETE",
   });
 }

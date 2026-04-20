@@ -10,7 +10,7 @@ export function NotificationBell({ unreadCount, onClick }: NotificationBellProps
     <button
       type="button"
       onClick={onClick}
-      className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-white/8 bg-white/3 text-[#d0d6e0] transition-colors hover:bg-white/6"
+      className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#d0d6e0] bg-[#f3f4f5] text-[#43464b] hover:bg-[#e9ebee]"
       aria-label="Open notifications"
     >
       <Bell className="h-5 w-5" />

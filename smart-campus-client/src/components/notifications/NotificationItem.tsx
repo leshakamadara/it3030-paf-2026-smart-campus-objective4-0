@@ -1,12 +1,12 @@
 import { Bell, CalendarClock, Ticket } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import type { NotificationItem as NotificationModel } from "@/types/notification";
+import type { NotificationRecord } from "@/services/notifications";
 
 interface NotificationItemProps {
-  item: NotificationModel;
-  onOpen: (item: NotificationModel) => void;
-  onDelete: (item: NotificationModel) => void;
+  item: NotificationRecord;
+  onOpen: (item: NotificationRecord) => void;
+  onDelete: (item: NotificationRecord) => void;
 }
 
 function relativeTime(dateIso: string) {
@@ -42,30 +42,26 @@ function notificationIcon(type: string) {
 export function NotificationItem({ item, onOpen, onDelete }: NotificationItemProps) {
   return (
     <article
-      className={`rounded-lg border border-white/8 bg-white/3 p-3 ${item.isRead ? "" : "shadow-[inset_2px_0_0_0_#5e6ad2]"}`}
+      className={`rounded-lg border border-[#d0d6e0] bg-[#f3f4f5] p-3 ${item.read ? "" : "border-l-4 border-l-[#2d3f7f]"}`}
     >
       <div className="flex gap-3">
-        <div className="mt-1 text-[#8a8f98]">{notificationIcon(item.type)}</div>
+        <div className="mt-1 text-[#62666d]">{notificationIcon(item.type)}</div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-[510] text-[#f7f8f8]">{item.title}</p>
-          <p className="mt-1 text-xs text-[#8a8f98]">{item.message || "No message provided."}</p>
+          <p className="truncate text-sm font-[510] text-[#191a1b]">{item.title}</p>
+          <p className="mt-1 text-xs text-[#62666d]">{item.message || "No message provided."}</p>
           <p className="mt-2 text-[11px] text-[#62666d]">{relativeTime(item.createdAt)}</p>
         </div>
       </div>
       <div className="mt-3 flex gap-2">
         <Button
-          variant="secondary"
-          size="sm"
           onClick={() => onOpen(item)}
-          className="text-xs"
+          className="h-8 rounded-md border border-[#d0d6e0] bg-[#ffffff] px-3 text-xs text-[#43464b] hover:bg-[#e9ebee]"
         >
           Open
         </Button>
         <Button
-          variant="destructive"
-          size="sm"
           onClick={() => onDelete(item)}
-          className="text-xs"
+          className="h-8 rounded-md border border-[#f0b8c4] bg-[#fff1f4] px-3 text-xs text-[#8f3346] hover:bg-[#ffe6ec]"
         >
           Delete
         </Button>

@@ -14,8 +14,8 @@ export function UserStatusToggle({ active, onToggle, disabled = false }: UserSta
       onClick={() => onToggle(!active)}
       className={
         active
-          ? "h-8 rounded-md border border-[#1f4d33] bg-[#153124] px-3 text-xs text-[#8ee8b0] hover:bg-[#1e442d]"
-          : "h-8 rounded-md border border-[#5a2031] bg-[#32181f] px-3 text-xs text-[#ffc2d0] hover:bg-[#462030]"
+          ? "h-8 rounded-md border border-[#b9e1ca] bg-[#edf9f1] px-3 text-xs text-[#1f8a44] hover:bg-[#dff4e8]"
+          : "h-8 rounded-md border border-[#f0b8c4] bg-[#fff1f4] px-3 text-xs text-[#8f3346] hover:bg-[#ffe6ec]"
       }
     >
       {active ? "Deactivate" : "Activate"}

@@ -1,19 +1,57 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: smart-campus-api
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/smartcampus}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/SMCSDB}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:1234}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: validate
+    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-    show-sql: false
+
   flyway:
     enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: false
+
+server:
+  port: 8080
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:dbda5xjhk}
+  api-key: ${CLOUDINARY_API_KEY:658366674114443}
+  api-secret: ${CLOUDINARY_API_SECRET:gKtk-zEt_-EFN3u-DtOOElDUkDY}
+  folder: smart-campus-tickets
+
+app:
+  jwt-secret: ${APP_JWT_SECRET:replace_with_strong_base64_secret}
+  jwt-expiration-milliseconds: ${APP_JWT_EXPIRATION_MILLISECONDS:86400000}
+  oauth2:
+    authorized-redirect-uri: ${APP_OAUTH2_AUTHORIZED_REDIRECT_URI:http://localhost:5173/auth/callback}
+  auth:
+    allow-dummy-login: ${APP_AUTH_ALLOW_DUMMY_LOGIN:false}
+
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+        security: DEBUG
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql: TRACE

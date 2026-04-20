@@ -11,8 +11,8 @@ import {
   getUnreadCount,
   markAllNotificationsAsRead,
   markNotificationAsRead,
+  type NotificationRecord,
 } from "@/services/notifications";
-import type { NotificationItem as NotificationModel } from "@/types/notification";
 
 function isToday(dateIso: string) {
   const date = new Date(dateIso);
@@ -25,7 +25,7 @@ function isToday(dateIso: string) {
   );
 }
 
-function targetPathFor(notification: NotificationModel) {
+function targetPathFor(notification: NotificationRecord) {
   if (notification.entityType && notification.entityId) {
     const type = notification.entityType.toUpperCase();
     if (type.includes("BOOKING")) {
@@ -43,14 +43,14 @@ export function NotificationPanel() {
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<NotificationModel[]>([]);
+  const [items, setItems] = useState<NotificationRecord[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
     try {
-      const [pageData, unread] = await Promise.all([getNotifications(0, 50), getUnreadCount()]);
-      setItems(pageData.content);
+      const [notifications, unread] = await Promise.all([getNotifications(), getUnreadCount()]);
+      setItems(notifications);
       setUnreadCount(unread);
       setError(null);
     } catch (requestError) {
@@ -76,12 +76,12 @@ export function NotificationPanel() {
     };
   }, [items]);
 
-  async function handleOpen(item: NotificationModel) {
-    if (!item.isRead) {
+  async function handleOpenItem(item: NotificationRecord) {
+    if (!item.read) {
       try {
         await markNotificationAsRead(item.id);
       } catch {
-        // Navigate anyway for better UX.
+        // Ignore read failures and still navigate.
       }
     }
 
@@ -90,10 +90,10 @@ export function NotificationPanel() {
     void refresh();
   }
 
-  async function handleDelete(item: NotificationModel) {
+  async function handleDelete(item: NotificationRecord) {
     try {
       await deleteNotification(item.id);
-      await refresh();
+      void refresh();
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : "Failed to delete notification";
       setError(message);
@@ -103,7 +103,7 @@ export function NotificationPanel() {
   async function handleMarkAllRead() {
     try {
       await markAllNotificationsAsRead();
-      await refresh();
+      void refresh();
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : "Failed to mark notifications as read";
       setError(message);
@@ -116,14 +116,11 @@ export function NotificationPanel() {
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right">
-          <SheetHeader>
+          <SheetHeader className="flex items-center justify-between">
             <SheetTitle>Notifications</SheetTitle>
             <Button
-              variant="secondary"
-              size="sm"
               onClick={() => void handleMarkAllRead()}
-              className="text-xs"
-              disabled={unreadCount === 0}
+              className="h-8 rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 text-xs text-[#43464b] hover:bg-[#e9ebee]"
             >
               Mark all as read
             </Button>
@@ -131,26 +128,26 @@ export function NotificationPanel() {
 
           <SheetBody className="space-y-4">
             {error && (
-              <div className="rounded-lg border border-[#5a2031]/80 bg-[#32181f]/90 p-3 text-xs text-[#ffc2d0]">
+              <div className="rounded-lg border border-[#f0b8c4] bg-[#fff1f4] p-3 text-xs text-[#8f3346]">
                 {error}
               </div>
             )}
 
             <section className="space-y-2">
-              <h3 className="text-xs font-[510] uppercase tracking-[0.12em] text-[#8a8f98]">Today</h3>
+              <h3 className="text-xs font-[510] uppercase tracking-[0.12em] text-[#62666d]">Today</h3>
               <div className="space-y-2">
                 {grouped.today.map((item) => (
-                  <NotificationItem key={item.id} item={item} onOpen={handleOpen} onDelete={handleDelete} />
+                  <NotificationItem key={item.id} item={item} onOpen={handleOpenItem} onDelete={handleDelete} />
                 ))}
                 {grouped.today.length === 0 && <p className="text-xs text-[#62666d]">No notifications today.</p>}
               </div>
             </section>
 
             <section className="space-y-2">
-              <h3 className="text-xs font-[510] uppercase tracking-[0.12em] text-[#8a8f98]">Earlier</h3>
+              <h3 className="text-xs font-[510] uppercase tracking-[0.12em] text-[#62666d]">Earlier</h3>
               <div className="space-y-2">
                 {grouped.earlier.map((item) => (
-                  <NotificationItem key={item.id} item={item} onOpen={handleOpen} onDelete={handleDelete} />
+                  <NotificationItem key={item.id} item={item} onOpen={handleOpenItem} onDelete={handleDelete} />
                 ))}
                 {grouped.earlier.length === 0 && <p className="text-xs text-[#62666d]">No older notifications.</p>}
               </div>

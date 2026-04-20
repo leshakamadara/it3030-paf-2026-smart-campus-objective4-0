@@ -1,33 +1,77 @@
-import { useEffect, useState } from "react";
-import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
+import { type ReactNode } from "react";
+import { Link, NavLink, Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import { NotificationPanel } from "@/components/notifications/NotificationPanel";
 import { RoleBadge } from "@/components/settings/RoleBadge";
 import { UserAvatar } from "@/components/settings/UserAvatar";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { AdminBookingsPage } from "@/pages/bookings/AdminBookingsPage";
+import { BookingDetailPage } from "@/pages/bookings/BookingDetailPage";
+import { CreateBookingPage } from "@/pages/bookings/CreateBookingPage";
+import { MyBookingsPage } from "@/pages/bookings/MyBookingsPage";
+import { LoginPage } from "@/pages/public/LoginPage";
+import { NotFoundPage } from "@/pages/public/NotFoundPage";
+import { OAuthCallbackPage } from "@/pages/public/OAuthCallbackPage";
+import { QrCheckInPage } from "@/pages/public/QrCheckInPage";
+import { SignupPage } from "@/pages/public/SignupPage";
 import { AdminUsersPage } from "@/pages/settings/AdminUsersPage";
 import { NotificationPrefsPage } from "@/pages/settings/NotificationPrefsPage";
 import { ProfilePage } from "@/pages/settings/ProfilePage";
-import { getAuthMe, type UserProfile } from "@/services/users";
+import AdminResourceCreatePage from "@/pages/resource/AdminResourceCreatePage";
+import AdminResourceEditPage from "@/pages/resource/AdminResourceEditPage";
+import ResourceDetailsPage from "@/pages/resource/ResourceDetailsPage";
+import ResourceListPage from "@/pages/resource/ResourceListPage";
+import ResourceStatsPage from "@/pages/resource/ResourceStatsPage";
 
-function AppLayout({ currentUser }: { currentUser: UserProfile | null }) {
-  const role = currentUser?.role;
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function SuperAdminRoute({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  if (user?.role !== "SUPER_ADMIN") {
+    return <Navigate to="/settings/profile" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AuthenticatedLayout() {
+  const { user, clearSession } = useAuth();
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
   return (
-    <div className="min-h-svh bg-[#08090a] text-[#f7f8f8]">
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0f1011]/95 backdrop-blur">
+    <div className="min-h-svh bg-[#f7f8f8] text-[#191a1b]">
+      <header className="sticky top-0 z-30 border-b border-[#d0d6e0] bg-[#ffffff]/90 backdrop-blur">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-4">
-            <Link to="/" className="text-sm font-[590] tracking-[0.02em] text-[#f7f8f8]">
+            <Link to="/" className="text-sm font-[590] tracking-[0.02em] text-[#191a1b]">
               Smart Campus
             </Link>
             <nav className="flex items-center gap-2">
               <NavLink
+                to="/bookings"
+                className={({ isActive }) =>
+                  isActive
+                    ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                    : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                }
+              >
+                Bookings
+              </NavLink>
+              <NavLink
                 to="/settings/profile"
                 className={({ isActive }) =>
                   isActive
-                    ? "rounded-md border border-white/10 bg-[#191a1b] px-3 py-1 text-xs text-[#f7f8f8]"
-                    : "rounded-md px-3 py-1 text-xs text-[#8a8f98] hover:text-[#d0d6e0]"
+                    ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                    : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
                 }
               >
                 Profile
@@ -36,19 +80,19 @@ function AppLayout({ currentUser }: { currentUser: UserProfile | null }) {
                 to="/settings/notifications"
                 className={({ isActive }) =>
                   isActive
-                    ? "rounded-md border border-white/10 bg-[#191a1b] px-3 py-1 text-xs text-[#f7f8f8]"
-                    : "rounded-md px-3 py-1 text-xs text-[#8a8f98] hover:text-[#d0d6e0]"
+                    ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                    : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
                 }
               >
                 Notifications
               </NavLink>
-              {role === "SUPER_ADMIN" && (
+              {isSuperAdmin && (
                 <NavLink
                   to="/admin/users"
                   className={({ isActive }) =>
                     isActive
-                      ? "rounded-md border border-white/10 bg-[#191a1b] px-3 py-1 text-xs text-[#f7f8f8]"
-                      : "rounded-md px-3 py-1 text-xs text-[#8a8f98] hover:text-[#d0d6e0]"
+                      ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                      : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
                   }
                 >
                   Admin Users
@@ -59,75 +103,85 @@ function AppLayout({ currentUser }: { currentUser: UserProfile | null }) {
 
           <div className="flex items-center gap-3">
             <NotificationPanel />
-            {role && <RoleBadge role={role} />}
-            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#191a1b] px-2 py-1">
-              <UserAvatar name={currentUser?.fullName ?? "User"} avatarUrl={currentUser?.avatarUrl} />
-              <span className="hidden text-xs text-[#d0d6e0] sm:inline">{currentUser?.fullName ?? "User"}</span>
+            {user?.role && <RoleBadge role={user.role} />}
+            <div className="flex items-center gap-2 rounded-full border border-[#d0d6e0] bg-[#f3f4f5] px-2 py-1">
+              <UserAvatar name={user?.fullName ?? "Campus User"} avatarUrl={user?.avatarUrl as string | null | undefined} />
+              <span className="hidden text-xs text-[#43464b] sm:inline">{user?.fullName ?? "User"}</span>
             </div>
+            <Button
+              onClick={clearSession}
+              className="h-9 rounded-md border border-[#f0b8c4] bg-[#fff1f4] px-3 text-xs text-[#8f3346] hover:bg-[#ffe6ec]"
+            >
+              Sign out
+            </Button>
           </div>
         </div>
       </header>
 
-      <Routes>
-        <Route path="/" element={<Navigate to="/settings/profile" replace />} />
-        <Route path="/settings/profile" element={<ProfilePage />} />
-        <Route path="/settings/notifications" element={<NotificationPrefsPage />} />
-        <Route path="/admin/users" element={<AdminUsersPage />} />
-        <Route
-          path="*"
-          element={
-            <main className="mx-auto w-full max-w-2xl px-4 py-10">
-              <div className="rounded-xl border border-white/10 bg-[#0f1011] p-6 text-center">
-                <h1 className="text-2xl font-[590] tracking-[-0.04em]">Not Found</h1>
-                <p className="mt-2 text-sm text-[#8a8f98]">The requested route does not exist.</p>
-                <Link to="/settings/profile" className="mt-4 inline-flex">
-                  <Button className="bg-[#5e6ad2] text-white hover:bg-[#7170ff]">Go to profile</Button>
-                </Link>
-              </div>
-            </main>
-          }
-        />
-      </Routes>
+      <Outlet />
     </div>
   );
 }
 
-export function App() {
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-  const [hasToken, setHasToken] = useState<boolean>(() => Boolean(localStorage.getItem("authToken")));
+function HomePage() {
+  const { user } = useAuth();
 
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    setHasToken(Boolean(token));
+  return (
+    <main className="mx-auto w-full max-w-5xl space-y-4 px-4 py-8">
+      <section className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-8">
+        <p className="text-xs font-[510] uppercase tracking-[0.2em] text-[#7170ff]">Module E</p>
+        <h1 className="mt-2 text-3xl font-[590] tracking-[-0.044em]">Authentication and Authorization</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[#62666d]">
+          Welcome {user?.fullName ?? user?.email ?? "User"}. Use the profile, preferences, and admin tools from
+          the top navigation.
+        </p>
+      </section>
 
-    if (!token) {
-      setCurrentUser(null);
-      return;
-    }
-
-    void getAuthMe()
-      .then((response) => {
-        setCurrentUser(response.user);
-      })
-      .catch(() => {
-        setCurrentUser(null);
-      });
-  }, []);
-
-  if (!hasToken) {
-    return (
-      <main className="grid min-h-svh place-items-center bg-[#08090a] px-4 text-[#f7f8f8]">
-        <div className="w-full max-w-md rounded-xl border border-white/10 bg-[#0f1011] p-6 text-center">
-          <h1 className="text-xl font-[590] tracking-[-0.02em]">Authentication required</h1>
-          <p className="mt-2 text-sm text-[#8a8f98]">
-            Set a valid JWT in localStorage under authToken, then refresh to access notification settings.
-          </p>
-        </div>
-      </main>
-    );
-  }
-
-  return <AppLayout currentUser={currentUser} />;
+      <section className="rounded-xl border border-[#d0d6e0] bg-[#f3f4f5] p-4 text-sm text-[#43464b]">
+        Notification overlay UI is implemented here for integration, while full notification APIs remain part of
+        Module D backend scope.
+      </section>
+    </main>
+  );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/auth/callback" element={<OAuthCallbackPage />} />
+      <Route path="/qr/:token" element={<QrCheckInPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<HomePage />} />
+        <Route path="bookings" element={<MyBookingsPage />} />
+        <Route path="bookings/new" element={<CreateBookingPage />} />
+        <Route path="bookings/:id" element={<BookingDetailPage />} />
+        <Route path="admin/bookings" element={<AdminBookingsPage />} />
+        <Route path="settings/profile" element={<ProfilePage />} />
+        <Route path="settings/notifications" element={<NotificationPrefsPage />} />
+        <Route
+          path="admin/users"
+          element={
+            <SuperAdminRoute>
+              <AdminUsersPage />
+            </SuperAdminRoute>
+          }
+        />
+        <Route path="admin/resources/create" element={<AdminResourceCreatePage />} />
+        <Route path="admin/resources/edit/:id" element={<AdminResourceEditPage />} />
+        <Route path="admin/resources/stats" element={<ResourceStatsPage />} />
+        <Route path="resources/:id" element={<ResourceDetailsPage />} />
+        <Route path="resources" element={<ResourceListPage />} />
+      </Route>
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+}

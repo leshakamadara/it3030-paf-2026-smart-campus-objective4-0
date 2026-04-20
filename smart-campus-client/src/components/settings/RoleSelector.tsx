@@ -14,7 +14,7 @@ export function RoleSelector({ value, onChange, disabled = false }: RoleSelector
       value={value}
       onChange={(event) => onChange(event.target.value as Role)}
       disabled={disabled}
-      className="h-9 rounded-md border border-white/10 bg-[#08090a] px-2 text-xs text-[#d0d6e0] focus:border-[#7170ff] focus:outline-none disabled:opacity-50"
+      className="h-9 rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-2 text-xs text-[#43464b] focus:border-[#7170ff] focus:outline-none disabled:opacity-50"
     >
       {ROLE_OPTIONS.map((role) => (
         <option key={role} value={role}>

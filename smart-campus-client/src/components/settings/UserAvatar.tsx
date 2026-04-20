@@ -16,11 +16,11 @@ export function UserAvatar({ name, avatarUrl, size = "md" }: UserAvatarProps) {
   const sizeClass = size === "lg" ? "h-20 w-20 text-xl" : "h-10 w-10 text-sm";
 
   if (avatarUrl) {
-    return <img src={avatarUrl} alt={name} className={`${sizeClass} rounded-full border border-white/10 object-cover`} />;
+    return <img src={avatarUrl} alt={name} className={`${sizeClass} rounded-full border border-[#d0d6e0] object-cover`} />;
   }
 
   return (
-    <div className={`${sizeClass} grid place-items-center rounded-full border border-white/10 bg-[#191a1b] font-[590] text-[#d0d6e0]`}>
+    <div className={`${sizeClass} grid place-items-center rounded-full border border-[#d0d6e0] bg-[#f3f4f5] font-[590] text-[#43464b]`}>
       {initials || "U"}
     </div>
   );

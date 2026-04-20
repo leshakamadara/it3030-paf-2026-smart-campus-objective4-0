@@ -129,22 +129,11 @@
   html {
     @apply font-sans;
     font-feature-settings: "cv01" 1, "ss03" 1;
-    background-color: #08090a;
     }
 
-  kbd,
   code,
+  kbd,
   pre {
     font-family: var(--font-mono);
-  }
-
-  h1,
-  h2,
-  h3 {
-    color: #f7f8f8;
-  }
-
-  p {
-    color: #d0d6e0;
   }
 }
