@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/toast-system";
 
 import { NotifToggleRow } from "@/components/settings/NotifToggleRow";
 import { SettingsCard } from "@/components/settings/SettingsCard";
@@ -16,6 +16,7 @@ const PREF_OPTIONS = [
 ] as const;
 
 export function NotificationPrefsPage() {
+  const toast = useToast();
   const [prefs, setPrefs] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,11 +37,11 @@ export function NotificationPrefsPage() {
 
     try {
       await updateMyNotificationPrefs({ notificationPrefs: prefs });
-      toast.success("Notification preferences saved");
+      toast.success("Preferences saved", "Your notification preferences have been updated.");
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : "Failed to save preferences";
       setError(message);
-      toast.error(message);
+      toast.error("Save failed", message);
     } finally {
       setSaving(false);
     }

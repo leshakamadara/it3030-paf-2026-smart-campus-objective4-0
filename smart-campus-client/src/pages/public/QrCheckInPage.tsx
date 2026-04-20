@@ -50,16 +50,24 @@ export function QrCheckInPage() {
   const booking = state.data?.booking ?? null
   const valid = state.data?.valid ?? false
 
-  const resourceLabel =
-    (booking && "resourceName" in booking && typeof booking.resourceName === "string" && booking.resourceName) ||
-    booking?.resourceId ||
-    "Unknown resource"
+  const getResourceLabel = (): string => {
+    if (!booking) return "Unknown resource";
+    if ("resourceName" in booking && typeof booking.resourceName === "string" && booking.resourceName) {
+      return booking.resourceName;
+    }
+    return booking?.resourceId ?? "Unknown resource";
+  };
 
-  const bookerLabel =
-    (booking && "bookerName" in booking && typeof booking.bookerName === "string" && booking.bookerName) ||
-    (booking && "userName" in booking && typeof booking.userName === "string" && booking.userName) ||
-    booking?.userId ||
-    "Unknown user"
+  const getBookerLabel = (): string => {
+    if (!booking) return "Unknown user";
+    if ("bookerName" in booking && typeof booking.bookerName === "string" && booking.bookerName) {
+      return booking.bookerName;
+    }
+    if ("userName" in booking && typeof booking.userName === "string" && booking.userName) {
+      return booking.userName;
+    }
+    return booking?.userId ?? "Unknown user";
+  };
 
   return (
     <main className="grid min-h-svh place-items-center bg-[#f7f8f8] px-4 py-10 text-[#191a1b]">
@@ -97,11 +105,11 @@ export function QrCheckInPage() {
                 <dl className="space-y-2 rounded-lg border border-[#d0d6e0] bg-[#f9f9fb] p-4 text-[#43464b]">
                   <div className="flex justify-between gap-2">
                     <dt className="text-[#62666d]">Resource</dt>
-                    <dd className="text-right font-[510]">{resourceLabel}</dd>
+                    <dd className="text-right font-[510]">{getResourceLabel()}</dd>
                   </div>
                   <div className="flex justify-between gap-2">
                     <dt className="text-[#62666d]">Booked by</dt>
-                    <dd className="text-right font-[510]">{bookerLabel}</dd>
+                    <dd className="text-right font-[510]">{getBookerLabel()}</dd>
                   </div>
                   <div className="flex justify-between gap-2">
                     <dt className="text-[#62666d]">Time</dt>
