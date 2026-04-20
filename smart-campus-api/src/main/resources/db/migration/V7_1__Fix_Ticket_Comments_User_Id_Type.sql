@@ -92,9 +92,9 @@ EXCEPTION WHEN OTHERS THEN
 END $$;
 
 -- Drop the old table
-ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_user_id_fkey;
-ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_technician_id_fkey;
-ALTER TABLE ticket_comments DROP CONSTRAINT IF EXISTS ticket_comments_user_id_fkey;
+ALTER TABLE IF EXISTS tickets DROP CONSTRAINT IF EXISTS tickets_user_id_fkey;
+ALTER TABLE IF EXISTS tickets DROP CONSTRAINT IF EXISTS tickets_technician_id_fkey;
+ALTER TABLE IF EXISTS ticket_comments DROP CONSTRAINT IF EXISTS ticket_comments_user_id_fkey;
 DROP TABLE users_old;
 
 -- Since we're in development, drop and recreate tickets and ticket_comments tables with correct UUID types
