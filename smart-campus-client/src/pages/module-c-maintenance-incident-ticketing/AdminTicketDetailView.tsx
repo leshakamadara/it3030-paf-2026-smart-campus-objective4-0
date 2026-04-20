@@ -1,22 +1,22 @@
 import { useState, useEffect, useRef } from "react";
 
-import type { TicketResponseDTO, CommentDTO } from "../types/ticketTypes";
-import { ticketService } from "../services/ticketService";
+import type { TicketResponseDTO, CommentDTO } from "../../types/ticketTypes";
+import { ticketService } from "../../services/ticketService";
 import {
   
   STATUS_FLOW,
   STATUS_META,
-} from "../constants/constants";
+} from "../../../constants/Ticket_constants/constants";
 
-import { CURRENT_USER } from "../constants/ticketConstants";
+import { CURRENT_USER } from "../../../constants/Ticket_constants/ticketConstants";
 
 
-import { Avatar } from "./Avatar";
-import { Badge } from "./Badge";
-import { PriorityDot } from "./PriorityDot";
-import { Divider } from "./Divider";
+import { Avatar } from "../../components/Avatar";
+import { Badge } from "../../components/Badge";
+import { PriorityDot } from "../../components/PriorityDot";
+import { Divider } from "../../components/Divider";
 
-import CommentBubble from "./CommentBubble";
+import CommentBubble from "../../components/CommentBubble";
 
 export const AdminTicketDetailView = ({
   ticket,
@@ -388,7 +388,7 @@ export const AdminTicketDetailView = ({
                   );
                 })}
 
-                )
+                
                 </div>
               </div>
 

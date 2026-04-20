@@ -1,7 +1,7 @@
 import type { TicketResponseDTO } from "../types/ticketTypes";
 import { Badge } from "./Badge";
 import { PriorityDot } from "./PriorityDot";
-import { timeAgo, formatDate } from "../utills/helpers";
+import { formatDateTime } from "../utills/ticket_helpers";
 
 export const TicketCard = ({
   ticket,
@@ -38,12 +38,13 @@ export const TicketCard = ({
             (ticket as any).created_at,
             (ticket as any).created,
             (ticket as any).createdOn,
+            (ticket as any).attachments?.[0]?.createdAt,
             (ticket as any).updatedAt,
             (ticket as any).updated_at,
           ];
           const iso = candidates.find((c) => !!c && !isNaN(new Date(c).getTime()));
-          if (!iso) return <div>—</div>;
-          return <div title={formatDate(iso)}>{timeAgo(iso)}</div>;
+          if (!iso) return <div>Created unknown</div>;
+          return <div>Created {formatDateTime(iso)}</div>;
         })()
       }
     </div>

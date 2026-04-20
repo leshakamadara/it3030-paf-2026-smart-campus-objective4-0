@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
-import type { Ticket, Priority } from "../types/ticketTypes";
-import { CATEGORIES, PRIORITY_META } from "../constants/constants";
+import type { Ticket, Priority } from "../../types/ticketTypes";
+import { CATEGORIES, PRIORITY_META } from "../../../constants/Ticket_constants/constants";
 
 export default function CreateTicket({
   onSubmit,
@@ -25,6 +25,10 @@ export default function CreateTicket({
 
   const steps = ["Category", "Details", "Evidence", "Contact & Submit"];
 
+
+
+
+
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -39,6 +43,7 @@ export default function CreateTicket({
     processFiles(combined);
   };
 
+  
   const processFiles = (files: File[]) => {
     const valid: File[] = [];
     for (const file of files.slice(0, 3)) {
@@ -63,7 +68,7 @@ export default function CreateTicket({
     setImageFiles(valid.slice(0, 3));
   };
 
-  // ─── Drag and Drop Handlers ────────────────────────────────────────
+  //  Drag and Drop Handlers 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();

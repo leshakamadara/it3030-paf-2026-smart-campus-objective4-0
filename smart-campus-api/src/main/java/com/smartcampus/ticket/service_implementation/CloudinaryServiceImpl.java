@@ -1,7 +1,9 @@
-package com.smartcampus.ticket.service;
+package com.smartcampus.ticket.service_implementation;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.smartcampus.ticket.service.CloudinaryService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

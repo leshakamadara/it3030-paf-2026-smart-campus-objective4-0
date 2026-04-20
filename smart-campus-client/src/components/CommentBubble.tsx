@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { timeAgo } from '../utills/helpers';
+import { timeAgo } from '../utills/ticket_helpers';
 
 type Props = {
   id: string;

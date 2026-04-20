@@ -1,4 +1,4 @@
-import type { TicketStatus, User } from "../types/ticketTypes";
+import type { TicketStatus, User } from "../../src/types/ticketTypes";
 
 
 

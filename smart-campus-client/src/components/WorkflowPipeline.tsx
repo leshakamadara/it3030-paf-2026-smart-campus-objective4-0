@@ -1,4 +1,4 @@
-import { STATUS_META } from "../constants/constants";
+import { STATUS_META } from "../../constants/Ticket_constants/constants";
 import type { TicketResponseDTO, TicketStatus } from "../types/ticketTypes";
 
 export const WorkflowPipeline = ({ tickets }: { tickets: TicketResponseDTO[] }) => {

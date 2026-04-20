@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 
-import { ticketService } from "./services/ticketService";
-import type { Ticket, TicketStatus } from "./types/ticketTypes";
-import type { TicketRequestDTO, TicketResponseDTO } from "./types/ticketTypes";
+import { ticketService } from "../../services/ticketService";
+import type { Ticket, TicketStatus } from "../../types/ticketTypes";
+import type { TicketRequestDTO, TicketResponseDTO } from "../../types/ticketTypes";
 
-import TicketCard from "./components/UserTicketCard";
-import CreateTicket from "./components/CreateTicket";
-import TicketDetailView from "./components/UserTicketDetailView";
+import TicketCard from "../../components/UserTicketCard";
+import CreateTicket from "./CreateTicket";
+import TicketDetailView from "./UserTicketDetailView";
 
 type View = "list" | "create" | "detail";
 
@@ -15,6 +15,9 @@ export default function UserTicketPortal() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<TicketStatus | "ALL">("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterPriority, setFilterPriority] = useState<string>("ALL");
+  const [sortBy, setSortBy] = useState<"newest" | "priority">("newest");
   const [fadeIn, setFadeIn] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,34 +34,42 @@ export default function UserTicketPortal() {
     fetchTickets();
   }, []);
 
-  const convertBackendTicket = (ticket: TicketResponseDTO): Ticket => ({
-    id: `TKT-${String(ticket.id).padStart(3, "0")}`,
-    backendId: ticket.id,
-    title: ticket.title,
-    category: ticket.category || "",
-    description: ticket.description,
-    priority: ticket.priority,
-    status: ticket.status,
-    resourceLocation: ticket.resourceLocation || "",
+  const convertBackendTicket = (ticket: TicketResponseDTO): Ticket => {
+    const createdAt = ticket.createdAt || (ticket as any).created_at || (ticket as any).created || ticket.attachments?.[0]?.createdAt || "";
+    const updatedAt = ticket.updatedAt || (ticket as any).updated_at || "";
 
-    images: ticket.attachments
-      .map((attachment) => attachment.cloudinarySecureUrl || attachment.cloudinaryUrl || attachment.linkUrl)
-      .filter(Boolean) as string[],
-    attachments: ticket.attachments
-      .map((attachment) => ({ id: attachment.id, cloudinaryUrl: attachment.cloudinaryUrl, cloudinarySecureUrl: attachment.cloudinarySecureUrl, createdAt: attachment.createdAt })),
-    comments: ticket.comments,
-    createdAt: ticket.createdAt,
-    updatedAt: ticket.updatedAt,
-    resolutionNote: ticket.resolutionNote,
-    rejectionReason: ticket.rejectionReason,
-  });
+    return {
+      id: `TKT-${String(ticket.id).padStart(3, "0")}`,
+      backendId: ticket.id,
+      title: ticket.title,
+      category: ticket.category || "",
+      description: ticket.description,
+      priority: ticket.priority,
+      status: ticket.status,
+      resourceLocation: ticket.resourceLocation || "",
+
+      images: ticket.attachments
+        .map((attachment) => attachment.cloudinarySecureUrl || attachment.cloudinaryUrl || attachment.linkUrl)
+        .filter(Boolean) as string[],
+      attachments: ticket.attachments
+        .map((attachment) => ({ id: attachment.id, cloudinaryUrl: attachment.cloudinaryUrl, cloudinarySecureUrl: attachment.cloudinarySecureUrl, createdAt: attachment.createdAt })),
+      comments: ticket.comments,
+      createdAt,
+      updatedAt,
+      resolutionNote: ticket.resolutionNote,
+      rejectionReason: ticket.rejectionReason,
+    };
+  };
 
   const fetchTickets = async () => {
     try {
       setLoading(true);
       setError(null);
       const fetched = await ticketService.getAll();
-      setTickets(fetched.map(convertBackendTicket));
+      const converted = fetched.map(convertBackendTicket);
+      // Sort by createdAt descending (most recent first)
+      const sorted = converted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setTickets(sorted);
     } catch (err) {
       console.error("Failed to fetch tickets:", err);
       setError("Unable to load tickets from backend.");
@@ -82,6 +93,8 @@ export default function UserTicketPortal() {
       };
 
       const created = await ticketService.create(request);
+      const createdAt = created.createdAt || (created as any).created_at || (created as any).created || new Date().toISOString();
+      const updatedAt = created.updatedAt || (created as any).updated_at || createdAt;
       const t: Ticket = {
         id: `TKT-${String(created.id).padStart(3, "0")}`,
         backendId: created.id,
@@ -96,8 +109,8 @@ export default function UserTicketPortal() {
           .map((attachment) => attachment.cloudinarySecureUrl || attachment.cloudinaryUrl || attachment.linkUrl)
           .filter(Boolean) as string[],
         comments: created.comments,
-        createdAt: created.createdAt,
-        updatedAt: created.updatedAt,
+        createdAt,
+        updatedAt,
         resolutionNote: created.resolutionNote,
         rejectionReason: created.rejectionReason,
       };
@@ -131,18 +144,28 @@ export default function UserTicketPortal() {
   };
 
   const filtered = tickets.filter(
-    (t) => filterStatus === "ALL" || t.status === filterStatus
+    (t) => (filterStatus === "ALL" || t.status === filterStatus) &&
+           (filterPriority === "ALL" || t.priority === filterPriority) &&
+           (searchQuery === "" || t.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "priority") {
+      const priorityOrder: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+      return (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3);
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  const statusCounts = {
+    open: tickets.filter((t) => t.status === "OPEN").length,
+    rejected: tickets.filter((t) => t.status === "REJECTED").length,
+    resolved: tickets.filter((t) => t.status === "RESOLVED").length,
+  };
 
   const selectedTicket = tickets.find((t) => t.id === selectedId);
-
-  const statusCounts = (["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"] as TicketStatus[]).reduce(
-    (acc, s) => {
-      acc[s] = tickets.filter((t) => t.status === s).length;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
 
   return (
     <div className="min-h-screen bg-[#f7f7fb]">
@@ -212,34 +235,99 @@ export default function UserTicketPortal() {
               </p>
             </div>
 
+            {/* Stats Boxes */}
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 text-center">
+                <p className="text-2xl font-black text-sky-700">
+                  {statusCounts.open}
+                </p>
+                <p className="text-xs font-semibold text-sky-600 uppercase tracking-wide mt-1">
+                  Open
+                </p>
+              </div>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+                <p className="text-2xl font-black text-emerald-700">
+                  {statusCounts.resolved}
+                </p>
+                <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wide mt-1">
+                  Resolved
+                </p>
+              </div>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+                <p className="text-2xl font-black text-red-700">
+                  {statusCounts.rejected}
+                </p>
+                <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mt-1">
+                  Rejected
+                </p>
+              </div>
+            </div>
+
+            {/* Search Box */}
+            <div className="mb-6">
+              <input
+                type="text"
+                placeholder="Search tickets by title, ID, or description…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              />
+            </div>
+
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-3 mb-6">
+            <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+              <button
+                onClick={() => setFilterStatus("ALL")}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-all ${
+                  filterStatus === "ALL"
+                    ? "bg-violet-600 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                All
+              </button>
               {([
-                ["OPEN", "Open", "bg-sky-50 text-sky-700"],
-                ["IN_PROGRESS", "Active", "bg-violet-50 text-violet-700"],
-                ["RESOLVED", "Resolved", "bg-emerald-50 text-emerald-700"],
-                ["CLOSED", "Closed", "bg-slate-100 text-slate-500"],
-                
-              ] as [TicketStatus, string, string][]).map(([s, label, cls]) => (
+                ["OPEN", "Open"],
+                ["IN_PROGRESS", "In Progress"],
+                ["RESOLVED", "Resolved"],
+                ["CLOSED", "Closed"],
+                ["REJECTED", "Rejected"],
+              ] as [TicketStatus, string][]).map(([s, label]) => (
                 <button
                   key={s}
-                  onClick={() =>
-                    setFilterStatus(filterStatus === s ? "ALL" : s)
-                  }
-                  className={`rounded-xl p-3 text-center transition-all border-2 ${
+                  onClick={() => setFilterStatus(filterStatus === s ? "ALL" : s)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-all ${
                     filterStatus === s
-                      ? "border-violet-400 ring-2 ring-violet-100"
-                      : "border-transparent"
-                  } ${cls}`}
+                      ? "bg-violet-600 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
                 >
-                  <p className="text-xl font-black">
-                    {statusCounts[s] || 0}
-                  </p>
-                  <p className="text-[10px] font-semibold uppercase tracking-wide opacity-70">
-                    {label}
-                  </p>
+                  {label}
                 </button>
               ))}
+            </div>
+
+            {/* Priority and Sort Filters */}
+            <div className="flex items-center gap-3 mb-6">
+              <select
+                value={filterPriority}
+                onChange={(e) => setFilterPriority(e.target.value)}
+                className="px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-400 cursor-pointer"
+              >
+                <option value="ALL">All Priorities</option>
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
+              </select>
+
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as "newest" | "priority")}
+                className="px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-400 cursor-pointer"
+              >
+                <option value="newest">Newest</option>
+                <option value="priority">Priority</option>
+              </select>
             </div>
 
             {/* Tickets */}
@@ -263,7 +351,7 @@ export default function UserTicketPortal() {
               </div>
             ) : (
               <div className="space-y-3">
-                {filtered.map((t) => (
+                {sorted.map((t) => (
                   <TicketCard
                     key={t.id}
                     ticket={t}
@@ -300,11 +388,6 @@ export default function UserTicketPortal() {
               handleUpdate(updated);
               setSelectedId(updated.id);
             }}
-            onDelete={selectedTicket.status === "OPEN" ? (id) => {
-              if (confirm("Are you sure you want to delete this ticket?")) {
-                handleDelete(id);
-              }
-            } : undefined}
           />
         )}
       </main>

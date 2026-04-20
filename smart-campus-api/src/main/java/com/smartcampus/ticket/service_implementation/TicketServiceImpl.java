@@ -1,4 +1,4 @@
-package com.smartcampus.ticket.service;
+package com.smartcampus.ticket.service_implementation;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -9,13 +9,13 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.smartcampus.enums.Status;
 import com.smartcampus.ticket.dto.AttachmentDTO;
 import com.smartcampus.ticket.dto.CommentDTO;
 import com.smartcampus.ticket.dto.TicketRequestDTO;
 import com.smartcampus.ticket.dto.TicketResponseDTO;
 import com.smartcampus.ticket.exception.TicketNotFoundException;
 import com.smartcampus.ticket.exception.UserNotFoundException;
-import com.smartcampus.ticket.model.Status;
 import com.smartcampus.ticket.model.Ticket;
 import com.smartcampus.ticket.model.TicketAttachment;
 import com.smartcampus.ticket.model.TicketComment;
@@ -24,6 +24,8 @@ import com.smartcampus.ticket.repository.TicketAttachmentRepository;
 import com.smartcampus.ticket.repository.TicketCommentRepository;
 import com.smartcampus.ticket.repository.TicketRepository;
 import com.smartcampus.ticket.repository.UserRepository;
+import com.smartcampus.ticket.service.CloudinaryService;
+import com.smartcampus.ticket.service.TicketService;
 
 import lombok.RequiredArgsConstructor;
 import jakarta.transaction.Transactional;
@@ -78,12 +80,20 @@ public class TicketServiceImpl implements TicketService {
         return convertToDTO(savedTicket);
     }
 
+
+
+
+
     @Override
     public TicketResponseDTO getTicketById(Long id) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
         return convertToDTO(ticket);
     }
+
+
+
+
 
     @Override
     public TicketResponseDTO getTicketWithAttachments(Long id) {
@@ -92,12 +102,19 @@ public class TicketServiceImpl implements TicketService {
         return convertToDTO(ticket);
     }
 
+
+
+
     @Override
     public List<TicketResponseDTO> getAllTickets() {
         return ticketRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
+
+
+
+
 
     @Override
     public TicketResponseDTO updateTicketStatus(Long id, Status newStatus, String technicianEmail, String notes) {
@@ -123,6 +140,10 @@ public class TicketServiceImpl implements TicketService {
         return convertToDTO(updatedTicket);
     }
 
+
+
+
+
     @Override
     public CommentDTO addComment(Long ticketId, String userEmail, String commentText) {
         Ticket ticket = ticketRepository.findById(ticketId)
@@ -141,6 +162,10 @@ public class TicketServiceImpl implements TicketService {
         TicketComment savedComment = commentRepository.save(comment);
         return convertCommentToDTO(savedComment);
     }
+
+
+
+
 
     @Override
     public CommentDTO updateComment(Long ticketId, Long commentId, String userEmail, String commentText) {
@@ -163,6 +188,9 @@ public class TicketServiceImpl implements TicketService {
         return convertCommentToDTO(updatedComment);
     }
 
+
+
+
     @Override
     public boolean deleteComment(Long ticketId, Long commentId, String userEmail) {
         Ticket ticket = ticketRepository.findById(ticketId)
@@ -182,6 +210,10 @@ public class TicketServiceImpl implements TicketService {
         return true;
     }
 
+
+
+
+
     @Override
     public AttachmentDTO uploadAttachment(Long ticketId, MultipartFile file, String userEmail) throws IOException {
         // Verify user exists
@@ -195,6 +227,9 @@ public class TicketServiceImpl implements TicketService {
         // Upload to Cloudinary and save to database
         return uploadAttachmentInternal(ticket, file);
     }
+
+
+
 
     @Override
     public boolean deleteAttachment(Long attachmentId, String userEmail) throws IOException {
@@ -219,6 +254,9 @@ public class TicketServiceImpl implements TicketService {
         return true;
     }
 
+
+
+
     @Override
     public boolean deleteTicket(Long id, String userEmail) {
         Ticket ticket = ticketRepository.findById(id)
@@ -242,6 +280,10 @@ public class TicketServiceImpl implements TicketService {
         ticketRepository.delete(ticket);
         return true;
     }
+
+
+
+
 
     @Override
     public TicketResponseDTO updateTicket(Long id, TicketRequestDTO request, String userEmail) throws IOException {
@@ -288,6 +330,14 @@ public class TicketServiceImpl implements TicketService {
         return convertToDTO(updated);
     }
 
+
+
+
+
+
+
+
+
     private AttachmentDTO uploadAttachmentInternal(Ticket ticket, MultipartFile file) throws IOException {
         Map<String, Object> uploadResult = cloudinaryService.uploadImage(file, ticket.getId());
 
@@ -311,6 +361,11 @@ public class TicketServiceImpl implements TicketService {
         TicketAttachment savedAttachment = attachmentRepository.save(attachment);
         return convertAttachmentToDTO(savedAttachment);
     }
+
+
+
+
+
 
     private TicketResponseDTO convertToDTO(Ticket ticket) {
         TicketResponseDTO dto = new TicketResponseDTO();
@@ -338,9 +393,15 @@ public class TicketServiceImpl implements TicketService {
                 .map(this::convertCommentToDTO)
                 .collect(Collectors.toList());
         dto.setComments(comments);
+        dto.setCreatedAt(ticket.getCreatedAt());
+        dto.setUpdatedAt(ticket.getUpdatedAt());
 
         return dto;
     }
+
+
+
+
 
     private AttachmentDTO convertAttachmentToDTO(TicketAttachment attachment) {
         return new AttachmentDTO(
@@ -356,6 +417,9 @@ public class TicketServiceImpl implements TicketService {
         );
     }
 
+
+
+
     private CommentDTO convertCommentToDTO(TicketComment comment) {
         return new CommentDTO(
                 comment.getId(),
@@ -367,4 +431,7 @@ public class TicketServiceImpl implements TicketService {
                 comment.getUpdatedAt()
         );
     }
+
+
+
 }

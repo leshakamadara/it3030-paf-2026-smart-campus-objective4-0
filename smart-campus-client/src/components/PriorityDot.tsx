@@ -1,4 +1,4 @@
-import { PRIORITY_CONFIG } from "../constants/ticketConstants";
+import { PRIORITY_CONFIG } from "../../constants/Ticket_constants/ticketConstants";
 import type { Priority } from "../types/ticketTypes";
 export const PriorityDot = ({ priority }: { priority: Priority }) => {
   const cfg = PRIORITY_CONFIG[priority];

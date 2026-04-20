@@ -3,11 +3,12 @@ package com.smartcampus.ticket.service;
 import java.io.IOException;
 import java.util.List;
 
+import com.smartcampus.enums.Status;
 import com.smartcampus.ticket.dto.AttachmentDTO;
 import com.smartcampus.ticket.dto.CommentDTO;
 import com.smartcampus.ticket.dto.TicketRequestDTO;
 import com.smartcampus.ticket.dto.TicketResponseDTO;
-import com.smartcampus.ticket.model.Status;
+
 import org.springframework.web.multipart.MultipartFile;
 
 public interface TicketService {

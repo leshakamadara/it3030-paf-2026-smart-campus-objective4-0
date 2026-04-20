@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import IncidentTicketingModule from "./pages/module-c-maintenance-incident-ticketing/IncidentTicketingModule"
+import IncidentTicketingModule from "./pages/module-c-maintenance-incident-ticketing/AdminTicketPortal"
 import UserTicketPortal from "./pages/module-c-maintenance-incident-ticketing/UserTicketPortal"
 
 export function App() {

@@ -1,9 +1,11 @@
 package com.smartcampus.ticket.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-import com.smartcampus.ticket.model.Priority;
-import com.smartcampus.ticket.model.Status;
+import com.smartcampus.enums.Priority;
+import com.smartcampus.enums.Status;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,4 +32,6 @@ public class TicketResponseDTO {
     private List<CommentDTO> comments;
     private String resolutionNote;
     private String rejectionReason;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

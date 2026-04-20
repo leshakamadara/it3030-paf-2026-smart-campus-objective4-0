@@ -1,12 +1,13 @@
 package com.smartcampus.ticket.dto;
 
-import com.smartcampus.ticket.model.Priority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.smartcampus.enums.Priority;
 
 @Data
 @NoArgsConstructor

@@ -1,4 +1,4 @@
-package com.smartcampus.ticket.model;
+package com.smartcampus.enums;
 
 public enum Priority {
     LOW,

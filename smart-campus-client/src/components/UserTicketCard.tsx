@@ -1,7 +1,7 @@
 import type { Ticket } from "../types/ticketTypes";
-import { PRIORITY_META, CATEGORIES } from "../constants/constants";
+import { PRIORITY_META, CATEGORIES } from "../../constants/Ticket_constants/constants";
 import { Badge } from "./Badge";
-import { timeAgo } from "../utills/helpers";
+import { timeAgo } from "../utills/ticket_helpers";
 
 export default function TicketCard({
   ticket,

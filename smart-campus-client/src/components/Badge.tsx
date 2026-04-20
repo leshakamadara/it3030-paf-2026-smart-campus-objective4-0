@@ -1,4 +1,4 @@
-import { STATUS_CONFIG } from "../constants/ticketConstants";
+import { STATUS_CONFIG } from "../../constants/Ticket_constants/ticketConstants";
 import type { TicketStatus } from "../types/ticketTypes";
 export const Badge = ({ status }: { status: TicketStatus }) => {
   const cfg = STATUS_CONFIG[status];

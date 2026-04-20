@@ -2,7 +2,7 @@ export type Priority = "LOW" | "MEDIUM" | "HIGH";
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | "REJECTED";
 export type UserRole = "USER" | "TECHNICIAN" | "ADMIN";
 
-// Backend-compatible types
+// Backend compatible types
 export interface AttachmentDTO {
   id: number;
   linkUrl?: string;
@@ -55,7 +55,7 @@ export interface TicketResponseDTO {
   assignedToName?: string;
 }
 
-// Frontend types (for backward compatibility)
+// Frontend types in ticket module
 export interface User {
   id: string;
   name: string;

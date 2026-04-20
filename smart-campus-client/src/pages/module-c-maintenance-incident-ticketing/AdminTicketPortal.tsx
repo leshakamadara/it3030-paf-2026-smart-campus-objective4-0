@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
 
-import { ticketService } from "./services/ticketService";
+import { ticketService } from "../../services/ticketService";
 
-import type { TicketResponseDTO, TicketStatus, Priority } from "./types/ticketTypes";
+import type { TicketResponseDTO, TicketStatus, Priority } from "../../types/ticketTypes";
 import {
   
   PRIORITY_META,
   STATUS_META,
-} from "./constants/constants";
-import { CURRENT_USER } from "./constants/ticketConstants";
+} from "../../../constants/Ticket_constants/constants";
+import { CURRENT_USER } from "../../../constants/Ticket_constants/ticketConstants";
 
-import { TicketCard } from "./components/AdminTicketCard";
-import { WorkflowPipeline } from "./components/WorkflowPipeline";
-import { AdminTicketDetailView } from "./components/AdminTicketDetailView";
+import { TicketCard } from "../../components/AdminTicketCard";
+import { WorkflowPipeline } from "../../components/WorkflowPipeline";
+import { AdminTicketDetailView } from "./AdminTicketDetailView";
 
 export default function IncidentTicketingModule() {
   const [tickets, setTickets] = useState<TicketResponseDTO[]>([]);

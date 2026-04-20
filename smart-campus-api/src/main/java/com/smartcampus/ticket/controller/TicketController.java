@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.smartcampus.enums.Status;
 import com.smartcampus.ticket.dto.AttachmentDTO;
 import com.smartcampus.ticket.dto.CommentDTO;
 import com.smartcampus.ticket.dto.TicketRequestDTO;
 import com.smartcampus.ticket.dto.TicketResponseDTO;
-import com.smartcampus.ticket.model.Status;
 import com.smartcampus.ticket.service.TicketService;
 
 import java.io.IOException;
@@ -90,12 +90,12 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
-    // ==================== ATTACHMENT MANAGEMENT ENDPOINTS ====================
+    // ATTACHMENT MANAGEMENT ENDPOINTS 
 
-    /**
-     * Upload an image to a ticket
-     * POST /api/tickets/{ticketId}/attachments/upload
+    /*
+      Upload an image related to a ticket (upload in cloudinary  and add that related data in db)
      */
+
     @PostMapping("/{ticketId}/attachments/upload")
     public ResponseEntity<AttachmentDTO> uploadAttachment(
             @PathVariable Long ticketId,
@@ -110,8 +110,7 @@ public class TicketController {
     }
 
     /**
-     * Delete an attachment from a ticket
-     * DELETE /api/tickets/attachments/{attachmentId}
+     Delete an attachment from a ticket
      */
     @DeleteMapping("/attachments/{attachmentId}")
     public ResponseEntity<Map<String, Object>> deleteAttachment(
@@ -131,20 +130,15 @@ public class TicketController {
         }
     }
 
-    /**
-     * Get ticket with all attachments
-     * GET /api/tickets/{id}/with-attachments
-     */
+    /* Get ticket with all attachments */
     @GetMapping("/{id}/with-attachments")
     public ResponseEntity<TicketResponseDTO> getTicketWithAttachments(@PathVariable Long id) {
         TicketResponseDTO ticket = ticketService.getTicketWithAttachments(id);
         return ResponseEntity.ok(ticket);
     }
 
-    /**
-     * Delete a ticket and its attachments
-     * DELETE /api/tickets/{id}
-     */
+    /*Delete a ticket and its attachments */
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> deleteTicket(@PathVariable Long id,
                                                             @RequestParam(defaultValue = "jane.smith@example.com") String userEmail) {
@@ -155,10 +149,7 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Update a ticket's editable fields. Only allowed when ticket is OPEN.
-     * PUT /api/tickets/{id}
-     */
+    /* Update a ticket's editable fields. Only allowed when ticket is OPEN state only.*/
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateTicket(@PathVariable Long id,
                                           @Valid @ModelAttribute TicketRequestDTO request,

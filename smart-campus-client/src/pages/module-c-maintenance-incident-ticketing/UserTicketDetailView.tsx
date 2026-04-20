@@ -1,22 +1,20 @@
 import { useState, useEffect, useRef } from "react";
-import { ticketService } from "../services/ticketService";
-import type { Ticket, CommentDTO } from "../types/ticketTypes";
-import { STATUS_META, PRIORITY_META, CATEGORIES } from "../constants/constants";
-import { CURRENT_USER } from "../constants/constants";
-import { timeAgo, formatDate } from "../utills/helpers";
-import StatusTracker from "./StatusTracker";
-import CommentBubble from "./CommentBubble";
+import { ticketService } from "../../services/ticketService";
+import type { Ticket, CommentDTO } from "../../types/ticketTypes";
+import { STATUS_META, PRIORITY_META, CATEGORIES } from "../../../constants/Ticket_constants/constants";
+import { CURRENT_USER } from "../../../constants/Ticket_constants/constants";
+import { formatDateTime } from "../../utills/ticket_helpers";
+import StatusTracker from "../../components/StatusTracker";
+import CommentBubble from "../../components/CommentBubble";
 
 export default function TicketDetailView({
   ticket,
   onBack,
   onUpdate,
-  onDelete,
 }: {
   ticket: Ticket;
   onBack: () => void;
   onUpdate: (t: Ticket) => void;
-  onDelete?: (id: number) => void;
 }) {
   
   const [comment, setComment] = useState("");
@@ -75,8 +73,8 @@ export default function TicketDetailView({
         resolutionNote: full.resolutionNote,
         rejectionReason: full.rejectionReason,
         comments: full.comments,
-        createdAt: full.createdAt,
-        updatedAt: full.updatedAt
+        createdAt: full.createdAt || (full as any).created_at || (full as any).created || '',
+        updatedAt: full.updatedAt || (full as any).updated_at || ''
       });
       setComment("");
     } catch (err) {
@@ -108,8 +106,8 @@ export default function TicketDetailView({
         resolutionNote: full.resolutionNote,
         rejectionReason: full.rejectionReason,
         comments: full.comments,
-        createdAt: full.createdAt,
-        updatedAt: full.updatedAt
+        createdAt: full.createdAt || (full as any).created_at || (full as any).created || '',
+        updatedAt: full.updatedAt || (full as any).updated_at || ''
       });
     } catch (err) {
       console.error("Failed to edit comment:", err);
@@ -139,8 +137,8 @@ export default function TicketDetailView({
         resolutionNote: full.resolutionNote,
         rejectionReason: full.rejectionReason,
         comments: full.comments,
-        createdAt: full.createdAt,
-        updatedAt: full.updatedAt
+        createdAt: full.createdAt || (full as any).created_at || (full as any).created || '',
+        updatedAt: full.updatedAt || (full as any).updated_at || ''
       });
     } catch (err) {
       console.error("Failed to delete comment:", err);
@@ -190,8 +188,8 @@ export default function TicketDetailView({
         resolutionNote: full.resolutionNote,
         rejectionReason: full.rejectionReason,
         comments: full.comments,
-        createdAt: full.createdAt,
-        updatedAt: full.updatedAt
+        createdAt: full.createdAt || (full as any).created_at || (full as any).created || '',
+        updatedAt: full.updatedAt || (full as any).updated_at || ''
       });
       setIsEditing(false);
     } catch (err) {
@@ -221,8 +219,8 @@ export default function TicketDetailView({
         resolutionNote: full.resolutionNote,
         rejectionReason: full.rejectionReason,
         comments: full.comments,
-        createdAt: full.createdAt,
-        updatedAt: full.updatedAt
+        createdAt: full.createdAt || (full as any).created_at || (full as any).created || '',
+        updatedAt: full.updatedAt || (full as any).updated_at || ''
       });
     } catch (err) {
       console.error("Failed to delete image:", err);
@@ -272,18 +270,6 @@ export default function TicketDetailView({
         <div className="bg-slate-50 rounded-xl p-4 mb-5">
           <StatusTracker status={ticket.status} />
         </div>
-
-        {/* Assigned technician */}
-        {ticket.status === "OPEN" && onDelete && (
-          <div className="mb-4">
-            <button
-              onClick={() => onDelete && onDelete(ticket.backendId ?? parseInt(ticket.id.replace(/^TKT-/, ""), 10))}
-              className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
-            >
-              Delete Ticket
-            </button>
-          </div>
-        )}
 
         {/* Description */}
         <div className="mb-4">
@@ -382,8 +368,8 @@ export default function TicketDetailView({
 
         {/* Meta footer */}
         <div className="flex items-center justify-between text-xs text-slate-400 mt-5 pt-4 border-t border-slate-100">
-          <span>Submitted {formatDate(ticket.createdAt)}</span>
-          <span>Updated {timeAgo(ticket.updatedAt)}</span>
+          <span>Submitted {formatDateTime(ticket.createdAt)}</span>
+          <span>Updated {formatDateTime(ticket.updatedAt)}</span>
         </div>
         {ticket.status === "OPEN" && (
           <div className="mt-5">

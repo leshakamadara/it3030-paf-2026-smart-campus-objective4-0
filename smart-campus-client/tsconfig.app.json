@@ -31,5 +31,5 @@
       
     }
   },
-  "include": ["src"]
+  "include": ["src", "constants/Ticket_constants/constants.ts", "constants/Ticket_constants/ticketConstants.ts"]
 }
