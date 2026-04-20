@@ -129,7 +129,6 @@
   html {
     @apply font-sans;
     font-feature-settings: "cv01" 1, "ss03" 1;
-    background-color: #08090a;
     }
 
   code,
