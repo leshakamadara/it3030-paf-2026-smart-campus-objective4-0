@@ -5,6 +5,7 @@ import { NotificationPanel } from "@/components/notifications/NotificationPanel"
 import { RoleBadge } from "@/components/settings/RoleBadge";
 import { UserAvatar } from "@/components/settings/UserAvatar";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { AdminBookingsPage } from "@/pages/bookings/AdminBookingsPage";
 import { BookingDetailPage } from "@/pages/bookings/BookingDetailPage";
@@ -43,9 +44,19 @@ function SuperAdminRoute({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function AdminRoute({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
+    return <Navigate to="/resources" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function AuthenticatedLayout() {
   const { user, clearSession } = useAuth();
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isResourceAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
   return (
     <div className="min-h-svh bg-[#f7f8f8] text-[#191a1b]">
@@ -65,6 +76,16 @@ function AuthenticatedLayout() {
                 }
               >
                 Bookings
+              </NavLink>
+              <NavLink
+                to="/resources"
+                className={({ isActive }) =>
+                  isActive
+                    ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                    : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                }
+              >
+                Resources
               </NavLink>
               <NavLink
                 to="/settings/profile"
@@ -98,6 +119,18 @@ function AuthenticatedLayout() {
                   Admin Users
                 </NavLink>
               )}
+              {isResourceAdmin && (
+                <NavLink
+                  to="/admin/resources/stats"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                      : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                  }
+                >
+                  Resource Admin
+                </NavLink>
+              )}
             </nav>
           </div>
 
@@ -125,16 +158,55 @@ function AuthenticatedLayout() {
 
 function HomePage() {
   const { user } = useAuth();
+  const isResourceAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-4 px-4 py-8">
       <section className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-8">
-        <p className="text-xs font-[510] uppercase tracking-[0.2em] text-[#7170ff]">Module E</p>
-        <h1 className="mt-2 text-3xl font-[590] tracking-[-0.044em]">Authentication and Authorization</h1>
+        <p className="text-xs font-[510] uppercase tracking-[0.2em] text-[#7170ff]">Smart Campus</p>
+        <h1 className="mt-2 text-3xl font-[590] tracking-[-0.044em]">Modules Dashboard</h1>
         <p className="mt-2 max-w-2xl text-sm text-[#62666d]">
-          Welcome {user?.fullName ?? user?.email ?? "User"}. Use the profile, preferences, and admin tools from
-          the top navigation.
+          Welcome {user?.fullName ?? user?.email ?? "User"}. Access bookings, facilities catalogue, and account tools
+          from the top navigation or quick links below.
         </p>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2">
+        <Card className="border-[#d0d6e0] bg-[#ffffff]">
+          <CardHeader>
+            <CardTitle className="text-base">Module B: Bookings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-[#62666d]">Create and manage booking requests for campus resources.</p>
+            <div className="flex gap-2">
+              <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                <Link to="/bookings">My Bookings</Link>
+              </Button>
+              <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                <Link to="/bookings/new">Create Booking</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-[#d0d6e0] bg-[#ffffff]">
+          <CardHeader>
+            <CardTitle className="text-base">Module A: Facilities Catalogue</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-[#62666d]">Browse campus facilities and view detailed resource information.</p>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                <Link to="/resources">Browse Resources</Link>
+              </Button>
+              {isResourceAdmin && (
+                <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                  <Link to="/admin/resources/stats">Resource Admin</Link>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </section>
 
       <section className="rounded-xl border border-[#d0d6e0] bg-[#f3f4f5] p-4 text-sm text-[#43464b]">
@@ -175,9 +247,30 @@ export default function App() {
             </SuperAdminRoute>
           }
         />
-        <Route path="admin/resources/create" element={<AdminResourceCreatePage />} />
-        <Route path="admin/resources/edit/:id" element={<AdminResourceEditPage />} />
-        <Route path="admin/resources/stats" element={<ResourceStatsPage />} />
+        <Route
+          path="admin/resources/create"
+          element={
+            <AdminRoute>
+              <AdminResourceCreatePage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="admin/resources/edit/:id"
+          element={
+            <AdminRoute>
+              <AdminResourceEditPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="admin/resources/stats"
+          element={
+            <AdminRoute>
+              <ResourceStatsPage />
+            </AdminRoute>
+          }
+        />
         <Route path="resources/:id" element={<ResourceDetailsPage />} />
         <Route path="resources" element={<ResourceListPage />} />
       </Route>
