@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Pencil, Trash2, MapPin, Users, Clock, Calendar, Loader2, AlertCircle, ChevronLeft } from "lucide-react";
 import ResourceStatusBadge from "../../components/ui/resource/ResourceStatusBadge";
 import { useToast } from "../../components/ui/toast-system";
-import { isAdmin } from "../../lib/mockAuth";
+import { useAuth } from "@/context/AuthContext";
 import resourceService from "../../services/resourceService";
 import type { Resource } from "../../types/resource";
 
@@ -121,6 +121,7 @@ export default function ResourceDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { user } = useAuth();
   const [resource, setResource] = useState<Resource | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -210,7 +211,7 @@ export default function ResourceDetailsPage() {
   const theme = TYPE_THEME[resource.type] ?? DEFAULT_THEME;
   const enabledFeatures = FEATURES.filter((f) => resource[f.key as keyof Resource]);
   const disabledFeatures = FEATURES.filter((f) => !resource[f.key as keyof Resource]);
-  const admin = isAdmin();
+  const admin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
   return (
     <div className="min-h-screen bg-background">

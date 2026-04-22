@@ -10,7 +10,7 @@ import ResourceFilters from "../../components/ui/resource/ResourceFilters";
 import ResourceTable from "../../components/ui/resource/ResourceTable";
 import resourceService from "../../services/resourceService";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { getMockUser, isAdmin } from "../../lib/mockAuth";
+import { useAuth } from "@/context/AuthContext";
 import type {
   PaginatedResponse,
   Resource,
@@ -25,6 +25,7 @@ const DEFAULT_FILTERS: ResourceFilterValues = {
 };
 
 export default function ResourceListPage() {
+  const { user } = useAuth();
   const [filters, setFilters] = useState<ResourceFilterValues>(DEFAULT_FILTERS);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -33,8 +34,8 @@ export default function ResourceListPage() {
   const [error, setError] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
-
-  const currentUser = getMockUser();
+  const isResourceAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
+  const userRoleLabel = user?.role ?? "USER";
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -130,9 +131,9 @@ export default function ResourceListPage() {
               className="flex items-center gap-3"
             >
               <Badge variant="outline" className="animate-pulse">
-                {currentUser.role}
+                {userRoleLabel}
               </Badge>
-              {isAdmin() && (
+              {isResourceAdmin && (
                 <>
                   <Button asChild className="transition-all hover:scale-105 hover:shadow-md">
                     <Link to="/admin/resources/create">

@@ -143,6 +143,9 @@ public class AuthenticationService {
     private void updateUser(User existingUser, String fullName, String avatarUrl, String googleSub) {
         existingUser.setFullName(StringUtils.hasText(fullName) ? fullName : existingUser.getEmail());
         existingUser.setAvatarUrl(avatarUrl);
+        if (existingUser.getRole() == null) {
+            existingUser.setRole(Role.USER);
+        }
         if (StringUtils.hasText(googleSub)) {
             existingUser.setGoogleSub(googleSub);
         }

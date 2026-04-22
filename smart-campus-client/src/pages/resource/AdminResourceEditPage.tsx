@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft, Lock, Loader2, AlertCircle } from "lucide-react";
 import ResourceForm from "../../components/ui/resource/ResourceForm";
 import { useToast } from "../../components/ui/toast-system";
-import { isAdmin } from "../../lib/mockAuth";
+import { useAuth } from "@/context/AuthContext";
 import resourceService from "../../services/resourceService";
 import type { Resource, ResourceRequest } from "../../types/resource";
 
@@ -34,7 +34,8 @@ export default function AdminResourceEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
-  const admin = isAdmin();
+  const { user } = useAuth();
+  const admin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
   const [resource, setResource] = useState<Resource | null>(null);
   const [loading, setLoading] = useState(admin);
   const [pageError, setPageError] = useState("");

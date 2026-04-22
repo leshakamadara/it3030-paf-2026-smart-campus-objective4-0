@@ -5,16 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft, Lock } from "lucide-react";
 import ResourceForm from "../../components/ui/resource/ResourceForm";
 import { useToast } from "../../components/ui/toast-system";
-import { isAdmin } from "../../lib/mockAuth";
+import { useAuth } from "@/context/AuthContext";
 import resourceService from "../../services/resourceService";
 import type { ResourceRequest } from "../../types/resource";
 
 export default function AdminResourceCreatePage() {
   const navigate = useNavigate();
   const toast = useToast();
+  const { user } = useAuth();
   const [formError, setFormError] = useState("");
+  const isResourceAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
-  if (!isAdmin()) return <AccessDenied />;
+  if (!isResourceAdmin) return <AccessDenied />;
 
   const handleCreate = async (values: ResourceRequest) => {
     try {
