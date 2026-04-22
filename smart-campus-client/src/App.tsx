@@ -11,6 +11,7 @@ import { AdminBookingsPage } from "@/pages/bookings/AdminBookingsPage";
 import { BookingDetailPage } from "@/pages/bookings/BookingDetailPage";
 import { CreateBookingPage } from "@/pages/bookings/CreateBookingPage";
 import { MyBookingsPage } from "@/pages/bookings/MyBookingsPage";
+import { AdminSignupPage } from "@/pages/public/AdminSignupPage";
 import { LoginPage } from "@/pages/public/LoginPage";
 import { NotFoundPage } from "@/pages/public/NotFoundPage";
 import { OAuthCallbackPage } from "@/pages/public/OAuthCallbackPage";
@@ -222,6 +223,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/signup/admin" element={<AdminSignupPage />} />
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route path="/qr/:token" element={<QrCheckInPage />} />
       <Route

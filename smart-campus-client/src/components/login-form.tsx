@@ -101,7 +101,11 @@ export function LoginForm({
                   variant="outline"
                   type="button"
                   disabled={loadingGoogle}
-                  onClick={onGoogleSignIn}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    onGoogleSignIn()
+                  }}
                   className="border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5]"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">

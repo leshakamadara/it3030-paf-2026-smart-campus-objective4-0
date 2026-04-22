@@ -59,6 +59,12 @@ app:
     authorized-redirect-uri: ${APP_OAUTH2_AUTHORIZED_REDIRECT_URI:http://localhost:5173/auth/callback}
   auth:
     allow-dummy-login: ${APP_AUTH_ALLOW_DUMMY_LOGIN:false}
+    admin-signup-key-valid-hours: ${APP_AUTH_ADMIN_SIGNUP_KEY_VALID_HOURS:24}
+
+  super-admin:
+    email: ${APP_SUPER_ADMIN_EMAIL:}
+    password: ${APP_SUPER_ADMIN_PASSWORD:}
+    full-name: ${APP_SUPER_ADMIN_FULL_NAME:Super Admin}
 
 logging:
   level:

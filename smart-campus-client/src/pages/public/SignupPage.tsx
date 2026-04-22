@@ -42,7 +42,7 @@ export function SignupPage() {
   }
 
   function handleGoogleSignIn() {
-    window.location.href = getGoogleOAuthUrl()
+    window.location.assign(getGoogleOAuthUrl())
   }
 
   return (

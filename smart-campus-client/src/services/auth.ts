@@ -35,6 +35,14 @@ export interface CampusRegisterRequest {
   confirmPassword: string;
 }
 
+export interface AdminRegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  adminSignupKey: string;
+}
+
 export interface DummyLoginResponse {
   token: string | null;
   user: AuthUser;
@@ -131,6 +139,29 @@ export async function campusRegister(data: CampusRegisterRequest): Promise<Dummy
   if (!response.ok) {
     const text = await response.text();
     throw new Error(text || "Registration failed");
+  }
+
+  const token = response.headers.get("Authorization");
+  const payload = (await response.json()) as { token: string | null; user: AuthUser };
+  return { token: token ?? payload.token, user: payload.user };
+}
+
+export async function adminRegister(data: AdminRegisterRequest): Promise<DummyLoginResponse> {
+  if (data.password !== data.confirmPassword) {
+    throw new Error("Passwords do not match");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/auth/register-admin`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "Admin registration failed");
   }
 
   const token = response.headers.get("Authorization");

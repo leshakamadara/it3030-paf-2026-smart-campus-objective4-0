@@ -20,10 +20,15 @@ public class AuthenticationService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AdminSignupKeyService adminSignupKeyService;
 
-    public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthenticationService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            AdminSignupKeyService adminSignupKeyService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.adminSignupKeyService = adminSignupKeyService;
     }
 
     public User processOAuth2User(OAuth2User oAuth2User) {
@@ -122,6 +127,33 @@ public class AuthenticationService {
         if (user.getNotificationPrefs() == null || user.getNotificationPrefs().isEmpty()) {
             user.setNotificationPrefs(defaultNotificationPrefs());
         }
+
+        return userRepository.save(user);
+    }
+
+    public User registerAdminUser(String email, String fullName, String rawPassword, String adminSignupKey) {
+        if (!StringUtils.hasText(email) || !StringUtils.hasText(rawPassword)) {
+            throw new IllegalArgumentException("Email, password and admin signup key are required");
+        }
+
+        if (!StringUtils.hasText(adminSignupKey)) {
+            throw new IllegalArgumentException("Admin signup key is required");
+        }
+
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new IllegalStateException("User already exists");
+        }
+
+        adminSignupKeyService.consumeKeyOrThrow(adminSignupKey, email);
+
+        User user = new User();
+        user.setEmail(email);
+        user.setFullName(StringUtils.hasText(fullName) ? fullName : email);
+        user.setRole(Role.ADMIN);
+        user.setActive(true);
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        user.setLastLoginAt(Instant.now());
+        user.setNotificationPrefs(defaultNotificationPrefs());
 
         return userRepository.save(user);
     }

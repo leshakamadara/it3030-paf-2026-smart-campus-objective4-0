@@ -22,6 +22,13 @@ export interface NotificationPrefsPayload {
   notificationPrefs: Record<string, boolean>;
 }
 
+export interface GeneratedAdminSignupKey {
+  signupKey: string;
+  expiresAt: string;
+  createdAt: string;
+  createdByEmail: string;
+}
+
 function authHeaders(): HeadersInit {
   const token = getStoredToken();
   if (!token) {
@@ -92,5 +99,11 @@ export function updateUserStatus(userId: string, active: boolean) {
   return request<void>(`/api/users/${userId}/status`, {
     method: "PUT",
     body: JSON.stringify({ active }),
+  });
+}
+
+export function generateAdminSignupKey() {
+  return request<GeneratedAdminSignupKey>("/api/admin/admin-signup-keys/generate", {
+    method: "POST",
   });
 }
