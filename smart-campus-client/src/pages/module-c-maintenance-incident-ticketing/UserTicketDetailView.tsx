@@ -549,6 +549,7 @@ export default function TicketDetailView({
             
             return (
               <CommentBubble
+                key={c.id ?? `${c.createdAt}-${c.createdBy ?? "unknown"}`}
                 id={String(c.id)}
                 authorName={authorLabel}
                 content={c.comment}
