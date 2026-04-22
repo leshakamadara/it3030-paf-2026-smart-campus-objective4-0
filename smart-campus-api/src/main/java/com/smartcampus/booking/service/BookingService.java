@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,7 +101,25 @@ public class BookingService {
             int size
     ) {
         Pageable pageable = createPageable(page, size);
-        Page<Booking> bookingPage = bookingRepository.search(status, resourceId, userId, fromTime, toTime, pageable);
+        Specification<Booking> spec = Specification.where(null);
+
+        if (status != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
+        }
+        if (resourceId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("resourceId"), resourceId));
+        }
+        if (userId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("userId"), userId));
+        }
+        if (fromTime != null) {
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("startTime"), fromTime));
+        }
+        if (toTime != null) {
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("endTime"), toTime));
+        }
+
+        Page<Booking> bookingPage = bookingRepository.findAll(spec, pageable);
         return toPageResponse(bookingPage, false);
     }
 
