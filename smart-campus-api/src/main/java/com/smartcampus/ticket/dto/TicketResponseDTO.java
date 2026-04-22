@@ -25,7 +25,8 @@ public class TicketResponseDTO {
     private String contactName;
 
     private String technician;
-    
+    private String assignedToName;
+
 
     private List<AttachmentDTO> attachments;
     

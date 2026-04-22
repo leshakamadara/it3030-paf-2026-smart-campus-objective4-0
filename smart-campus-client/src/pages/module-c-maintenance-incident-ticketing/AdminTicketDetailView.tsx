@@ -43,8 +43,8 @@ export const AdminTicketDetailView = ({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const { user } = useAuth();
-  const isAdmin = user?.role === "ADMIN";
-  const isTech = user?.role === "TECHNICIAN" || user?.role === "ADMIN";
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
+  const isTech = user?.role === "TECHNICIAN" || isAdmin;
 
   const nextStatuses = STATUS_FLOW[ticket.status];
 
@@ -362,7 +362,7 @@ export const AdminTicketDetailView = ({
                       updatedAt={c.updatedAt}
                       initials={initials}
                       isOwn={isOwn}
-                      isTech={!isStaffComment}
+                      isTech={isStaffComment}
                       onEdit={async (id) => {
                         const newText = prompt("Edit comment:", c.comment);
                         if (newText !== null && newText.trim() !== "") await editComment(Number(id), newText);

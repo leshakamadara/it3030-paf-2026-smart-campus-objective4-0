@@ -228,12 +228,12 @@ export default function TicketDetailView({
   return (
     <div className="max-w-2xl mx-auto">
       {/* Back */}
-      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 mb-5 transition-colors">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-[#62666d] hover:text-[#191a1b] mb-5 transition-colors">
         ← Back to my tickets
       </button>
 
       {/* Ticket Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
+      <div className="bg-white rounded-xl border border-[#d0d6e0] p-6 mb-4">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono text-xs text-slate-400 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
@@ -261,8 +261,8 @@ export default function TicketDetailView({
 
         {/* Description */}
         <div className="mb-4">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Description</p>
-          <p className="text-sm text-slate-700 leading-relaxed">{ticket.description}</p>
+          <p className="text-xs font-[510] text-[#62666d] uppercase tracking-widest mb-2">Description</p>
+          <p className="text-sm text-[#191a1b] leading-relaxed">{ticket.description}</p>
         </div>
 
         {/* Ticket Reasons Table */}
@@ -355,18 +355,18 @@ export default function TicketDetailView({
         )}
 
         {/* Meta footer */}
-        <div className="flex items-center justify-between text-xs text-slate-400 mt-5 pt-4 border-t border-slate-100">
+        <div className="flex items-center justify-between text-xs text-[#8a8f98] mt-5 pt-4 border-t border-[#d0d6e0]">
           <span>Submitted {formatDateTime(ticket.createdAt)}</span>
           <span>Updated {formatDateTime(ticket.updatedAt)}</span>
         </div>
         {ticket.status === "OPEN" && (
           <div className="mt-5">
             {!isEditing ? (
-              <button 
-                onClick={() => setIsEditing(true)} 
-                className="px-4 py-2 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm hover:shadow-md"
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 bg-[#5e6ad2] text-white rounded-md text-xs font-[510] hover:bg-[#7170ff] transition-all"
               >
-                 Edit Ticket
+                Edit Ticket
               </button>
             ) : (
               <div className="w-full bg-linear-to-br from-blue-50 via-indigo-50 to-violet-50 border-2 border-blue-300 rounded-2xl p-6 space-y-5 shadow-lg">
@@ -512,7 +512,7 @@ export default function TicketDetailView({
       </div>
 
       {/* Comments */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+      <div className="bg-white rounded-xl border border-[#d0d6e0] p-6">
         <h2 className="text-sm font-bold text-slate-700 mb-5">
           Updates & Comments
           {ticket.comments.length > 0 && (
@@ -541,8 +541,8 @@ export default function TicketDetailView({
               .join("")
               .slice(0, 2)
               .toUpperCase() || "??";
-            const userIdentifier = (currentUserData?.username || currentUserData?.email || currentUserData?.id || null);
-            const isOwn = !!(c.createdBy && userIdentifier && (c.createdBy === userIdentifier));
+            const userIdentifier = currentUserData?.email ?? null;
+            const isOwn = !!(c.createdBy && userIdentifier && c.createdBy === userIdentifier);
 
             const isStaffComment = c.createdByRole === "ADMIN" || c.createdByRole === "TECHNICIAN";
 
@@ -591,7 +591,7 @@ export default function TicketDetailView({
                 <button
                   onClick={addComment}
                   disabled={!comment.trim() || loadingCommentAction}
-                  className="px-4 py-1.5 bg-violet-600 text-white text-xs font-semibold rounded-lg hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-1.5 bg-[#5e6ad2] text-white text-xs font-[510] rounded-md hover:bg-[#7170ff] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   {loadingCommentAction ? 'Sending…' : 'Send'}
                 </button>

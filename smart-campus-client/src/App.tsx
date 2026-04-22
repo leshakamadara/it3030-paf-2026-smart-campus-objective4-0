@@ -25,6 +25,8 @@ import AdminResourceEditPage from "@/pages/resource/AdminResourceEditPage";
 import ResourceDetailsPage from "@/pages/resource/ResourceDetailsPage";
 import ResourceListPage from "@/pages/resource/ResourceListPage";
 import ResourceStatsPage from "@/pages/resource/ResourceStatsPage";
+import UserTicketPortal from "@/pages/module-c-maintenance-incident-ticketing/UserTicketPortal";
+import AdminTicketPortal from "@/pages/module-c-maintenance-incident-ticketing/AdminTicketPortal";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -89,6 +91,16 @@ function AuthenticatedLayout() {
                 Resources
               </NavLink>
               <NavLink
+                to="/tickets"
+                className={({ isActive }) =>
+                  isActive
+                    ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                    : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                }
+              >
+                My Tickets
+              </NavLink>
+              <NavLink
                 to="/settings/profile"
                 className={({ isActive }) =>
                   isActive
@@ -130,6 +142,18 @@ function AuthenticatedLayout() {
                   }
                 >
                   Resource Admin
+                </NavLink>
+              )}
+              {isResourceAdmin && (
+                <NavLink
+                  to="/admin/tickets"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                      : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                  }
+                >
+                  Ticket Admin
                 </NavLink>
               )}
             </nav>
@@ -214,6 +238,22 @@ function HomePage() {
         Notification overlay UI is implemented here for integration, while full notification APIs remain part of
         Module D backend scope.
       </section>
+
+      <section className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-6">
+        <p className="text-xs font-[510] uppercase tracking-[0.18em] text-[#5e6ad2] mb-1">Module C</p>
+        <h2 className="text-base font-[590] tracking-tight text-[#191a1b] mb-1">Maintenance &amp; Incident Tickets</h2>
+        <p className="text-sm text-[#62666d] mb-4">Report campus incidents and track their resolution progress.</p>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+            <Link to="/tickets">My Tickets</Link>
+          </Button>
+          {isResourceAdmin && (
+            <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+              <Link to="/admin/tickets">Ticket Admin</Link>
+            </Button>
+          )}
+        </div>
+      </section>
     </main>
   );
 }
@@ -275,6 +315,15 @@ export default function App() {
         />
         <Route path="resources/:id" element={<ResourceDetailsPage />} />
         <Route path="resources" element={<ResourceListPage />} />
+        <Route path="tickets" element={<UserTicketPortal />} />
+        <Route
+          path="admin/tickets"
+          element={
+            <AdminRoute>
+              <AdminTicketPortal />
+            </AdminRoute>
+          }
+        />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

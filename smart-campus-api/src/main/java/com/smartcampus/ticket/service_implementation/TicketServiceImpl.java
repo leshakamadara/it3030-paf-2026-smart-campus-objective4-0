@@ -379,6 +379,7 @@ public class TicketServiceImpl implements TicketService {
         dto.setStatus(ticket.getStatus());
         dto.setCreatedBy(ticket.getCreatedBy().getEmail());
         dto.setTechnician(ticket.getTechnician() != null ? ticket.getTechnician().getEmail() : null);
+        dto.setAssignedToName(ticket.getTechnician() != null ? ticket.getTechnician().getFullName() : null);
         dto.setResolutionNote(ticket.getResolutionNote());
         dto.setRejectionReason(ticket.getRejectionReason());
 
