@@ -35,7 +35,7 @@ public class Booking {
     private UUID id;
 
     @Column(name = "resource_id", nullable = false)
-    private UUID resourceId;
+    private Long resourceId;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
@@ -90,11 +90,11 @@ public class Booking {
         this.id = id;
     }
 
-    public UUID getResourceId() {
+    public Long getResourceId() {
         return resourceId;
     }
 
-    public void setResourceId(UUID resourceId) {
+    public void setResourceId(Long resourceId) {
         this.resourceId = resourceId;
     }
 

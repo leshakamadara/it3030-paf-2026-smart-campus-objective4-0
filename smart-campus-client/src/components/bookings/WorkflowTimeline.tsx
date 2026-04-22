@@ -17,8 +17,8 @@ function isStepActive(step: (typeof FLOW_STEPS)[number], current: BookingStatus)
 
 export function WorkflowTimeline({ status }: { status: BookingStatus }) {
   return (
-    <div className="space-y-3">
-      <p className="text-xs font-[510] uppercase tracking-[0.16em] text-[#8a8f98]">Workflow</p>
+    <div className="space-y-3 mt-4">
+      <p className="text-xs font-[510] uppercase tracking-[0.16em] text-[#62666d]">Workflow</p>
       <div className="flex flex-wrap items-center gap-2">
         {FLOW_STEPS.map((step, index) => {
           const active = isStepActive(step, status);
@@ -27,18 +27,18 @@ export function WorkflowTimeline({ status }: { status: BookingStatus }) {
               <span
                 className={`rounded-md border px-2 py-1 text-[10px] font-[590] ${
                   active
-                    ? "border-[#3a4aff] bg-[#252d6e] text-[#e8ecff]"
-                    : "border-[#ffffff18] bg-[#15171b] text-[#7f8692]"
+                    ? "border-[#5e6ad2] bg-[#eef2ff] text-[#5e6ad2]"
+                    : "border-[#d0d6e0] bg-[#f7f8f8] text-[#8a8f98]"
                 }`}
               >
                 {step}
               </span>
-              {index < FLOW_STEPS.length - 1 && <span className="text-[#62666d]">→</span>}
+              {index < FLOW_STEPS.length - 1 && <span className="text-[#d0d6e0]">→</span>}
             </div>
           );
         })}
         {status === "REJECTED" && (
-          <span className="rounded-md border border-[#5a2031] bg-[#32181f] px-2 py-1 text-[10px] font-[590] text-[#ffc2d0]">
+          <span className="rounded-md border border-[#f0b8c4] bg-[#fff1f4] px-2 py-1 text-[10px] font-[590] text-[#8f3346]">
             REJECTED
           </span>
         )}

@@ -75,9 +75,9 @@ export function MyBookingsPage() {
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#ffffff14] bg-[#0f1011] p-4">
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-4">
         <div>
-          <h2 className="text-lg font-[590] tracking-tight text-[#f7f8f8]">My Bookings</h2>
+          <h2 className="text-lg font-[590] tracking-tight text-[#191a1b]">My Bookings</h2>
           <p className="text-sm text-[#8a8f98]">Track booking requests, approvals, and check-in QR codes.</p>
         </div>
 
@@ -88,36 +88,36 @@ export function MyBookingsPage() {
 
       <StatusTabs value={tab} counts={counts} onChange={setTab} />
 
-      <div className="grid gap-3 rounded-xl border border-[#ffffff14] bg-[#0f1011] p-4 md:grid-cols-2">
+      <div className="grid gap-3 rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-4 md:grid-cols-2">
         <label className="space-y-1 text-xs text-[#8a8f98]">
-          <span className="font-[510] text-[#d0d6e0]">From</span>
+          <span className="font-[510] text-[#43464b]">From</span>
           <input
             type="datetime-local"
             value={fromTime}
             onChange={(event) => setFromTime(event.target.value)}
-            className="h-10 w-full rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0] focus:border-[#7170ff] focus:outline-none"
+            className="h-10 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b] focus:border-[#7170ff] focus:outline-none"
           />
         </label>
         <label className="space-y-1 text-xs text-[#8a8f98]">
-          <span className="font-[510] text-[#d0d6e0]">To</span>
+          <span className="font-[510] text-[#43464b]">To</span>
           <input
             type="datetime-local"
             value={toTime}
             onChange={(event) => setToTime(event.target.value)}
-            className="h-10 w-full rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0] focus:border-[#7170ff] focus:outline-none"
+            className="h-10 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b] focus:border-[#7170ff] focus:outline-none"
           />
         </label>
       </div>
 
       {conflict && <ConflictAlert message={conflict} onClose={() => setConflict(null)} />}
       {error && (
-        <p className="rounded-lg border border-[#ffffff14] bg-[#1a1b1d] p-3 text-sm text-[#ffb3c5]">{error}</p>
+        <p className="rounded-lg border border-[#f0b8c4] bg-[#fff1f4] p-3 text-sm text-[#8f3346]">{error}</p>
       )}
 
       {loading && <p className="text-sm text-[#8a8f98]">Loading bookings...</p>}
 
       {!loading && filteredItems.length === 0 && (
-        <p className="rounded-xl border border-dashed border-[#ffffff22] bg-[#0f1011] p-5 text-sm text-[#8a8f98]">
+        <p className="rounded-xl border border-dashed border-[#d0d6e0] bg-[#ffffff] p-5 text-sm text-[#8a8f98]">
           {tab === "ALL" ? "No bookings found for the selected date range." : `No ${tab.toLowerCase()} bookings found for the selected range.`}
         </p>
       )}
@@ -127,7 +127,7 @@ export function MyBookingsPage() {
           <BookingCard
             key={booking.id}
             booking={booking}
-            resource={{ id: booking.resourceId, name: `Resource ${booking.resourceId.slice(0, 8)}` }}
+            resource={{ id: String(booking.resourceId), name: `Resource #${booking.resourceId}` }}
             onCancel={(bookingId) =>
               void cancelBooking(bookingId)
                 .then(() => {
@@ -147,14 +147,14 @@ export function MyBookingsPage() {
         <Button
           disabled={page === 0 || loading}
           onClick={() => void load(Math.max(page - 1, 0))}
-          className="border border-[#ffffff22] bg-[#191a1b] text-[#d0d6e0] hover:bg-[#25272a]"
+          className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#e6e6e6]"
         >
           Previous
         </Button>
         <Button
           disabled={last || loading}
           onClick={() => void load(page + 1)}
-          className="border border-[#ffffff22] bg-[#191a1b] text-[#d0d6e0] hover:bg-[#25272a]"
+          className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#e6e6e6]"
         >
           Next
         </Button>

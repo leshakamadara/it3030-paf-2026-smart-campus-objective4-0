@@ -146,6 +146,18 @@ function AuthenticatedLayout() {
               )}
               {isResourceAdmin && (
                 <NavLink
+                  to="/admin/bookings"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                      : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                  }
+                >
+                  Booking Admin
+                </NavLink>
+              )}
+              {isResourceAdmin && (
+                <NavLink
                   to="/admin/tickets"
                   className={({ isActive }) =>
                     isActive
@@ -203,13 +215,18 @@ function HomePage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-[#62666d]">Create and manage booking requests for campus resources.</p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
                 <Link to="/bookings">My Bookings</Link>
               </Button>
               <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
                 <Link to="/bookings/new">Create Booking</Link>
               </Button>
+              {isResourceAdmin && (
+                <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                  <Link to="/admin/bookings">Admin Bookings</Link>
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -278,7 +295,14 @@ export default function App() {
         <Route path="bookings" element={<MyBookingsPage />} />
         <Route path="bookings/new" element={<CreateBookingPage />} />
         <Route path="bookings/:id" element={<BookingDetailPage />} />
-        <Route path="admin/bookings" element={<AdminBookingsPage />} />
+        <Route
+          path="admin/bookings"
+          element={
+            <AdminRoute>
+              <AdminBookingsPage />
+            </AdminRoute>
+          }
+        />
         <Route path="settings/profile" element={<ProfilePage />} />
         <Route path="settings/notifications" element={<NotificationPrefsPage />} />
         <Route

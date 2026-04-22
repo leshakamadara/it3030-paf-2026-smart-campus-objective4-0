@@ -8,7 +8,7 @@ import com.smartcampus.booking.entity.BookingStatus;
 
 public record BookingResponse(
         UUID id,
-        UUID resourceId,
+        Long resourceId,
         UUID userId,
         BookingStatus status,
         OffsetDateTime startTime,

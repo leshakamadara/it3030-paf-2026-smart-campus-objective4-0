@@ -23,6 +23,8 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
 
     Optional<Booking> findByQrCodeToken(String qrCodeToken);
 
+    Page<Booking> findByResourceId(Long resourceId, Pageable pageable);
+
     @Query("""
             select b
               from Booking b
@@ -34,7 +36,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
             """)
     Page<Booking> search(
             @Param("status") BookingStatus status,
-            @Param("resourceId") UUID resourceId,
+            @Param("resourceId") Long resourceId,
             @Param("userId") UUID userId,
             @Param("fromTime") OffsetDateTime fromTime,
             @Param("toTime") OffsetDateTime toTime,

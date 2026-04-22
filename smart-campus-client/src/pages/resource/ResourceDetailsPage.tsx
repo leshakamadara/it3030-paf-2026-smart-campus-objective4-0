@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CalendarPlus } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -451,6 +452,38 @@ export default function ResourceDetailsPage() {
                     Delete Resource
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Book This Resource CTA */}
+        {resource.isBookable && !resource.isUnderMaintenance && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <Card className="border-[#5e6ad2]/30 bg-gradient-to-br from-[#eef2ff] to-[#f7f8ff] transition-shadow hover:shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-[#5e6ad2]">
+                  <CalendarPlus className="h-5 w-5" />
+                  Book This Resource
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-4 text-sm text-[#43464b]">
+                  This resource is available for booking. Submit a request and an admin will review it.
+                </p>
+                <Button
+                  asChild
+                  className="bg-[#5e6ad2] text-white transition-all hover:bg-[#7170ff] hover:scale-105 hover:shadow-md"
+                >
+                  <Link to={`/bookings/new?resourceId=${resource.id}`}>
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    Create Booking
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           </motion.div>

@@ -65,6 +65,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/dummy-login").permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/register-admin").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/bookings/qr/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/bookings/resource/*/upcoming").authenticated()
                 .requestMatchers("/api/bookings/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/auth/me", "/api/auth/refresh").hasAnyRole("USER", "TECHNICIAN", "ADMIN", "SUPER_ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/auth/logout").hasAnyRole("USER", "TECHNICIAN", "ADMIN", "SUPER_ADMIN")

@@ -17,13 +17,13 @@ export function BookingDetailSheet({ booking, open, onClose }: BookingDetailShee
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end bg-black/60">
-      <aside className="h-full w-full max-w-xl overflow-y-auto border-l border-[#ffffff14] bg-[#0f1011] p-5">
+      <aside className="h-full w-full max-w-xl overflow-y-auto border-l border-[#d0d6e0] bg-[#ffffff] p-5">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-[590] text-[#f7f8f8]">Booking Details</h3>
-          <Button onClick={onClose} className="border border-[#ffffff14] bg-[#191a1b] text-[#d0d6e0] hover:bg-[#25272a]">Close</Button>
+          <h3 className="text-lg font-[590] text-[#191a1b]">Booking Details</h3>
+          <Button onClick={onClose} className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#e6e6e6]">Close</Button>
         </div>
 
-        <div className="mt-5 space-y-4 text-sm text-[#d0d6e0]">
+        <div className="mt-5 space-y-4 text-sm text-[#43464b]">
           <div className="flex items-center justify-between">
             <p className="font-mono text-xs text-[#8a8f98]">{booking.id}</p>
             <BookingStatusBadge status={booking.status} />
@@ -44,7 +44,7 @@ export function BookingDetailSheet({ booking, open, onClose }: BookingDetailShee
             </div>
           )}
 
-          <div className="grid gap-2 rounded-lg border border-[#ffffff14] bg-[#08090a] p-3 text-xs text-[#8a8f98]">
+          <div className="grid gap-2 rounded-lg border border-[#d0d6e0] bg-[#f7f8f8] p-3 text-xs text-[#8a8f98]">
             <p>Reviewed by: {booking.reviewedBy ?? "-"}</p>
             <p>Reviewed at: {booking.reviewedAt ? new Date(booking.reviewedAt).toLocaleString() : "-"}</p>
             <p>Updated at: {new Date(booking.updatedAt).toLocaleString()}</p>

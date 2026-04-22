@@ -92,7 +92,7 @@ public class BookingService {
     @Transactional(readOnly = true)
     public BookingPageResponse getAllBookings(
             BookingStatus status,
-            UUID resourceId,
+            Long resourceId,
             UUID userId,
             OffsetDateTime fromTime,
             OffsetDateTime toTime,
@@ -101,6 +101,17 @@ public class BookingService {
     ) {
         Pageable pageable = createPageable(page, size);
         Page<Booking> bookingPage = bookingRepository.search(status, resourceId, userId, fromTime, toTime, pageable);
+        return toPageResponse(bookingPage, false);
+    }
+
+    /**
+     * Returns upcoming PENDING/APPROVED bookings for a resource.
+     * Accessible by any authenticated user — used for conflict checking on the booking form.
+     */
+    @Transactional(readOnly = true)
+    public BookingPageResponse getResourceUpcomingBookings(Long resourceId, int page, int size) {
+        Pageable pageable = createPageable(page, size);
+        Page<Booking> bookingPage = bookingRepository.findByResourceId(resourceId, pageable);
         return toPageResponse(bookingPage, false);
     }
 
@@ -153,11 +164,16 @@ public class BookingService {
     @Transactional
     public BookingResponse cancelBooking(org.springframework.security.core.Authentication authentication, UUID bookingId) {
         UUID currentUserId = currentBookingUserService.resolveUserId(authentication);
-        Booking booking = bookingRepository.findByIdAndUserId(bookingId, currentUserId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+        boolean admin = currentBookingUserService.isAdmin(authentication);
 
-        if (booking.getStatus() != BookingStatus.APPROVED) {
-            throw new ConflictException("Only approved bookings can be cancelled");
+        Booking booking = admin
+                ? bookingRepository.findById(bookingId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"))
+                : bookingRepository.findByIdAndUserId(bookingId, currentUserId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (booking.getStatus() != BookingStatus.APPROVED && booking.getStatus() != BookingStatus.PENDING) {
+            throw new ConflictException("Only pending or approved bookings can be cancelled");
         }
 
         booking.setStatus(BookingStatus.CANCELLED);

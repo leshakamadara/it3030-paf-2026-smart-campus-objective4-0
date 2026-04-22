@@ -2,7 +2,6 @@ package com.smartcampus.booking.service;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,7 @@ public class ConflictCheckService {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
-    public void assertNoConflict(UUID resourceId, OffsetDateTime startTime, OffsetDateTime endTime) {
+    public void assertNoConflict(Long resourceId, OffsetDateTime startTime, OffsetDateTime endTime) {
         Integer conflictCount = namedParameterJdbcTemplate.queryForObject(
                 CONFLICT_SQL,
                 Map.of("rid", resourceId, "startTime", startTime, "endTime", endTime),

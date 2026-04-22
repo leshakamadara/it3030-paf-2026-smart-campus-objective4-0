@@ -17,14 +17,14 @@ interface BookingFiltersProps {
 
 export function BookingFilters({ value, resources, onChange, onApply }: BookingFiltersProps) {
   return (
-    <div className="space-y-3 rounded-xl border border-[#ffffff14] bg-[#0f1011] p-4">
-      <h3 className="text-sm font-[590] text-[#f7f8f8]">Booking Filters</h3>
+    <div className="space-y-3 rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-4">
+      <h3 className="text-sm font-[590] text-[#191a1b]">Booking Filters</h3>
 
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
         <select
           value={value.status}
           onChange={(event) => onChange({ ...value, status: event.target.value as BookingStatus | "" })}
-          className="h-10 rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0]"
+          className="h-10 rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b]"
         >
           <option value="">All statuses</option>
           <option value="PENDING">PENDING</option>
@@ -36,7 +36,7 @@ export function BookingFilters({ value, resources, onChange, onApply }: BookingF
         <select
           value={value.resourceId}
           onChange={(event) => onChange({ ...value, resourceId: event.target.value })}
-          className="h-10 rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0]"
+          className="h-10 rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b]"
         >
           <option value="">All resources</option>
           {resources.map((resource) => (
@@ -50,21 +50,21 @@ export function BookingFilters({ value, resources, onChange, onApply }: BookingF
           value={value.userId}
           onChange={(event) => onChange({ ...value, userId: event.target.value })}
           placeholder="User UUID"
-          className="h-10 rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0]"
+          className="h-10 rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b]"
         />
 
         <input
           type="datetime-local"
           value={value.fromTime}
           onChange={(event) => onChange({ ...value, fromTime: event.target.value })}
-          className="h-10 rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0]"
+          className="h-10 rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b]"
         />
 
         <input
           type="datetime-local"
           value={value.toTime}
           onChange={(event) => onChange({ ...value, toTime: event.target.value })}
-          className="h-10 rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0]"
+          className="h-10 rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b]"
         />
       </div>
 

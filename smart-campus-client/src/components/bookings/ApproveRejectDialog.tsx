@@ -45,8 +45,8 @@ export function ApproveRejectDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-md rounded-xl border border-[#ffffff1f] bg-[#0f1011] p-5">
-        <h3 className="text-base font-[590] text-[#f7f8f8]">
+      <div className="w-full max-w-md rounded-xl border border-[#ffffff1f] bg-[#ffffff] p-5">
+        <h3 className="text-base font-[590] text-[#191a1b]">
           {mode === "approve" ? "Approve booking" : "Reject booking"}
         </h3>
         <p className="mt-2 text-sm text-[#8a8f98]">Booking ID: {bookingId}</p>
@@ -57,14 +57,14 @@ export function ApproveRejectDialog({
             onChange={(event) => setReason(event.target.value)}
             rows={4}
             placeholder="Enter rejection reason"
-            className="mt-4 w-full rounded-md border border-[#ffffff14] bg-[#08090a] px-3 py-2 text-sm text-[#d0d6e0]"
+            className="mt-4 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 py-2 text-sm text-[#43464b]"
           />
         )}
 
         <div className="mt-5 flex justify-end gap-2">
           <Button
             onClick={onClose}
-            className="border border-[#ffffff14] bg-[#191a1b] text-[#d0d6e0] hover:bg-[#25272a]"
+            className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#e6e6e6]"
           >
             Cancel
           </Button>

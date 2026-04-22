@@ -48,15 +48,15 @@ export function BookingForm({ onCreated, onConflict, onError }: BookingFormProps
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border border-[#ffffff14] bg-[#0f1011] p-4">
-      <h3 className="text-sm font-[590] tracking-tight text-[#f7f8f8]">Create booking request</h3>
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-4">
+      <h3 className="text-sm font-[590] tracking-tight text-[#191a1b]">Create booking request</h3>
 
       <input
         value={resourceId}
         onChange={(event) => setResourceId(event.target.value)}
         placeholder="Resource UUID"
         required
-        className="h-10 w-full rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0] placeholder:text-[#62666d] focus:border-[#7170ff] focus:outline-none"
+        className="h-10 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b] placeholder:text-[#8a8f98] focus:border-[#7170ff] focus:outline-none"
       />
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -65,14 +65,14 @@ export function BookingForm({ onCreated, onConflict, onError }: BookingFormProps
           value={startTime}
           onChange={(event) => setStartTime(event.target.value)}
           required
-          className="h-10 w-full rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0] focus:border-[#7170ff] focus:outline-none"
+          className="h-10 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b] focus:border-[#7170ff] focus:outline-none"
         />
         <input
           type="datetime-local"
           value={endTime}
           onChange={(event) => setEndTime(event.target.value)}
           required
-          className="h-10 w-full rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0] focus:border-[#7170ff] focus:outline-none"
+          className="h-10 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b] focus:border-[#7170ff] focus:outline-none"
         />
       </div>
 
@@ -82,7 +82,7 @@ export function BookingForm({ onCreated, onConflict, onError }: BookingFormProps
         placeholder="Purpose"
         required
         rows={3}
-        className="w-full rounded-md border border-[#ffffff14] bg-[#08090a] px-3 py-2 text-sm text-[#d0d6e0] placeholder:text-[#62666d] focus:border-[#7170ff] focus:outline-none"
+        className="w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 py-2 text-sm text-[#43464b] placeholder:text-[#8a8f98] focus:border-[#7170ff] focus:outline-none"
       />
 
       <input
@@ -91,7 +91,7 @@ export function BookingForm({ onCreated, onConflict, onError }: BookingFormProps
         min={1}
         onChange={(event) => setAttendeeCount(event.target.value === "" ? "" : Number(event.target.value))}
         placeholder="Attendee count (optional)"
-        className="h-10 w-full rounded-md border border-[#ffffff14] bg-[#08090a] px-3 text-sm text-[#d0d6e0] placeholder:text-[#62666d] focus:border-[#7170ff] focus:outline-none"
+        className="h-10 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b] placeholder:text-[#8a8f98] focus:border-[#7170ff] focus:outline-none"
       />
 
       <Button

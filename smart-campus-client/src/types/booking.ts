@@ -2,7 +2,7 @@ export type BookingStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
 
 export interface Booking {
   id: string;
-  resourceId: string;
+  resourceId: number;       // Long from backend (numeric)
   userId: string;
   status: BookingStatus;
   startTime: string;
@@ -30,7 +30,7 @@ export interface BookingPageResponse {
 }
 
 export interface BookingCreatePayload {
-  resourceId: string;
+  resourceId: number;       // Long to backend (numeric)
   startTime: string;
   endTime: string;
   purpose: string;
@@ -48,7 +48,7 @@ export interface BookingQrVerificationResponse {
 }
 
 export interface ResourceSummary {
-  id: string;
+  id: string;               // stringified Long (e.g. "1", "2")
   name?: string;
   type?: string;
   imageUrl?: string;
