@@ -19,6 +19,7 @@ import { QrCheckInPage } from "@/pages/public/QrCheckInPage";
 import { SignupPage } from "@/pages/public/SignupPage";
 import { AdminUsersPage } from "@/pages/settings/AdminUsersPage";
 import { NotificationPrefsPage } from "@/pages/settings/NotificationPrefsPage";
+import { NotificationsPage } from "@/pages/notifications/NotificationsPage";
 import { ProfilePage } from "@/pages/settings/ProfilePage";
 import AdminResourceCreatePage from "@/pages/resource/AdminResourceCreatePage";
 import AdminResourceEditPage from "@/pages/resource/AdminResourceEditPage";
@@ -111,7 +112,7 @@ function AuthenticatedLayout() {
                 Profile
               </NavLink>
               <NavLink
-                to="/settings/notifications"
+                to="/notifications"
                 className={({ isActive }) =>
                   isActive
                     ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
@@ -305,6 +306,7 @@ export default function App() {
         />
         <Route path="settings/profile" element={<ProfilePage />} />
         <Route path="settings/notifications" element={<NotificationPrefsPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
         <Route
           path="admin/users"
           element={

@@ -22,6 +22,8 @@ import com.smartcampus.booking.entity.Booking;
 import com.smartcampus.booking.entity.BookingStatus;
 import com.smartcampus.booking.exception.ConflictException;
 import com.smartcampus.booking.repository.BookingRepository;
+import com.smartcampus.notification.entity.NotificationType;
+import com.smartcampus.notification.service.NotificationService;
 
 @Service
 public class BookingService {
@@ -30,17 +32,20 @@ public class BookingService {
     private final ConflictCheckService conflictCheckService;
     private final CurrentBookingUserService currentBookingUserService;
     private final QrCodeService qrCodeService;
+    private final NotificationService notificationService;
 
     public BookingService(
             BookingRepository bookingRepository,
             ConflictCheckService conflictCheckService,
             CurrentBookingUserService currentBookingUserService,
-            QrCodeService qrCodeService
+            QrCodeService qrCodeService,
+            NotificationService notificationService
     ) {
         this.bookingRepository = bookingRepository;
         this.conflictCheckService = conflictCheckService;
         this.currentBookingUserService = currentBookingUserService;
         this.qrCodeService = qrCodeService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -154,6 +159,17 @@ public class BookingService {
         }
 
         Booking saved = bookingRepository.save(booking);
+
+        // Fire notification to the booking owner
+        notificationService.send(
+                saved.getUserId(),
+                NotificationType.BOOKING_APPROVED,
+                "Booking Approved",
+                "Your booking request has been approved. Check your QR code for check-in.",
+                "BOOKING",
+                saved.getId()
+        );
+
         return toResponse(saved, true);
     }
 
@@ -177,6 +193,17 @@ public class BookingService {
         booking.setQrCodeToken(null);
 
         Booking saved = bookingRepository.save(booking);
+
+        // Fire notification to the booking owner
+        notificationService.send(
+                saved.getUserId(),
+                NotificationType.BOOKING_REJECTED,
+                "Booking Rejected",
+                "Your booking request has been rejected. Reason: " + request.reason().trim(),
+                "BOOKING",
+                saved.getId()
+        );
+
         return toResponse(saved, false);
     }
 
@@ -199,6 +226,19 @@ public class BookingService {
         booking.setUpdatedBy(currentUserId);
 
         Booking saved = bookingRepository.save(booking);
+
+        // Notify the booking owner only when an admin cancels someone else's booking
+        if (admin && !saved.getUserId().equals(currentUserId)) {
+            notificationService.send(
+                    saved.getUserId(),
+                    NotificationType.BOOKING_CANCELLED,
+                    "Booking Cancelled",
+                    "Your booking has been cancelled by an administrator.",
+                    "BOOKING",
+                    saved.getId()
+            );
+        }
+
         return toResponse(saved, false);
     }
 

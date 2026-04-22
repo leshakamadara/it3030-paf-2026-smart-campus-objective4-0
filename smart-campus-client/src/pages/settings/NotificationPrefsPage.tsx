@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { getMyProfile, updateMyNotificationPrefs } from "@/services/users";
 
 const PREF_OPTIONS = [
-  { key: "BOOKING_APPROVED", label: "Booking Approved", description: "When a pending booking is approved." },
-  { key: "BOOKING_REJECTED", label: "Booking Rejected", description: "When a booking request is rejected." },
-  { key: "BOOKING_CANCELLED", label: "Booking Cancelled", description: "When an approved booking is cancelled." },
+  { key: "BOOKING_APPROVED",      label: "Booking Approved",      description: "When a pending booking is approved." },
+  { key: "BOOKING_REJECTED",      label: "Booking Rejected",      description: "When a booking request is rejected." },
+  { key: "BOOKING_CANCELLED",     label: "Booking Cancelled",     description: "When an approved booking is cancelled." },
+  { key: "BOOKING_REMINDER",      label: "Booking Reminder",      description: "Reminder before your booking start time." },
   { key: "TICKET_STATUS_CHANGED", label: "Ticket Status Changed", description: "When ticket status is updated." },
-  { key: "TICKET_COMMENT", label: "Ticket Comment", description: "When someone comments on your ticket." },
-  { key: "TICKET_ASSIGNED", label: "Ticket Assigned", description: "When a ticket is assigned to you." },
+  { key: "TICKET_COMMENT",        label: "Ticket Comment",        description: "When someone comments on your ticket." },
+  { key: "TICKET_ASSIGNED",       label: "Ticket Assigned",       description: "When a ticket is assigned to you." },
 ] as const;
 
 export function NotificationPrefsPage() {
