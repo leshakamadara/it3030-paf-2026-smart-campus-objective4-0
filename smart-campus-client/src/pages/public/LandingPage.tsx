@@ -60,7 +60,7 @@ export function LandingPage() {
               HelaUni.app
             </div>
             
-            <h1 className="max-w-3xl text-5xl sm:text-6xl md:text-7xl font-[590] tracking-[-0.044em] text-[#191a1b] leading-[1.1]">
+            <h1 className="max-w-3xl text-4xl sm:text-5xl md:text-6xl font-[590] tracking-[-0.044em] text-[#191a1b] leading-[1.1]">
               Engineered for the modern campus.
             </h1>
             
