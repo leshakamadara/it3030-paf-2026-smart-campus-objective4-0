@@ -168,3 +168,37 @@ export async function adminRegister(data: AdminRegisterRequest): Promise<DummyLo
   const payload = (await response.json()) as { token: string | null; user: AuthUser };
   return { token: token ?? payload.token, user: payload.user };
 }
+
+export async function forgotPassword(email: string): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "Failed to request password reset");
+  }
+
+  return response.text();
+}
+
+export async function resetPassword(data: { token: string; newPassword: string }): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "Failed to reset password");
+  }
+
+  return response.text();
+}
