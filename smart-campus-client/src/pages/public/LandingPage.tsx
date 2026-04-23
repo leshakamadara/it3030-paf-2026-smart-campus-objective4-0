@@ -1,6 +1,6 @@
 import { Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Wrench, Building, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";

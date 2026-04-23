@@ -145,28 +145,7 @@ export function FloatingParticles() {
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    // Draw lines between nearby particles
-    const connect = () => {
-      if (!ctx) return;
-      let opacityValue = 1;
-      for (let a = 0; a < particles.length; a++) {
-        for (let b = a; b < particles.length; b++) {
-          const dx = particles[a].x - particles[b].x;
-          const dy = particles[a].y - particles[b].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
 
-          if (distance < 130) {
-            opacityValue = 1 - (distance / 130);
-            ctx.strokeStyle = `rgba(94, 106, 210, ${opacityValue * 0.25})`; // Subtle connecting lines
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(particles[a].x, particles[a].y);
-            ctx.lineTo(particles[b].x, particles[b].y);
-            ctx.stroke();
-          }
-        }
-      }
-    };
 
     resize();
     animate();

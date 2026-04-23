@@ -42,7 +42,7 @@ function notificationIcon(type: string) {
 export function NotificationItem({ item, onOpen, onDelete }: NotificationItemProps) {
   return (
     <article
-      className={`rounded-lg border border-[#d0d6e0] bg-[#f3f4f5] p-3 ${item.read ? "" : "border-l-4 border-l-[#2d3f7f]"}`}
+      className={`rounded-lg border border-[#d0d6e0] bg-[#f3f4f5] p-3 ${item.isRead ? "" : "border-l-4 border-l-[#2d3f7f]"}`}
     >
       <div className="flex gap-3">
         <div className="mt-1 text-[#62666d]">{notificationIcon(item.type)}</div>
