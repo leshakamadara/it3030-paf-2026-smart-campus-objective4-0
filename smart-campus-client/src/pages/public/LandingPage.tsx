@@ -94,9 +94,9 @@ export function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#d0d6e0] py-8 px-6 text-center">
-        <p className="text-xs text-[#62666d]">
-          &copy; {new Date().getFullYear()} HelaUni.app - Engineered for Excellence .
+      <footer className="absolute bottom-0 left-0 w-full pb-8 pt-4 px-6 text-center z-50 pointer-events-none">
+        <p className="text-sm font-[590] tracking-[0.02em] text-[#191a1b] opacity-60">
+          HelaUni.app
         </p>
       </footer>
     </div>
