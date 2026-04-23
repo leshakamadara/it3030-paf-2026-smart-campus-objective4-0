@@ -24,6 +24,8 @@ import com.smartcampus.booking.exception.ConflictException;
 import com.smartcampus.booking.repository.BookingRepository;
 import com.smartcampus.notification.entity.NotificationType;
 import com.smartcampus.notification.service.NotificationService;
+import com.smartcampus.resource.repository.ResourceRepository;
+import com.smartcampus.user.repository.UserRepository;
 
 @Service
 public class BookingService {
@@ -33,19 +35,25 @@ public class BookingService {
     private final CurrentBookingUserService currentBookingUserService;
     private final QrCodeService qrCodeService;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
+    private final ResourceRepository resourceRepository;
 
     public BookingService(
             BookingRepository bookingRepository,
             ConflictCheckService conflictCheckService,
             CurrentBookingUserService currentBookingUserService,
             QrCodeService qrCodeService,
-            NotificationService notificationService
+            NotificationService notificationService,
+            UserRepository userRepository,
+            ResourceRepository resourceRepository
     ) {
         this.bookingRepository = bookingRepository;
         this.conflictCheckService = conflictCheckService;
         this.currentBookingUserService = currentBookingUserService;
         this.qrCodeService = qrCodeService;
         this.notificationService = notificationService;
+        this.userRepository = userRepository;
+        this.resourceRepository = resourceRepository;
     }
 
     @Transactional
@@ -249,11 +257,24 @@ public class BookingService {
             return new BookingQrVerificationResponse(false, "Invalid QR token", null);
         }
 
+        com.smartcampus.resource.entity.Resource resource = resourceRepository.findById(booking.getResourceId()).orElse(null);
+
+        String userName = userRepository.findById(booking.getUserId())
+                .map(u -> u.getFullName())
+                .orElse("Unknown User");
+
+        BookingQrVerificationResponse.BookingVerificationDetails details = 
+                BookingQrVerificationResponse.BookingVerificationDetails.from(booking, resource, userName);
+
         if (booking.getStatus() != BookingStatus.APPROVED) {
-            return new BookingQrVerificationResponse(false, "Booking is not active for check-in", toResponse(booking, false));
+            return new BookingQrVerificationResponse(false, "Booking is not active for check-in", details);
         }
 
-        return new BookingQrVerificationResponse(true, "QR token is valid", toResponse(booking, true));
+        if (OffsetDateTime.now().isAfter(booking.getEndTime())) {
+            return new BookingQrVerificationResponse(false, "Booking has expired", details);
+        }
+
+        return new BookingQrVerificationResponse(true, "QR token is valid", details);
     }
 
     private void validateTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {

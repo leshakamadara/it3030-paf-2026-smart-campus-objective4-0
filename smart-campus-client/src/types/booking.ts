@@ -18,6 +18,12 @@ export interface Booking {
   updatedAt: string;
   createdBy: string | null;
   updatedBy: string | null;
+  resourceName?: string;
+  resourceCode?: string;
+  resourceType?: string;
+  building?: string;
+  capacity?: number;
+  userName?: string;
 }
 
 export interface BookingPageResponse {
