@@ -512,6 +512,7 @@ public class TicketServiceImpl implements TicketService {
                 comment.getCreatedBy().getEmail(),
                 comment.getCreatedBy().getFullName(),
                 comment.getCreatedBy().getRole().name(),
+                comment.getCreatedBy().getAvatarUrl(),
                 comment.getComment(),
                 comment.getCreatedAt(),
                 comment.getUpdatedAt()

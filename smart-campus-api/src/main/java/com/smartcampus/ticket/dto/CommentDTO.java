@@ -13,6 +13,7 @@ public class CommentDTO {
     private String createdBy;
     private String createdByName;
     private String createdByRole;
+    private String createdByAvatar;
     private String comment;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

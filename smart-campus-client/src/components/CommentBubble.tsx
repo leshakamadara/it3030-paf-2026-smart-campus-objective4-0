@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { timeAgo } from '../utills/ticket_helpers';
+import { Avatar } from './Avatar';
 
 type Props = {
   id: string;
@@ -9,6 +10,7 @@ type Props = {
   createdAt?: string;
   updatedAt?: string;
   initials?: string;
+  authorAvatar?: string | null;
   isOwn?: boolean;
   isTech?: boolean;
   onEdit?: (id: string) => void;
@@ -28,6 +30,7 @@ export default function CommentBubble(props: Props) {
     createdAt,
     updatedAt,
     initials,
+    authorAvatar,
     isOwn,
     isTech,
     onEdit,
@@ -60,13 +63,7 @@ export default function CommentBubble(props: Props) {
     >
       {/* Avatar — for tech on left, for user on right */}
       {isTech && (
-        <div
-          className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
-            isTech ? 'bg-violet-100 text-violet-700' : 'bg-sky-100 text-sky-800'
-          }`}
-        >
-          {computedInitials}
-        </div>
+        <Avatar src={authorAvatar} initials={computedInitials} size="sm" />
       )}
 
       <div className={`max-w-[75%] flex flex-col ${isTech ? 'items-start' : 'items-end'}`}>
@@ -155,11 +152,7 @@ export default function CommentBubble(props: Props) {
 
       {/* Avatar — for user on right */}
       {!isTech && (
-        <div
-          className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 bg-sky-100 text-sky-800`}
-        >
-          {computedInitials}
-        </div>
+        <Avatar src={authorAvatar} initials={computedInitials} size="sm" />
       )}
     </div>
   );

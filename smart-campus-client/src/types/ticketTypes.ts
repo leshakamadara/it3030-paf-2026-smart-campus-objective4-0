@@ -20,6 +20,7 @@ export interface CommentDTO {
   createdBy: string; // email
   createdByName?: string;
   createdByRole?: string;
+  createdByAvatar?: string;
   comment: string;
   createdAt: string;
   updatedAt?: string;

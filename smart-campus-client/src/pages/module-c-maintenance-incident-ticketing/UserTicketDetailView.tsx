@@ -5,6 +5,7 @@ import { STATUS_META, PRIORITY_META, CATEGORIES } from "../../../constants/Ticke
 import { formatDateTime } from "../../utills/ticket_helpers";
 import StatusTracker from "../../components/StatusTracker";
 import CommentBubble from "../../components/CommentBubble";
+import { Avatar } from "../../components/Avatar";
 import { useAuth } from "../../context/AuthContext";
 
 export default function TicketDetailView({
@@ -552,6 +553,8 @@ export default function TicketDetailView({
                 key={c.id ?? `${c.createdAt}-${c.createdBy ?? "unknown"}`}
                 id={String(c.id)}
                 authorName={authorLabel}
+                authorAvatar={c.createdByAvatar}
+                authorRole={c.createdByRole}
                 content={c.comment}
                 createdAt={c.createdAt}
                 updatedAt={c.updatedAt}
@@ -574,9 +577,7 @@ export default function TicketDetailView({
         {/* Comment input */}
         {ticket.status !== "CLOSED" && ticket.status !== "REJECTED" && (
           <div className="flex gap-3 pt-4 border-t border-slate-100">
-            <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-700 text-xs font-bold flex items-center justify-center shrink-0">
-              {user?.avatarUrl || user?.fullName?.slice(0,2) || '??'}
-            </div>
+            <Avatar src={user?.avatarUrl} initials={user?.fullName || "U"} size="md" />
             <div className="flex-1">
               <textarea
                 rows={2}

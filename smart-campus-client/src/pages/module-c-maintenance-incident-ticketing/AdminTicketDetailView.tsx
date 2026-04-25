@@ -356,6 +356,8 @@ export const AdminTicketDetailView = ({
                       key={c.id}
                       id={String(c.id)}
                       authorName={authorLabel}
+                      authorAvatar={c.createdByAvatar}
+                      authorRole={c.createdByRole}
                       content={c.comment}
                       createdAt={c.createdAt}
                       updatedAt={c.updatedAt}
@@ -379,7 +381,7 @@ export const AdminTicketDetailView = ({
 
               {/* Add Comment (outside scrollable box) */}
               <div className="flex items-start gap-4 pt-4 border-t border-slate-100">
-                <Avatar initials={user?.avatarUrl || "A"} />
+              <Avatar src={user?.avatarUrl} initials={user?.fullName || "A"} />
 
                 <div className="flex-1">
                   <textarea
