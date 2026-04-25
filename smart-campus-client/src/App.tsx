@@ -257,6 +257,21 @@ function HomePage() {
           </CardContent>
         </Card>
       </section>
+
+      <section className="relative overflow-hidden rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-12 flex items-center justify-center min-h-[240px]">
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none">
+          <span className="text-[120px] font-[590] tracking-[-0.044em] rotate-[-12deg] whitespace-nowrap">
+            Coming Soon
+          </span>
+        </div>
+        <div className="text-center relative z-10">
+          <p className="text-xs font-[510] uppercase tracking-[0.2em] text-[#7170ff] mb-2">Future Expansion</p>
+          <h3 className="text-xl font-[590] text-[#191a1b] tracking-tight">New Modules in Development</h3>
+          <p className="text-sm text-[#62666d] mt-2 max-w-lg mx-auto">
+            We are engineering new features to further unify the campus experience. Stay tuned for advanced analytics, event orchestration, and smart infrastructure integrations.
+          </p>
+        </div>
+      </section>
     </main>
   );
 }
