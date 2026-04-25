@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 
 import { LoginForm } from "@/components/login-form"
+import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/AuthContext"
 import { campusSignIn, getGoogleOAuthUrl } from "@/services/auth"
 
@@ -21,7 +22,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     }
   }, [isAuthenticated, navigate])
 
@@ -36,7 +37,7 @@ export function LoginPage() {
 
   function handleGoogleSignIn() {
     setLoadingGoogle(true)
-    window.location.href = getGoogleOAuthUrl()
+    window.location.assign(getGoogleOAuthUrl())
   }
 
   async function handleCampusSignIn(payload: { email: string; password: string }) {
@@ -50,7 +51,7 @@ export function LoginPage() {
       }
 
       setSession(response.token.replace(/^Bearer\s+/i, ""), response.user)
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     } catch (error) {
       const message = error instanceof Error ? error.message : "Campus sign-in failed"
       setCampusError(message)
@@ -63,15 +64,27 @@ export function LoginPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_20%,rgba(113,112,255,0.2),transparent_44%),radial-gradient(circle_at_84%_82%,rgba(94,106,210,0.14),transparent_40%)]" />
 
       <div className="relative mx-auto grid min-h-svh w-full max-w-6xl place-items-center px-4 py-12 sm:px-6">
-        <LoginForm
-          className="w-full max-w-4xl"
-          loadingCampus={loadingCampus}
-          loadingGoogle={loadingGoogle}
-          errorMessage={campusError ?? errorMessage}
-          onCampusSignIn={handleCampusSignIn}
-          onGoogleSignIn={handleGoogleSignIn}
-          onNavigateToSignup={() => navigate("/signup")}
-        />
+        <div className="w-full max-w-4xl space-y-3">
+          <LoginForm
+            className="w-full"
+            loadingCampus={loadingCampus}
+            loadingGoogle={loadingGoogle}
+            errorMessage={campusError ?? errorMessage}
+            onCampusSignIn={handleCampusSignIn}
+            onGoogleSignIn={handleGoogleSignIn}
+            onNavigateToSignup={() => navigate("/signup")}
+          />
+          <div className="flex justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              className="border-[#d0d6e0] bg-[#ffffff] text-[#43464b] hover:bg-[#f3f4f5]"
+              onClick={() => navigate("/signup/admin")}
+            >
+              Register as Admin (with key)
+            </Button>
+          </div>
+        </div>
       </div>
     </main>
   )

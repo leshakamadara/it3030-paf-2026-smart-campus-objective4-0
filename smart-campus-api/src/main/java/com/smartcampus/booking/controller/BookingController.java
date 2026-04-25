@@ -58,11 +58,14 @@ public class BookingController {
         return bookingService.getBookingById(authentication, id);
     }
 
+    /**
+     * Admin-only: full listing with all filters.
+     */
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     public BookingPageResponse getAllBookings(
             @RequestParam(required = false) BookingStatus status,
-            @RequestParam(required = false) UUID resourceId,
+            @RequestParam(required = false) Long resourceId,
             @RequestParam(required = false) UUID userId,
             @RequestParam(required = false) OffsetDateTime fromTime,
             @RequestParam(required = false) OffsetDateTime toTime,
@@ -70,6 +73,20 @@ public class BookingController {
             @RequestParam(defaultValue = "10") int size
     ) {
         return bookingService.getAllBookings(status, resourceId, userId, fromTime, toTime, page, size);
+    }
+
+    /**
+     * Any authenticated user: upcoming bookings for a specific resource.
+     * Used by the booking form for real-time conflict detection UI.
+     */
+    @GetMapping("/resource/{resourceId}/upcoming")
+    @PreAuthorize("hasAnyRole('USER','TECHNICIAN','ADMIN','SUPER_ADMIN')")
+    public BookingPageResponse getResourceUpcomingBookings(
+            @PathVariable Long resourceId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        return bookingService.getResourceUpcomingBookings(resourceId, page, size);
     }
 
     @PatchMapping("/{id}/approve")

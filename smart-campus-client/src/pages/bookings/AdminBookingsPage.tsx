@@ -121,8 +121,8 @@ export function AdminBookingsPage() {
 
   return (
     <section className="space-y-4">
-      <header className="rounded-xl border border-[#ffffff14] bg-[#0f1011] p-4">
-        <h2 className="text-lg font-[590] tracking-tight text-[#f7f8f8]">Admin Booking Moderation</h2>
+      <header className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-4">
+        <h2 className="text-lg font-[590] tracking-tight text-[#191a1b]">Admin Booking Moderation</h2>
         <p className="text-sm text-[#8a8f98]">Filter, inspect, and review campus booking requests.</p>
       </header>
 
@@ -131,13 +131,13 @@ export function AdminBookingsPage() {
       <div className="flex justify-end">
         <Button
           onClick={() => downloadCsv(sortedItems)}
-          className="border border-[#ffffff14] bg-[#191a1b] text-[#d0d6e0] hover:bg-[#25272a]"
+          className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#e6e6e6]"
         >
           Export CSV
         </Button>
       </div>
 
-      {error && <p className="rounded-lg border border-[#ff6a8b4d] bg-[#2a1018] p-3 text-sm text-[#ffc2d0]">{error}</p>}
+      {error && <p className="rounded-lg border border-[#f0b8c4] bg-[#fff1f4] p-3 text-sm text-[#8f3346]">{error}</p>}
       {loading && <p className="text-sm text-[#8a8f98]">Loading all bookings...</p>}
 
       <BookingTable

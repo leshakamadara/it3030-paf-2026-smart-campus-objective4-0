@@ -3,13 +3,20 @@ package com.smartcampus.notification.service;
 import com.smartcampus.notification.dto.NotificationPageResponse;
 import com.smartcampus.notification.dto.NotificationResponse;
 import com.smartcampus.notification.entity.Notification;
+import com.smartcampus.notification.entity.NotificationType;
 import com.smartcampus.notification.repository.NotificationRepository;
+import com.smartcampus.user.repository.UserRepository;
+import com.smartcampus.user.entity.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -20,11 +27,61 @@ import java.util.UUID;
 @Service
 public class NotificationService {
 
-    private final NotificationRepository notificationRepository;
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    private final NotificationRepository notificationRepository;
+    private final EmailService emailService;
+    private final UserRepository userRepository;
+
+    public NotificationService(
+            NotificationRepository notificationRepository,
+            EmailService emailService,
+            UserRepository userRepository) {
         this.notificationRepository = notificationRepository;
+        this.emailService = emailService;
+        this.userRepository = userRepository;
     }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Domain event entry-points (called by BookingService, TicketServiceImpl)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Fire a notification for the given user.
+     * Runs in a new transaction so a caller failure doesn't roll back the notification,
+     * and the notification doesn't prevent the caller from completing.
+     */
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void send(UUID userId, NotificationType type, String title, String message,
+                     String entityType, UUID entityId) {
+        try {
+            Notification notification = new Notification();
+            notification.setUserId(userId);
+            notification.setType(type);
+            notification.setTitle(title);
+            notification.setMessage(message);
+            notification.setEntityType(entityType);
+            notification.setEntityId(entityId);
+            notificationRepository.save(notification);
+
+            // Send email for bookings and tickets
+            if (type.name().contains("BOOKING") || type.name().contains("TICKET")) {
+                
+                userRepository.findById(userId).ifPresent(user -> {
+                    // Note: In the future, we could check user.getNotificationPrefs() here.
+                    // For now, we send emails for all booking/ticket updates.
+                    emailService.sendNotificationEmail(user.getEmail(), title, message);
+                });
+            }
+        } catch (Exception ex) {
+            log.error("Failed to persist notification for userId={} type={}: {}", userId, type, ex.getMessage(), ex);
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // REST-layer reads / writes
+    // ──────────────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public NotificationPageResponse getNotifications(UUID userId, int page, int size) {

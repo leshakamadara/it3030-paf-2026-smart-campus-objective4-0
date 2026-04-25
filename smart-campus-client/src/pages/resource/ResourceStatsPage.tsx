@@ -5,18 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft, Plus, Lock, Loader2, AlertCircle } from "lucide-react";
 import ResourceStatsCards from "../../components/ui/resource/ResourceStatsCards";
-import { getMockUser, isAdmin } from "../../lib/mockAuth";
+import { useAuth } from "@/context/AuthContext";
 import resourceService from "../../services/resourceService";
 import type { ResourceStats } from "../../types/resource";
 
 export default function ResourceStatsPage() {
+  const { user } = useAuth();
   const [stats, setStats] = useState<ResourceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const currentUser = getMockUser();
+  const isResourceAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
+  const userRoleLabel = user?.role ?? "USER";
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!isResourceAdmin) {
       setLoading(false);
       return;
     }
@@ -41,15 +43,15 @@ export default function ResourceStatsPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isResourceAdmin]);
 
-  if (!isAdmin()) {
+  if (!isResourceAdmin) {
     return (
       <div className="min-h-screen bg-background">
         <div className="border-b">
           <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
             <Button variant="ghost" asChild className="transition-all hover:bg-muted">
-              <Link to="/resources">
+              <Link to="/dashboard/resources">
                 <ChevronLeft className="mr-2 h-4 w-4" />
                 Resources
               </Link>
@@ -67,7 +69,7 @@ export default function ResourceStatsPage() {
             <CardContent>
               <p className="text-amber-700">
                 Only administrators can view analytics. You are signed in as{" "}
-                <strong>{currentUser.role}</strong>.
+                <strong>{userRoleLabel}</strong>.
               </p>
             </CardContent>
           </Card>
@@ -91,7 +93,7 @@ export default function ResourceStatsPage() {
           >
             <div className="flex items-center gap-4">
               <Button variant="ghost" asChild className="transition-all hover:bg-muted">
-                <Link to="/resources">
+                <Link to="/dashboard/resources">
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   Resources
                 </Link>
@@ -101,7 +103,7 @@ export default function ResourceStatsPage() {
             </div>
 
             <Button asChild className="transition-all hover:scale-105 hover:shadow-md">
-              <Link to="/admin/resources/create">
+              <Link to="/dashboard/admin/resources/create">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Resource
               </Link>

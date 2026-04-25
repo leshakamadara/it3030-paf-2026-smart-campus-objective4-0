@@ -22,7 +22,7 @@ export function OAuthCallbackPage() {
     void fetchCurrentUser(token)
       .then((response) => {
         setSession(token, response.user)
-        navigate("/", { replace: true })
+        navigate("/dashboard", { replace: true })
       })
       .catch(() => {
         clearSession()

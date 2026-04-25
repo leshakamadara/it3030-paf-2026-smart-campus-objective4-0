@@ -45,7 +45,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
           </div>
         </div>
 
-        <Link to="/settings/notifications">
+        <Link to="/dashboard/settings/notifications">
           <Button className="bg-[#5e6ad2] text-white hover:bg-[#7170ff]">Manage Notification Preferences</Button>
         </Link>
       </div>

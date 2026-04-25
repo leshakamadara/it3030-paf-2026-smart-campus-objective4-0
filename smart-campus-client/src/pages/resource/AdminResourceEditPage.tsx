@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft, Lock, Loader2, AlertCircle } from "lucide-react";
 import ResourceForm from "../../components/ui/resource/ResourceForm";
 import { useToast } from "../../components/ui/toast-system";
-import { isAdmin } from "../../lib/mockAuth";
+import { useAuth } from "@/context/AuthContext";
 import resourceService from "../../services/resourceService";
 import type { Resource, ResourceRequest } from "../../types/resource";
 
@@ -34,7 +34,8 @@ export default function AdminResourceEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
-  const admin = isAdmin();
+  const { user } = useAuth();
+  const admin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
   const [resource, setResource] = useState<Resource | null>(null);
   const [loading, setLoading] = useState(admin);
   const [pageError, setPageError] = useState("");
@@ -75,7 +76,7 @@ export default function AdminResourceEditPage() {
       setFormError("");
       const updated = await resourceService.updateResource(Number(id), values);
       toast.success("Changes saved!", `"${updated.name}" has been updated.`);
-      navigate(`/resources/${updated.id}`);
+      navigate(`/dashboard/resources/${updated.id}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to update resource.";
       toast.error("Update failed", message);
@@ -89,7 +90,7 @@ export default function AdminResourceEditPage() {
         <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
             <Button variant="ghost" asChild>
-              <Link to="/resources">
+              <Link to="/dashboard/resources">
                 <ChevronLeft className="mr-2 h-4 w-4" />
                 Resources
               </Link>
@@ -98,7 +99,7 @@ export default function AdminResourceEditPage() {
             {id && (
               <>
                 <Button variant="ghost" asChild className="px-2">
-                  <Link to={`/resources/${id}`}>#{id}</Link>
+                  <Link to={`/dashboard/resources/${id}`}>#{id}</Link>
                 </Button>
                 <span className="text-muted-foreground">/</span>
               </>
@@ -144,7 +145,7 @@ function AccessDenied() {
       <div className="border-b">
         <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6">
           <Button variant="ghost" asChild>
-            <Link to="/resources">
+            <Link to="/dashboard/resources">
               <ChevronLeft className="mr-2 h-4 w-4" />
               Back to Resources
             </Link>

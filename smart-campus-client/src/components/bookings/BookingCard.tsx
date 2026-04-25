@@ -20,8 +20,8 @@ function triggerDownload(base64: string, fileName: string) {
 }
 
 export function BookingCard({ booking, resource, onCancel, onError }: BookingCardProps) {
-  const canCancel = booking.status === "APPROVED";
-  const resourceName = resource?.name ?? "Resource";
+  const canCancel = booking.status === "APPROVED" || booking.status === "PENDING";
+  const resourceName = resource?.name ?? `Resource #${booking.resourceId}`;
 
   async function handleQrDownload() {
     try {
@@ -43,36 +43,46 @@ export function BookingCard({ booking, resource, onCancel, onError }: BookingCar
   }
 
   return (
-    <article className="rounded-xl border border-[#ffffff14] bg-[#0f1011] p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.03)]">
+    <article className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-4 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-start gap-4">
         {resource?.imageUrl ? (
-          <img src={resource.imageUrl} alt={resourceName} className="h-16 w-16 rounded-lg border border-[#ffffff14] object-cover" />
+          <img
+            src={resource.imageUrl}
+            alt={resourceName}
+            className="h-16 w-16 flex-shrink-0 rounded-lg border border-[#d0d6e0] object-cover"
+          />
         ) : (
-          <div className="h-16 w-16 rounded-lg border border-[#ffffff14] bg-[#15171b]" />
+          <div className="h-16 w-16 flex-shrink-0 rounded-lg border border-[#d0d6e0] bg-[#f3f4f5] flex items-center justify-center">
+            <span className="text-xl">📦</span>
+          </div>
         )}
 
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="truncate text-sm font-[590] text-[#f7f8f8]">{resourceName}</h3>
+            <h3 className="truncate text-sm font-[590] text-[#191a1b]">{resourceName}</h3>
             <BookingStatusBadge status={booking.status} />
           </div>
-          <p className="text-xs text-[#d0d6e0]">{booking.purpose}</p>
+          <p className="text-xs text-[#43464b]">{booking.purpose}</p>
           <p className="text-xs text-[#8a8f98]">
-            {new Date(booking.startTime).toLocaleString()} - {new Date(booking.endTime).toLocaleString()}
+            {new Date(booking.startTime).toLocaleString()} — {new Date(booking.endTime).toLocaleString()}
           </p>
-          <p className="text-[10px] text-[#62666d]">Attendees: {booking.attendeeCount ?? "N/A"}</p>
+          <p className="text-[10px] text-[#8a8f98]">
+            Attendees: {booking.attendeeCount ?? "N/A"} · Resource #{booking.resourceId}
+          </p>
         </div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Link to={`/bookings/${booking.id}`}>
-          <Button className="border border-[#ffffff14] bg-[#191a1b] text-[#d0d6e0] hover:bg-[#25272a]">View details</Button>
+        <Link to={`/dashboard/bookings/${booking.id}`}>
+          <Button className="h-8 border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-xs text-[#43464b] hover:bg-[#f3f4f5]">
+            View details
+          </Button>
         </Link>
 
         {canCancel && (
           <Button
             onClick={() => onCancel?.(booking.id)}
-            className="border border-[#5a2031] bg-[#341522] text-[#ffc2d0] hover:bg-[#462030]"
+            className="h-8 border border-[#f0b8c4] bg-[#fff1f4] px-3 text-xs text-[#8f3346] hover:bg-[#ffe6ec]"
           >
             Cancel
           </Button>
@@ -81,7 +91,7 @@ export function BookingCard({ booking, resource, onCancel, onError }: BookingCar
         {booking.status === "APPROVED" && booking.qrCodeToken && (
           <Button
             onClick={() => void handleQrDownload()}
-            className="border border-[#1f4d33] bg-[#163623] text-[#9af0bc] hover:bg-[#1e442d]"
+            className="h-8 border border-[#bbf7d0] bg-[#f0fdf4] px-3 text-xs text-[#166534] hover:bg-[#dcfce7]"
           >
             Download QR
           </Button>

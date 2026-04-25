@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,10 @@ import com.smartcampus.booking.entity.Booking;
 import com.smartcampus.booking.entity.BookingStatus;
 import com.smartcampus.booking.exception.ConflictException;
 import com.smartcampus.booking.repository.BookingRepository;
+import com.smartcampus.notification.entity.NotificationType;
+import com.smartcampus.notification.service.NotificationService;
+import com.smartcampus.resource.repository.ResourceRepository;
+import com.smartcampus.user.repository.UserRepository;
 
 @Service
 public class BookingService {
@@ -29,17 +34,26 @@ public class BookingService {
     private final ConflictCheckService conflictCheckService;
     private final CurrentBookingUserService currentBookingUserService;
     private final QrCodeService qrCodeService;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
+    private final ResourceRepository resourceRepository;
 
     public BookingService(
             BookingRepository bookingRepository,
             ConflictCheckService conflictCheckService,
             CurrentBookingUserService currentBookingUserService,
-            QrCodeService qrCodeService
+            QrCodeService qrCodeService,
+            NotificationService notificationService,
+            UserRepository userRepository,
+            ResourceRepository resourceRepository
     ) {
         this.bookingRepository = bookingRepository;
         this.conflictCheckService = conflictCheckService;
         this.currentBookingUserService = currentBookingUserService;
         this.qrCodeService = qrCodeService;
+        this.notificationService = notificationService;
+        this.userRepository = userRepository;
+        this.resourceRepository = resourceRepository;
     }
 
     @Transactional
@@ -92,7 +106,7 @@ public class BookingService {
     @Transactional(readOnly = true)
     public BookingPageResponse getAllBookings(
             BookingStatus status,
-            UUID resourceId,
+            Long resourceId,
             UUID userId,
             OffsetDateTime fromTime,
             OffsetDateTime toTime,
@@ -100,7 +114,36 @@ public class BookingService {
             int size
     ) {
         Pageable pageable = createPageable(page, size);
-        Page<Booking> bookingPage = bookingRepository.search(status, resourceId, userId, fromTime, toTime, pageable);
+        Specification<Booking> spec = Specification.where(null);
+
+        if (status != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
+        }
+        if (resourceId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("resourceId"), resourceId));
+        }
+        if (userId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("userId"), userId));
+        }
+        if (fromTime != null) {
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("startTime"), fromTime));
+        }
+        if (toTime != null) {
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("endTime"), toTime));
+        }
+
+        Page<Booking> bookingPage = bookingRepository.findAll(spec, pageable);
+        return toPageResponse(bookingPage, false);
+    }
+
+    /**
+     * Returns upcoming PENDING/APPROVED bookings for a resource.
+     * Accessible by any authenticated user — used for conflict checking on the booking form.
+     */
+    @Transactional(readOnly = true)
+    public BookingPageResponse getResourceUpcomingBookings(Long resourceId, int page, int size) {
+        Pageable pageable = createPageable(page, size);
+        Page<Booking> bookingPage = bookingRepository.findByResourceId(resourceId, pageable);
         return toPageResponse(bookingPage, false);
     }
 
@@ -124,6 +167,17 @@ public class BookingService {
         }
 
         Booking saved = bookingRepository.save(booking);
+
+        // Fire notification to the booking owner
+        notificationService.send(
+                saved.getUserId(),
+                NotificationType.BOOKING_APPROVED,
+                "Booking Approved",
+                "Your booking request has been approved. Check your QR code for check-in.",
+                "BOOKING",
+                saved.getId()
+        );
+
         return toResponse(saved, true);
     }
 
@@ -147,23 +201,52 @@ public class BookingService {
         booking.setQrCodeToken(null);
 
         Booking saved = bookingRepository.save(booking);
+
+        // Fire notification to the booking owner
+        notificationService.send(
+                saved.getUserId(),
+                NotificationType.BOOKING_REJECTED,
+                "Booking Rejected",
+                "Your booking request has been rejected. Reason: " + request.reason().trim(),
+                "BOOKING",
+                saved.getId()
+        );
+
         return toResponse(saved, false);
     }
 
     @Transactional
     public BookingResponse cancelBooking(org.springframework.security.core.Authentication authentication, UUID bookingId) {
         UUID currentUserId = currentBookingUserService.resolveUserId(authentication);
-        Booking booking = bookingRepository.findByIdAndUserId(bookingId, currentUserId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+        boolean admin = currentBookingUserService.isAdmin(authentication);
 
-        if (booking.getStatus() != BookingStatus.APPROVED) {
-            throw new ConflictException("Only approved bookings can be cancelled");
+        Booking booking = admin
+                ? bookingRepository.findById(bookingId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"))
+                : bookingRepository.findByIdAndUserId(bookingId, currentUserId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (booking.getStatus() != BookingStatus.APPROVED && booking.getStatus() != BookingStatus.PENDING) {
+            throw new ConflictException("Only pending or approved bookings can be cancelled");
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setUpdatedBy(currentUserId);
 
         Booking saved = bookingRepository.save(booking);
+
+        // Notify the booking owner only when an admin cancels someone else's booking
+        if (admin && !saved.getUserId().equals(currentUserId)) {
+            notificationService.send(
+                    saved.getUserId(),
+                    NotificationType.BOOKING_CANCELLED,
+                    "Booking Cancelled",
+                    "Your booking has been cancelled by an administrator.",
+                    "BOOKING",
+                    saved.getId()
+            );
+        }
+
         return toResponse(saved, false);
     }
 
@@ -174,11 +257,24 @@ public class BookingService {
             return new BookingQrVerificationResponse(false, "Invalid QR token", null);
         }
 
+        com.smartcampus.resource.entity.Resource resource = resourceRepository.findById(booking.getResourceId()).orElse(null);
+
+        String userName = userRepository.findById(booking.getUserId())
+                .map(u -> u.getFullName())
+                .orElse("Unknown User");
+
+        BookingQrVerificationResponse.BookingVerificationDetails details = 
+                BookingQrVerificationResponse.BookingVerificationDetails.from(booking, resource, userName);
+
         if (booking.getStatus() != BookingStatus.APPROVED) {
-            return new BookingQrVerificationResponse(false, "Booking is not active for check-in", toResponse(booking, false));
+            return new BookingQrVerificationResponse(false, "Booking is not active for check-in", details);
         }
 
-        return new BookingQrVerificationResponse(true, "QR token is valid", toResponse(booking, true));
+        if (OffsetDateTime.now().isAfter(booking.getEndTime())) {
+            return new BookingQrVerificationResponse(false, "Booking has expired", details);
+        }
+
+        return new BookingQrVerificationResponse(true, "QR token is valid", details);
     }
 
     private void validateTimeRange(OffsetDateTime startTime, OffsetDateTime endTime) {

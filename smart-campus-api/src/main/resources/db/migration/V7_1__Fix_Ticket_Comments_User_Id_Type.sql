@@ -91,11 +91,13 @@ EXCEPTION WHEN OTHERS THEN
     NULL;
 END $$;
 
--- Drop the old table
-ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_user_id_fkey;
-ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_technician_id_fkey;
-ALTER TABLE ticket_comments DROP CONSTRAINT IF EXISTS ticket_comments_user_id_fkey;
-DROP TABLE users_old;
+-- Drop tables that depend on users before dropping users_old
+DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS bookings CASCADE;
+ALTER TABLE IF EXISTS tickets DROP CONSTRAINT IF EXISTS tickets_user_id_fkey;
+ALTER TABLE IF EXISTS tickets DROP CONSTRAINT IF EXISTS tickets_technician_id_fkey;
+ALTER TABLE IF EXISTS ticket_comments DROP CONSTRAINT IF EXISTS ticket_comments_user_id_fkey;
+DROP TABLE users_old CASCADE;
 
 -- Since we're in development, drop and recreate tickets and ticket_comments tables with correct UUID types
 DROP TABLE IF EXISTS ticket_comments CASCADE;

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CalendarPlus } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { Pencil, Trash2, MapPin, Users, Clock, Calendar, Loader2, AlertCircle, ChevronLeft } from "lucide-react";
 import ResourceStatusBadge from "../../components/ui/resource/ResourceStatusBadge";
 import { useToast } from "../../components/ui/toast-system";
-import { isAdmin } from "../../lib/mockAuth";
+import { useAuth } from "@/context/AuthContext";
 import resourceService from "../../services/resourceService";
 import type { Resource } from "../../types/resource";
 
@@ -121,6 +122,7 @@ export default function ResourceDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { user } = useAuth();
   const [resource, setResource] = useState<Resource | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -160,7 +162,7 @@ export default function ResourceDetailsPage() {
       await resourceService.deleteResource(Number(id));
       setShowDeleteConfirm(false);
       toast.success("Resource deleted", `The resource has been permanently removed.`);
-      navigate("/resources");
+      navigate("/dashboard/resources");
     } catch (err) {
       setDeleting(false);
       setShowDeleteConfirm(false);
@@ -185,7 +187,7 @@ export default function ResourceDetailsPage() {
         <div className="border-b">
           <div className="mx-auto max-w-5xl px-4 py-5 sm:px-6">
             <Button variant="ghost" asChild className="transition-all hover:bg-muted">
-              <Link to="/resources">
+              <Link to="/dashboard/resources">
                 <ChevronLeft className="mr-2 h-4 w-4" />
                 Resources
               </Link>
@@ -210,7 +212,7 @@ export default function ResourceDetailsPage() {
   const theme = TYPE_THEME[resource.type] ?? DEFAULT_THEME;
   const enabledFeatures = FEATURES.filter((f) => resource[f.key as keyof Resource]);
   const disabledFeatures = FEATURES.filter((f) => !resource[f.key as keyof Resource]);
-  const admin = isAdmin();
+  const admin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
   return (
     <div className="min-h-screen bg-background">
@@ -231,7 +233,7 @@ export default function ResourceDetailsPage() {
           >
             <div className="flex items-center gap-4">
               <Button variant="ghost" asChild className="transition-all hover:bg-muted">
-                <Link to="/resources">
+                <Link to="/dashboard/resources">
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   Resources
                 </Link>
@@ -243,7 +245,7 @@ export default function ResourceDetailsPage() {
               <ResourceStatusBadge resource={resource} />
               {admin && (
                 <Button asChild className="transition-all hover:scale-105 hover:shadow-md">
-                  <Link to={`/admin/resources/edit/${resource.id}`}>
+                  <Link to={`/dashboard/admin/resources/edit/${resource.id}`}>
                     <Pencil className="mr-2 h-4 w-4" />
                     Edit
                   </Link>
@@ -450,6 +452,38 @@ export default function ResourceDetailsPage() {
                     Delete Resource
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Book This Resource CTA */}
+        {resource.isBookable && !resource.isUnderMaintenance && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <Card className="border-[#5e6ad2]/30 bg-gradient-to-br from-[#eef2ff] to-[#f7f8ff] transition-shadow hover:shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-[#5e6ad2]">
+                  <CalendarPlus className="h-5 w-5" />
+                  Book This Resource
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-4 text-sm text-[#43464b]">
+                  This resource is available for booking. Submit a request and an admin will review it.
+                </p>
+                <Button
+                  asChild
+                  className="bg-[#5e6ad2] text-white transition-all hover:bg-[#7170ff] hover:scale-105 hover:shadow-md"
+                >
+                  <Link to={`/dashboard/bookings/new?resourceId=${resource.id}`}>
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    Create Booking
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           </motion.div>

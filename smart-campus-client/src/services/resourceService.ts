@@ -5,8 +5,9 @@ import type {
   ResourceRequest,
   ResourceStats,
 } from "../types/resource";
+import { getStoredToken } from "./auth";
 
-const API_BASE_URL = "http://localhost:8080/api/resources";
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080"}/api/resources`;
 const USE_MOCK_DATA = false;
 
 type BackendResourcePayload = {
@@ -347,7 +348,17 @@ const extractErrorMessage = async (response: Response): Promise<string> => {
 };
 
 const requestJson = async <T>(url: string, options?: RequestInit): Promise<T> => {
-  const response = await fetch(url, options);
+  const token = getStoredToken();
+  const headers = new Headers(options?.headers);
+
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", token.startsWith("Bearer ") ? token : `Bearer ${token}`);
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
 
   if (!response.ok) {
     const message = await extractErrorMessage(response);

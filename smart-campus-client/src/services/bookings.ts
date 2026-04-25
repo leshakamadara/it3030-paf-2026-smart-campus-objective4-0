@@ -82,7 +82,7 @@ export function getBooking(id: string): Promise<Booking> {
 
 export function getAllBookings(params?: {
   status?: BookingStatus;
-  resourceId?: string;
+  resourceId?: string | number;
   userId?: string;
   fromTime?: string;
   toTime?: string;
@@ -94,8 +94,8 @@ export function getAllBookings(params?: {
   if (params?.status) {
     query.set("status", params.status);
   }
-  if (params?.resourceId) {
-    query.set("resourceId", params.resourceId);
+  if (params?.resourceId != null) {
+    query.set("resourceId", String(params.resourceId));
   }
   if (params?.userId) {
     query.set("userId", params.userId);
@@ -111,6 +111,17 @@ export function getAllBookings(params?: {
   query.set("size", String(params?.size ?? 10));
 
   return request<BookingPageResponse>(`/api/bookings?${query.toString()}`);
+}
+
+/** Any authenticated user — fetches upcoming bookings for a resource for conflict-check UI */
+export function getResourceUpcomingBookings(
+  resourceId: number | string,
+  page = 0,
+  size = 50,
+): Promise<BookingPageResponse> {
+  return request<BookingPageResponse>(
+    `/api/bookings/resource/${resourceId}/upcoming?page=${page}&size=${size}`,
+  );
 }
 
 export function approveBooking(id: string): Promise<Booking> {
@@ -136,19 +147,32 @@ export function verifyQrToken(token: string): Promise<BookingQrVerificationRespo
   return request<BookingQrVerificationResponse>(`/api/bookings/qr/${encodeURIComponent(token)}`);
 }
 
+/**
+ * Normalizes raw resource data from the API into ResourceSummary.
+ * Handles both numeric Long ids (from resource API) and string UUIDs.
+ */
 function normalizeResource(raw: unknown): ResourceSummary | null {
   if (!raw || typeof raw !== "object") {
     return null;
   }
 
   const item = raw as Record<string, unknown>;
-  const idValue = item.id ?? item.resourceId ?? item.uuid;
-  if (typeof idValue !== "string" || idValue.trim().length === 0) {
+  const idRaw = item.id ?? item.resourceId ?? item.uuid;
+
+  // Accept both number (Long) and string IDs — stringify for ResourceSummary
+  let idStr: string | null = null;
+  if (typeof idRaw === "number") {
+    idStr = String(idRaw);
+  } else if (typeof idRaw === "string" && idRaw.trim().length > 0) {
+    idStr = idRaw.trim();
+  }
+
+  if (idStr === null) {
     return null;
   }
 
   return {
-    id: idValue,
+    id: idStr,
     name:
       typeof item.name === "string"
         ? item.name

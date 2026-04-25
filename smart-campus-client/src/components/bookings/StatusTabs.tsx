@@ -12,7 +12,7 @@ interface StatusTabsProps {
 
 export function StatusTabs({ value, counts, onChange }: StatusTabsProps) {
   return (
-    <div className="inline-flex flex-wrap gap-2 rounded-xl border border-[#ffffff12] bg-[#0f1011] p-2">
+    <div className="inline-flex flex-wrap gap-2 rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-2">
       {STATUS_TAB_VALUES.map((tab) => {
         const active = value === tab;
         return (
@@ -23,7 +23,7 @@ export function StatusTabs({ value, counts, onChange }: StatusTabsProps) {
             className={`rounded-md px-3 py-1.5 text-xs font-[510] transition ${
               active
                 ? "bg-[#5e6ad2] text-white"
-                : "border border-[#ffffff14] bg-[#1a1b1d] text-[#d0d6e0] hover:bg-[#25272a]"
+                : "border border-[#d0d6e0] bg-[#f3f4f5] text-[#43464b] hover:bg-[#e6e6e6]"
             }`}
           >
             {tab} ({counts[tab]})

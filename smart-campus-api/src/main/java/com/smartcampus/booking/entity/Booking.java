@@ -4,7 +4,9 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,12 +37,13 @@ public class Booking {
     private UUID id;
 
     @Column(name = "resource_id", nullable = false)
-    private UUID resourceId;
+    private Long resourceId;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false, columnDefinition = "booking_status")
     private BookingStatus status = BookingStatus.PENDING;
 
@@ -90,11 +93,11 @@ public class Booking {
         this.id = id;
     }
 
-    public UUID getResourceId() {
+    public Long getResourceId() {
         return resourceId;
     }
 
-    public void setResourceId(UUID resourceId) {
+    public void setResourceId(Long resourceId) {
         this.resourceId = resourceId;
     }
 

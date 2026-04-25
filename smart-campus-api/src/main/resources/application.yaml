@@ -1,8 +1,24 @@
 spring:
   config:
-    import: optional:file:.env[.properties]
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:smart-campus-api/.env[.properties]
   application:
     name: smart-campus-api
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID:}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET:}
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?prompt=select_account
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/SMCSDB}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -41,8 +57,16 @@ app:
   jwt-expiration-milliseconds: ${APP_JWT_EXPIRATION_MILLISECONDS:86400000}
   oauth2:
     authorized-redirect-uri: ${APP_OAUTH2_AUTHORIZED_REDIRECT_URI:http://localhost:5173/auth/callback}
+  frontend:
+    url: ${APP_FRONTEND_URL:http://localhost:5173}
   auth:
     allow-dummy-login: ${APP_AUTH_ALLOW_DUMMY_LOGIN:false}
+    admin-signup-key-valid-hours: ${APP_AUTH_ADMIN_SIGNUP_KEY_VALID_HOURS:24}
+
+  super-admin:
+    email: ${APP_SUPER_ADMIN_EMAIL:}
+    password: ${APP_SUPER_ADMIN_PASSWORD:}
+    full-name: ${APP_SUPER_ADMIN_FULL_NAME:Super Admin}
 
 logging:
   level:
@@ -55,3 +79,7 @@ logging:
         type:
           descriptor:
             sql: TRACE
+
+resend:
+  api-key: ${RESEND_API_KEY:}
+  from-email: ${RESEND_FROM_EMAIL:no-reply@helauni.app}

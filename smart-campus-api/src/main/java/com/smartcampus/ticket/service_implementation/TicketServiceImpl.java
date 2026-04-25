@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.smartcampus.notification.entity.NotificationType;
+import com.smartcampus.notification.service.NotificationService;
 import com.smartcampus.ticket.dto.AttachmentDTO;
 import com.smartcampus.ticket.dto.CommentDTO;
 import com.smartcampus.ticket.dto.TicketRequestDTO;
@@ -40,6 +42,7 @@ public class TicketServiceImpl implements TicketService {
     private final TicketCommentRepository commentRepository;
     private final TicketAttachmentRepository attachmentRepository;
     private final CloudinaryService cloudinaryService;
+    private final NotificationService notificationService;
 
     @Override
     public TicketResponseDTO createTicket(TicketRequestDTO request, String userEmail) throws IOException {
@@ -137,6 +140,35 @@ public class TicketServiceImpl implements TicketService {
 
         Ticket updatedTicket = ticketRepository.save(ticket);
 
+        // Notify ticket owner of status change (if different from the acting technician)
+        User ticketOwner = updatedTicket.getCreatedBy();
+        if (ticketOwner != null && ticketOwner.getId() != null) {
+            String statusLabel = newStatus.name().replace('_', ' ');
+            String notifMsg = "Your ticket '" + updatedTicket.getTitle() + "' status has changed to " + statusLabel
+                    + (notes != null && !notes.trim().isEmpty() ? ". Note: " + notes.trim() : ".");
+            notificationService.send(
+                    ticketOwner.getId(),
+                    NotificationType.TICKET_STATUS_CHANGED,
+                    "Ticket Status Updated: " + statusLabel,
+                    notifMsg,
+                    "TICKET",
+                    null
+            );
+        }
+
+        // If a technician was newly assigned, notify them
+        if (technician != null && technician.getId() != null
+                && (ticket.getTechnician() == null || !technician.getId().equals(ticket.getTechnician().getId()))) {
+            notificationService.send(
+                    technician.getId(),
+                    NotificationType.TICKET_ASSIGNED,
+                    "Ticket Assigned to You",
+                    "You have been assigned to ticket: '" + updatedTicket.getTitle() + "'.",
+                    "TICKET",
+                    null
+            );
+        }
+
         return convertToDTO(updatedTicket);
     }
 
@@ -160,6 +192,21 @@ public class TicketServiceImpl implements TicketService {
         comment.setCreatedBy(user);
 
         TicketComment savedComment = commentRepository.save(comment);
+
+        // Notify ticket owner if the commenter is different
+        User ticketOwner = ticket.getCreatedBy();
+        if (ticketOwner != null && ticketOwner.getId() != null
+                && !ticketOwner.getEmail().equalsIgnoreCase(userEmail)) {
+            notificationService.send(
+                    ticketOwner.getId(),
+                    NotificationType.TICKET_COMMENT,
+                    "New Comment on Your Ticket",
+                    user.getFullName() + " commented on '" + ticket.getTitle() + "': " + commentText.trim(),
+                    "TICKET",
+                    null
+            );
+        }
+
         return convertCommentToDTO(savedComment);
     }
 
@@ -379,6 +426,7 @@ public class TicketServiceImpl implements TicketService {
         dto.setStatus(ticket.getStatus());
         dto.setCreatedBy(ticket.getCreatedBy().getEmail());
         dto.setTechnician(ticket.getTechnician() != null ? ticket.getTechnician().getEmail() : null);
+        dto.setAssignedToName(ticket.getTechnician() != null ? ticket.getTechnician().getFullName() : null);
         dto.setResolutionNote(ticket.getResolutionNote());
         dto.setRejectionReason(ticket.getRejectionReason());
 

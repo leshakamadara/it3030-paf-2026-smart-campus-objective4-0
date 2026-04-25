@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Link } from "react-router-dom"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -68,12 +69,12 @@ export function LoginForm({
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <button
-                    type="button"
+                  <Link
+                    to="/forgot-password"
                     className="ml-auto text-xs text-[#62666d] underline-offset-2 hover:text-[#43464b] hover:underline"
                   >
                     Forgot password?
-                  </button>
+                  </Link>
                 </div>
                 <Input
                   id="password"
@@ -101,7 +102,11 @@ export function LoginForm({
                   variant="outline"
                   type="button"
                   disabled={loadingGoogle}
-                  onClick={onGoogleSignIn}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    onGoogleSignIn()
+                  }}
                   className="border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5]"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
