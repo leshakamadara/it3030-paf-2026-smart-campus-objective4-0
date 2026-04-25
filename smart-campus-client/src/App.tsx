@@ -77,7 +77,7 @@ function AuthenticatedLayout() {
             </Link>
             <nav className="flex items-center gap-2">
               <NavLink
-                to="/bookings"
+                to="/dashboard/bookings"
                 className={({ isActive }) =>
                   isActive
                     ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
@@ -87,7 +87,7 @@ function AuthenticatedLayout() {
                 Bookings
               </NavLink>
               <NavLink
-                to="/resources"
+                to="/dashboard/resources"
                 className={({ isActive }) =>
                   isActive
                     ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
@@ -97,7 +97,7 @@ function AuthenticatedLayout() {
                 Resources
               </NavLink>
               <NavLink
-                to="/tickets"
+                to="/dashboard/tickets"
                 className={({ isActive }) =>
                   isActive
                     ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
@@ -107,7 +107,7 @@ function AuthenticatedLayout() {
                 My Tickets
               </NavLink>
               <NavLink
-                to="/settings/profile"
+                to="/dashboard/settings/profile"
                 className={({ isActive }) =>
                   isActive
                     ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
@@ -117,7 +117,7 @@ function AuthenticatedLayout() {
                 Profile
               </NavLink>
               <NavLink
-                to="/notifications"
+                to="/dashboard/notifications"
                 className={({ isActive }) =>
                   isActive
                     ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
@@ -128,7 +128,7 @@ function AuthenticatedLayout() {
               </NavLink>
               {isSuperAdmin && (
                 <NavLink
-                  to="/admin/users"
+                  to="/dashboard/admin/users"
                   className={({ isActive }) =>
                     isActive
                       ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
@@ -140,7 +140,7 @@ function AuthenticatedLayout() {
               )}
               {isResourceAdmin && (
                 <NavLink
-                  to="/admin/resources/stats"
+                  to="/dashboard/admin/resources/stats"
                   className={({ isActive }) =>
                     isActive
                       ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
@@ -152,7 +152,7 @@ function AuthenticatedLayout() {
               )}
               {isResourceAdmin && (
                 <NavLink
-                  to="/admin/bookings"
+                  to="/dashboard/admin/bookings"
                   className={({ isActive }) =>
                     isActive
                       ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
@@ -164,7 +164,7 @@ function AuthenticatedLayout() {
               )}
               {isResourceAdmin && (
                 <NavLink
-                  to="/admin/tickets"
+                  to="/dashboard/admin/tickets"
                   className={({ isActive }) =>
                     isActive
                       ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
@@ -176,7 +176,7 @@ function AuthenticatedLayout() {
               )}
               {isResourceAdmin && (
                 <NavLink
-                  to="/email-tester"
+                  to="/dashboard/email-tester"
                   className={({ isActive }) =>
                     isActive
                       ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
@@ -235,14 +235,14 @@ function HomePage() {
             <p className="text-sm text-[#62666d]">Create and manage booking requests for campus resources.</p>
             <div className="flex flex-wrap gap-2">
               <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-                <Link to="/bookings">My Bookings</Link>
+                <Link to="/dashboard/bookings">My Bookings</Link>
               </Button>
               <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-                <Link to="/bookings/new">Create Booking</Link>
+                <Link to="/dashboard/bookings/new">Create Booking</Link>
               </Button>
               {isResourceAdmin && (
                 <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-                  <Link to="/admin/bookings">Admin Bookings</Link>
+                  <Link to="/dashboard/admin/bookings">Admin Bookings</Link>
                 </Button>
               )}
             </div>
@@ -257,11 +257,11 @@ function HomePage() {
             <p className="text-sm text-[#62666d]">Browse campus facilities and view detailed resource information.</p>
             <div className="flex flex-wrap gap-2">
               <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-                <Link to="/resources">Browse Resources</Link>
+                <Link to="/dashboard/resources">Browse Resources</Link>
               </Button>
               {isResourceAdmin && (
                 <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-                  <Link to="/admin/resources/stats">Resource Admin</Link>
+                  <Link to="/dashboard/admin/resources/stats">Resource Admin</Link>
                 </Button>
               )}
             </div>
@@ -280,11 +280,11 @@ function HomePage() {
         <p className="text-sm text-[#62666d] mb-4">Report campus incidents and track their resolution progress.</p>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-            <Link to="/tickets">My Tickets</Link>
+            <Link to="/dashboard/tickets">My Tickets</Link>
           </Button>
           {isResourceAdmin && (
             <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-              <Link to="/admin/tickets">Ticket Admin</Link>
+              <Link to="/dashboard/admin/tickets">Ticket Admin</Link>
             </Button>
           )}
         </div>
@@ -304,7 +304,6 @@ export default function App() {
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route path="/qr/:token" element={<QrCheckInPage />} />
       <Route path="/" element={<LandingPage />} />
-      <Route path="/email-tester" element={<EmailTesterPage />} />
       <Route
         path="/dashboard"
         element={
@@ -371,6 +370,7 @@ export default function App() {
             </AdminRoute>
           }
         />
+        <Route path="email-tester" element={<EmailTesterPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
