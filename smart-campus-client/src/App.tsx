@@ -69,6 +69,7 @@ function AuthenticatedLayout() {
   return (
     <div className="min-h-svh bg-[#f7f8f8] text-[#191a1b]">
       <header className="sticky top-0 z-30 border-b border-[#d0d6e0] bg-[#ffffff]/90 backdrop-blur">
+        <div className="h-0.5 w-full bg-[#5e6ad2]" />
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-4">
             <Link to="/dashboard" className="flex items-center gap-2 text-sm font-[590] tracking-[0.02em] text-[#191a1b]">
