@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { Link, NavLink, Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { LogOut } from "lucide-react";
 
 import { NotificationPanel } from "@/components/notifications/NotificationPanel";
 import { RoleBadge } from "@/components/settings/RoleBadge";
@@ -149,12 +150,15 @@ function AuthenticatedLayout() {
             <span className="hidden text-xs font-[510] text-[#43464b] sm:inline">
               {user?.fullName ?? "User"}
             </span>
-            <Button
+            <div className="ml-1 h-5 w-px bg-[#e8eaed]" />
+            <button
               onClick={clearSession}
-              className="h-8 rounded-md border border-[#f0b8c4] bg-[#fff1f4] px-3 text-xs text-[#8f3346] hover:bg-[#ffe6ec] shadow-none"
+              className="ml-1 flex h-8 items-center rounded-md px-2.5 text-xs font-[510] text-[#62666d] transition-colors hover:bg-[#f3f4f5] hover:text-[#191a1b]"
+              title="Sign out"
             >
+              <LogOut className="mr-1.5 h-3.5 w-3.5" />
               Sign out
-            </Button>
+            </button>
           </div>
         </div>
       </header>

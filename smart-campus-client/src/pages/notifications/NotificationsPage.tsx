@@ -11,15 +11,7 @@ import {
   Ticket,
   Trash2,
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -96,8 +88,8 @@ function getConfig(type: string) {
 function targetPath(item: NotificationItem) {
   if (item.entityType && item.entityId) {
     const t = item.entityType.toUpperCase();
-    if (t.includes("BOOKING")) return `/bookings/${item.entityId}`;
-    if (t.includes("TICKET")) return `/tickets/${item.entityId}`;
+    if (t.includes("BOOKING")) return `/dashboard/bookings/${item.entityId}`;
+    if (t.includes("TICKET")) return `/dashboard/tickets`;
   }
   return null;
 }
@@ -291,30 +283,17 @@ export function NotificationsPage() {
   const displayed = applyFilter(items, filter);
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-4 px-4 py-8">
-      {/* Page header */}
-      <section className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-6">
-        <Breadcrumb className="mb-2">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/dashboard">Dashboard</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Notifications</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="mt-1 text-2xl font-[590] tracking-tight text-[#191a1b]">Notifications</h1>
-            <p className="mt-1 text-sm text-[#62666d]">
-              Booking updates and ticket activity across all your campus interactions.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+    <div className="min-h-screen bg-[#f7f8f8]">
+      <PageHeader
+        label="HELAUNI.APP"
+        title="Notifications"
+        description="Booking updates and ticket activity across all your campus interactions."
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Notifications" },
+        ]}
+        action={
+          <div className="flex items-center gap-2">
             {unreadCount > 0 && (
               <Badge className="bg-[#5e6ad2] text-white border-0">
                 {unreadCount} unread
@@ -323,7 +302,7 @@ export function NotificationsPage() {
             <Button
               onClick={() => void load(0)}
               disabled={loading}
-              className="h-8 border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5] text-xs"
+              className="h-8 border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5] text-xs shadow-none"
             >
               <RefreshCw className={`h-3 w-3 mr-1 ${loading ? "animate-spin" : ""}`} />
               Refresh
@@ -332,37 +311,38 @@ export function NotificationsPage() {
               <Button
                 onClick={() => void handleMarkAll()}
                 disabled={markingAll}
-                className="h-8 border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5] text-xs"
+                className="h-8 border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5] text-xs shadow-none"
               >
                 <CheckCheck className="h-3 w-3 mr-1" />
                 Mark all read
               </Button>
             )}
           </div>
-        </div>
+        }
+      />
 
+      <main className="mx-auto w-full max-w-3xl space-y-4 px-4 py-6">
         {/* Filter tabs */}
-        <div className="mt-4 flex gap-1">
+        <div className="flex gap-1 rounded-lg border border-[#d0d6e0] bg-[#ffffff] p-1">
           {FILTERS.map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`rounded-md px-3 py-1.5 text-xs font-[510] transition-colors ${
+              className={`flex-1 rounded-md px-3 py-1.5 text-xs font-[510] transition-colors ${
                 filter === f
-                  ? "border border-[#d0d6e0] bg-[#f3f4f5] text-[#191a1b]"
-                  : "text-[#62666d] hover:text-[#43464b]"
+                  ? "bg-[#5e6ad2] text-white"
+                  : "text-[#62666d] hover:text-[#43464b] hover:bg-[#f3f4f5]"
               }`}
             >
               {f}
               {f === "Unread" && unreadCount > 0 && (
-                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#5e6ad2] px-1 text-[9px] text-white">
+                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-white/30 px-1 text-[9px]">
                   {unreadCount}
                 </span>
               )}
             </button>
           ))}
         </div>
-      </section>
 
       {/* Error */}
       {error && (
@@ -421,6 +401,7 @@ export function NotificationsPage() {
           <RefreshCw className="h-4 w-4 animate-spin text-[#8a8f98]" />
         </div>
       )}
-    </main>
+      </main>
+    </div>
   );
 }

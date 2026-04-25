@@ -33,10 +33,10 @@ function isToday(iso: string) {
 function targetPath(item: NotificationItem) {
   if (item.entityType && item.entityId) {
     const t = item.entityType.toUpperCase();
-    if (t.includes("BOOKING")) return `/bookings/${item.entityId}`;
-    if (t.includes("TICKET")) return `/tickets/${item.entityId}`;
+    if (t.includes("BOOKING")) return `/dashboard/bookings/${item.entityId}`;
+    if (t.includes("TICKET")) return `/dashboard/tickets`;
   }
-  return "/notifications";
+  return "/dashboard/notifications";
 }
 
 function typeIcon(type: string) {
