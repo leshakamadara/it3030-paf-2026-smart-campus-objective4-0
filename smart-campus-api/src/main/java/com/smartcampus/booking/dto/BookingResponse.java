@@ -9,7 +9,9 @@ import com.smartcampus.booking.entity.BookingStatus;
 public record BookingResponse(
         UUID id,
         Long resourceId,
+        String resourceName,
         UUID userId,
+        String userName,
         BookingStatus status,
         OffsetDateTime startTime,
         OffsetDateTime endTime,
@@ -26,11 +28,13 @@ public record BookingResponse(
         UUID updatedBy
 ) {
 
-    public static BookingResponse from(Booking booking, String qrCodeImageBase64) {
+    public static BookingResponse from(Booking booking, String resourceName, String userName, String qrCodeImageBase64) {
         return new BookingResponse(
                 booking.getId(),
                 booking.getResourceId(),
+                resourceName,
                 booking.getUserId(),
+                userName,
                 booking.getStatus(),
                 booking.getStartTime(),
                 booking.getEndTime(),

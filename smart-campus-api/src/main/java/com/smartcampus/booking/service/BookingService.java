@@ -339,6 +339,15 @@ public class BookingService {
         if (includeQrImage && booking.getQrCodeToken() != null) {
             qrImage = qrCodeService.generateQrPngBase64(booking.getQrCodeToken());
         }
-        return BookingResponse.from(booking, qrImage);
+
+        String userName = userRepository.findById(booking.getUserId())
+                .map(com.smartcampus.user.entity.User::getFullName)
+                .orElse(null);
+
+        String resourceName = resourceRepository.findById(booking.getResourceId())
+                .map(com.smartcampus.resource.entity.Resource::getName)
+                .orElse(null);
+
+        return BookingResponse.from(booking, resourceName, userName, qrImage);
     }
 }

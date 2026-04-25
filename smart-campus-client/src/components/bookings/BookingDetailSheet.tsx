@@ -28,8 +28,8 @@ export function BookingDetailSheet({ booking, open, onClose }: BookingDetailShee
             <p className="font-mono text-xs text-[#8a8f98]">{booking.id}</p>
             <BookingStatusBadge status={booking.status} />
           </div>
-          <p>Resource: {booking.resourceId}</p>
-          <p>User: {booking.userId}</p>
+          <p>Resource: {booking.resourceName || booking.resourceId}</p>
+          <p>User: {booking.userName || booking.userId}</p>
           <p>
             Time: {new Date(booking.startTime).toLocaleString()} - {new Date(booking.endTime).toLocaleString()}
           </p>

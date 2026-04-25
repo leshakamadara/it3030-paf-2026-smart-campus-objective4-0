@@ -195,6 +195,12 @@ export function BookingDetailPage() {
             <p className="text-[10px] uppercase tracking-[0.1em] text-[#8a8f98]">Attendees</p>
             <p className="mt-1 text-xs font-[510] text-[#191a1b]">{booking.attendeeCount ?? "Not specified"}</p>
           </div>
+          {booking.userName && (
+            <div className="rounded-lg border border-[#d0d6e0] bg-[#f7f8f8] p-3">
+              <p className="text-[10px] uppercase tracking-[0.1em] text-[#8a8f98]">Booked by</p>
+              <p className="mt-1 text-xs font-[510] text-[#191a1b]">{booking.userName}</p>
+            </div>
+          )}
           {booking.reviewReason && (
             <div className="rounded-lg border border-[#f0b8c4] bg-[#fff1f4] p-3">
               <p className="text-[10px] uppercase tracking-[0.1em] text-[#8f3346]">Review reason</p>
