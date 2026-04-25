@@ -12,4 +12,5 @@ import com.smartcampus.user.entity.User;
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
     Optional<User> findByGoogleSub(String googleSub);
+    java.util.List<User> findByRole(com.smartcampus.common.entity.Role role);
 }

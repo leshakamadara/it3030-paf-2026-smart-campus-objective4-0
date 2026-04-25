@@ -9,6 +9,7 @@ import {
 } from "../../../constants/Ticket_constants/constants";
 
 import { useAuth } from "../../context/AuthContext";
+import { getTechnicians, type UserProfile } from "../../services/users";
 
 
 
@@ -41,6 +42,9 @@ export const AdminTicketDetailView = ({
   const [showResolution, setShowResolution] = useState(false);
   const [resolutionNote, setResolutionNote] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const [technicians, setTechnicians] = useState<UserProfile[]>([]);
+  const [selectedTechnicianEmail, setSelectedTechnicianEmail] = useState("");
 
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
@@ -103,6 +107,31 @@ export const AdminTicketDetailView = ({
     // scroll to bottom
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [ticket.comments]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      getTechnicians()
+        .then((techs) => setTechnicians(techs))
+        .catch((err) => console.error("Failed to load technicians:", err));
+    }
+  }, [isAdmin]);
+
+  const assignTechnician = async () => {
+    if (!selectedTechnicianEmail) return;
+    try {
+      setLoading(true);
+      setError(null);
+      await ticketService.assignTechnician(ticket.id, selectedTechnicianEmail);
+      const updatedTicket = await ticketService.getWithAttachments(ticket.id);
+      onUpdate(updatedTicket);
+      setSelectedTechnicianEmail("");
+    } catch (err) {
+      console.error("Failed to assign technician:", err);
+      setError("Failed to assign technician. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   //  Workflow Actions 
   const advanceStatus = async (status: TicketResponseDTO["status"]) => {
@@ -446,8 +475,40 @@ export const AdminTicketDetailView = ({
                       </button>
                     )}
                   </div>
+                  </div>
                 </div>
               )}
+
+            {/* Assign Technician (Admin Only) */}
+            {isAdmin && ticket.status !== "CLOSED" && ticket.status !== "REJECTED" && (
+              <div className="space-y-4">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                  Assign Technician
+                </p>
+                <div className="space-y-2 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+                  <select
+                    value={selectedTechnicianEmail}
+                    onChange={(e) => setSelectedTechnicianEmail(e.target.value)}
+                    disabled={loading || technicians.length === 0}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 bg-slate-50 text-slate-700"
+                  >
+                    <option value="" disabled>Select Technician</option>
+                    {technicians.map((t) => (
+                      <option key={t.email} value={t.email}>
+                        {t.fullName}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={assignTechnician}
+                    disabled={!selectedTechnicianEmail || loading}
+                    className="w-full text-center text-sm px-4 py-2 rounded-xl bg-violet-100 text-violet-700 hover:bg-violet-200 hover:text-violet-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                  >
+                    {loading ? "Assigning..." : "Assign"}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Ticket Info */}
             <div>

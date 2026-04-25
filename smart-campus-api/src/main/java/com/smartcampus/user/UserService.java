@@ -39,6 +39,10 @@ public class UserService {
         return userRepository.findAll().stream().map(UserResponse::from).toList();
     }
 
+    public List<UserResponse> getTechnicians() {
+        return userRepository.findByRole(Role.TECHNICIAN).stream().map(UserResponse::from).toList();
+    }
+
     public boolean updateUserRole(UUID id, Role role) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {

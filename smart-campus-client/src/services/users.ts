@@ -75,6 +75,10 @@ export function getAllUsers() {
   return request<UserProfile[]>("/api/users");
 }
 
+export function getTechnicians() {
+  return request<UserProfile[]>("/api/users/technicians");
+}
+
 export function updateMyNotificationPrefs(payload: NotificationPrefsPayload) {
   return request<UserProfile>("/api/users/me/notification-prefs", {
     method: "PATCH",

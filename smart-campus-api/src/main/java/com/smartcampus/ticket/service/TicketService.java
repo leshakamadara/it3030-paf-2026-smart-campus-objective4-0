@@ -16,6 +16,7 @@ public interface TicketService {
     TicketResponseDTO getTicketById(Long id);
     List<TicketResponseDTO> getAllTickets();
     TicketResponseDTO updateTicketStatus(Long id, Status newStatus, String technicianEmail, String notes);
+    TicketResponseDTO assignTechnician(Long id, String technicianEmail, String assignedByEmail);
     CommentDTO addComment(Long ticketId, String userEmail, String commentText);
     CommentDTO updateComment(Long ticketId, Long commentId, String userEmail, String commentText);
     boolean deleteComment(Long ticketId, Long commentId, String userEmail);

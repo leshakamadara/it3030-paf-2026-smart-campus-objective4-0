@@ -67,6 +67,17 @@ export const ticketService = {
     return response.data;
   },
 
+  /** Assign a technician to a ticket — used by ADMIN/SUPER_ADMIN */
+  assignTechnician: async (
+    id: number,
+    technicianEmail: string,
+  ): Promise<TicketResponseDTO> => {
+    const response = await axios.put<TicketResponseDTO>(`${BASE_URL}/${id}/assign`, null, {
+      params: { technicianEmail },
+    });
+    return response.data;
+  },
+
   /** Update ticket fields — only allowed when ticket is OPEN */
   update: async (
     id: number,

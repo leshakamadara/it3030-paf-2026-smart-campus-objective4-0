@@ -137,6 +137,34 @@ public class TicketServiceImpl implements TicketService {
 
 
     @Override
+    @Transactional
+    public TicketResponseDTO assignTechnician(Long id, String technicianEmail, String assignedByEmail) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+        User technician = userRepository.findByEmail(technicianEmail)
+                .orElseThrow(() -> new UserNotFoundException("Technician not found"));
+
+        ticket.setTechnician(technician);
+        Ticket updatedTicket = ticketRepository.save(ticket);
+
+        // Notify the new technician
+        if (technician.getId() != null) {
+            notificationService.send(
+                    technician.getId(),
+                    NotificationType.TICKET_ASSIGNED,
+                    "Ticket Assigned to You",
+                    "You have been assigned to ticket: '" + updatedTicket.getTitle() + "'.",
+                    "TICKET",
+                    null
+            );
+        }
+
+        return convertToDTO(updatedTicket);
+    }
+
+    @Override
+    @Transactional
     public TicketResponseDTO updateTicketStatus(Long id, Status newStatus, String technicianEmail, String notes) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));

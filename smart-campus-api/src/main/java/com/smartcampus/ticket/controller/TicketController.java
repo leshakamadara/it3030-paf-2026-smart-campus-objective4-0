@@ -74,6 +74,13 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.updateTicketStatus(id, status, userEmail, notes));
     }
 
+    @PutMapping("/{id}/assign")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<TicketResponseDTO> assignTechnician(@PathVariable Long id, @RequestParam String technicianEmail) {
+        String userEmail = getCurrentUserEmail();
+        return ResponseEntity.ok(ticketService.assignTechnician(id, technicianEmail, userEmail));
+    }
+
     @PostMapping("/{id}/comments")
     public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,@RequestBody @NotBlank String comment) {
         String userEmail = getCurrentUserEmail();
