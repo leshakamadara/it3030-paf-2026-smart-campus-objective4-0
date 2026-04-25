@@ -545,7 +545,7 @@ export default function TicketDetailView({
             const userIdentifier = currentUserData?.email ?? null;
             const isOwn = !!(c.createdBy && userIdentifier && c.createdBy === userIdentifier);
 
-            const isStaffComment = c.createdByRole === "ADMIN" || c.createdByRole === "TECHNICIAN";
+            const isStaffComment = c.createdByRole === "ADMIN" || c.createdByRole === "TECHNICIAN" || c.createdByRole === "SUPER_ADMIN";
 
             
             return (
