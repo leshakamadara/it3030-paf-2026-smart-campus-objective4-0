@@ -36,7 +36,7 @@ export default function AdminResourceCreatePage() {
         title="Create Resource"
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
-          { label: "Resources", href: "/dashboard/resources" },
+          { label: "Resource Admin", href: "/dashboard/admin/resources/stats" },
           { label: "Create" }
         ]}
       />

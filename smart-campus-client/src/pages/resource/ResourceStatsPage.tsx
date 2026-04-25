@@ -68,7 +68,7 @@ export default function ResourceStatsPage() {
         description="Real‑time overview of campus resources — status, availability, and distribution across types and buildings."
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
-          { label: "Resources", href: "/dashboard/resources" },
+          { label: "Resource Admin", href: "/dashboard/admin/resources/stats" },
           { label: "Analytics" }
         ]}
         action={

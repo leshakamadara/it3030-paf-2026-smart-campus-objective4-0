@@ -133,11 +133,11 @@ export default function ResourceDetailsPage() {
         <div className="border-b" style={{ backgroundColor: "#ffffff", borderColor: "#e6e6e6" }}>
           <div className="mx-auto max-w-5xl px-4 py-4 sm:px-6">
             <Link
-              to="/dashboard/resources"
+              to="/dashboard"
               className="inline-flex items-center gap-1 text-sm font-medium transition-colors hover:text-indigo-600"
               style={{ color: "#43464b" }}
             >
-              <ChevronLeft className="h-4 w-4" /> Resources
+              <ChevronLeft className="h-4 w-4" /> Dashboard
             </Link>
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function ResourceDetailsPage() {
         description={resource.name}
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
-          { label: "Resources", href: "/dashboard/resources" },
+          { label: admin ? "Resource Admin" : "Resources", href: admin ? "/dashboard/admin/resources/stats" : "/dashboard/resources" },
           { label: resource.resourceCode }
         ]}
         action={
@@ -337,7 +337,7 @@ export default function ResourceDetailsPage() {
         </motion.div>
 
         {/* CTA */}
-        {resource.isBookable && !resource.isUnderMaintenance && (
+        {resource.isBookable && !resource.isUnderMaintenance && !admin && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <div className="rounded-lg p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm"
               style={{ backgroundColor: "#ede9ff", border: "1px solid #c4b5fd" }}>

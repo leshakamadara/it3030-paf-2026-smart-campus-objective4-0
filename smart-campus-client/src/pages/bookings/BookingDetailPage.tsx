@@ -14,11 +14,14 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useAuth } from "@/context/AuthContext";
 import { cancelBooking, getBooking, getResources } from "@/services/bookings";
 import type { Booking, ResourceSummary } from "@/types/booking";
 
 export function BookingDetailPage() {
   const { id } = useParams();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [resource, setResource] = useState<ResourceSummary | null>(null);
@@ -94,9 +97,9 @@ export function BookingDetailPage() {
         <div className="rounded-xl border border-[#f0b8c4] bg-[#fff1f4] p-4">
           <p className="text-sm font-[510] text-[#8f3346]">{error ?? "Booking not found"}</p>
         </div>
-        <Link to="/dashboard/bookings">
+        <Link to={isAdmin ? "/dashboard/admin/bookings" : "/dashboard/bookings"}>
           <Button className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5]">
-            ← Back to bookings
+            ← Back to {isAdmin ? "admin bookings" : "bookings"}
           </Button>
         </Link>
       </div>
@@ -119,7 +122,9 @@ export function BookingDetailPage() {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link to="/dashboard/bookings">Bookings</Link>
+                <Link to={isAdmin ? "/dashboard/admin/bookings" : "/dashboard/bookings"}>
+                  {isAdmin ? "Booking Admin" : "Bookings"}
+                </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
@@ -225,14 +230,14 @@ export function BookingDetailPage() {
             Cancel Booking
           </Button>
         )}
-        <Link to="/dashboard/bookings">
+        <Link to={isAdmin ? "/dashboard/admin/bookings" : "/dashboard/bookings"}>
           <Button className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5]">
-            ← Back to bookings
+            ← Back to {isAdmin ? "admin bookings" : "bookings"}
           </Button>
         </Link>
-        <Link to={`/dashboard/resources/${booking.resourceId}`}>
+        <Link to={isAdmin ? `/dashboard/admin/resources/edit/${booking.resourceId}` : `/dashboard/resources/${booking.resourceId}`}>
           <Button className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5]">
-            View resource
+            {isAdmin ? "Edit resource" : "View resource"}
           </Button>
         </Link>
       </div>

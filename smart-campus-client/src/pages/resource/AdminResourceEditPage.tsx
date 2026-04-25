@@ -73,7 +73,7 @@ export default function AdminResourceEditPage() {
       setFormError("");
       const updated = await resourceService.updateResource(Number(id), values);
       toast.success("Changes saved!", `"${updated.name}" has been updated.`);
-      navigate(`/dashboard/resources/${updated.id}`);
+      navigate(`/dashboard/admin/resources/stats`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to update resource.";
       toast.error("Update failed", message);
@@ -87,8 +87,7 @@ export default function AdminResourceEditPage() {
         title="Edit Resource"
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
-          { label: "Resources", href: "/dashboard/resources" },
-          ...(id ? [{ label: `#${id}`, href: `/dashboard/resources/${id}` }] : []),
+          { label: "Resource Admin", href: "/dashboard/admin/resources/stats" },
           { label: "Edit" }
         ]}
       />

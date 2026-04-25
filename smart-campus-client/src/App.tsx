@@ -77,36 +77,40 @@ function AuthenticatedLayout() {
               HelaUni.app
             </Link>
             <nav className="flex items-center gap-2">
-              <NavLink
-                to="/dashboard/bookings"
-                className={({ isActive }) =>
-                  isActive
-                    ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                    : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                }
-              >
-                Bookings
-              </NavLink>
-              <NavLink
-                to="/dashboard/resources"
-                className={({ isActive }) =>
-                  isActive
-                    ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                    : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                }
-              >
-                Resources
-              </NavLink>
-              <NavLink
-                to="/dashboard/tickets"
-                className={({ isActive }) =>
-                  isActive
-                    ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                    : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                }
-              >
-                My Tickets
-              </NavLink>
+              {!isResourceAdmin && (
+                <>
+                  <NavLink
+                    to="/dashboard/bookings"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                        : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                    }
+                  >
+                    Bookings
+                  </NavLink>
+                  <NavLink
+                    to="/dashboard/resources"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                        : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                    }
+                  >
+                    Resources
+                  </NavLink>
+                  <NavLink
+                    to="/dashboard/tickets"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                        : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                    }
+                  >
+                    My Tickets
+                  </NavLink>
+                </>
+              )}
               <NavLink
                 to="/dashboard/settings/profile"
                 className={({ isActive }) =>
@@ -222,25 +226,30 @@ function HomePage() {
         <p className="text-xs font-[510] uppercase tracking-[0.2em] text-[#7170ff]">HelaUni.app</p>
         <h1 className="mt-2 text-3xl font-[590] tracking-[-0.044em]">Modules Dashboard</h1>
         <p className="mt-2 max-w-2xl text-sm text-[#62666d]">
-          Welcome {user?.fullName ?? user?.email ?? "User"}. Access bookings, facilities catalogue, and account tools
-          from the top navigation or quick links below.
+          Welcome {user?.fullName ?? user?.email ?? "User"}. Access {isResourceAdmin ? "administrative tools" : "bookings, facilities catalogue, and account tools"} from the top navigation or quick links below.
         </p>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
         <Card className="border-[#d0d6e0] bg-[#ffffff]">
           <CardHeader>
-            <CardTitle className="text-base">Module B: Bookings</CardTitle>
+            <CardTitle className="text-base">{isResourceAdmin ? "Booking Management" : "Module B: Bookings"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-[#62666d]">Create and manage booking requests for campus resources.</p>
+            <p className="text-sm text-[#62666d]">
+              {isResourceAdmin ? "Review and manage campus reservation requests." : "Create and manage booking requests for campus resources."}
+            </p>
             <div className="flex flex-wrap gap-2">
-              <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-                <Link to="/dashboard/bookings">My Bookings</Link>
-              </Button>
-              <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-                <Link to="/dashboard/bookings/new">Create Booking</Link>
-              </Button>
+              {!isResourceAdmin && (
+                <>
+                  <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                    <Link to="/dashboard/bookings">My Bookings</Link>
+                  </Button>
+                  <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                    <Link to="/dashboard/bookings/new">Create Booking</Link>
+                  </Button>
+                </>
+              )}
               {isResourceAdmin && (
                 <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
                   <Link to="/dashboard/admin/bookings">Admin Bookings</Link>
@@ -252,14 +261,18 @@ function HomePage() {
 
         <Card className="border-[#d0d6e0] bg-[#ffffff]">
           <CardHeader>
-            <CardTitle className="text-base">Module A: Facilities Catalogue</CardTitle>
+            <CardTitle className="text-base">{isResourceAdmin ? "Resource Management" : "Module A: Facilities Catalogue"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-[#62666d]">Browse campus facilities and view detailed resource information.</p>
+            <p className="text-sm text-[#62666d]">
+              {isResourceAdmin ? "Configure campus resources and monitor utilization." : "Browse campus facilities and view detailed resource information."}
+            </p>
             <div className="flex flex-wrap gap-2">
-              <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-                <Link to="/dashboard/resources">Browse Resources</Link>
-              </Button>
+              {!isResourceAdmin && (
+                <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                  <Link to="/dashboard/resources">Browse Resources</Link>
+                </Button>
+              )}
               {isResourceAdmin && (
                 <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
                   <Link to="/dashboard/admin/resources/stats">Resource Admin</Link>
@@ -277,12 +290,18 @@ function HomePage() {
 
       <section className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-6">
         <p className="text-xs font-[510] uppercase tracking-[0.18em] text-[#5e6ad2] mb-1">Module C</p>
-        <h2 className="text-base font-[590] tracking-tight text-[#191a1b] mb-1">Maintenance &amp; Incident Tickets</h2>
-        <p className="text-sm text-[#62666d] mb-4">Report campus incidents and track their resolution progress.</p>
+        <h2 className="text-base font-[590] tracking-tight text-[#191a1b] mb-1">
+          {isResourceAdmin ? "Maintenance & Incident Management" : "Maintenance & Incident Tickets"}
+        </h2>
+        <p className="text-sm text-[#62666d] mb-4">
+          {isResourceAdmin ? "Track and resolve campus incident reports and maintenance requests." : "Report campus incidents and track their resolution progress."}
+        </p>
         <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-            <Link to="/dashboard/tickets">My Tickets</Link>
-          </Button>
+          {!isResourceAdmin && (
+            <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+              <Link to="/dashboard/tickets">My Tickets</Link>
+            </Button>
+          )}
           {isResourceAdmin && (
             <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
               <Link to="/dashboard/admin/tickets">Ticket Admin</Link>

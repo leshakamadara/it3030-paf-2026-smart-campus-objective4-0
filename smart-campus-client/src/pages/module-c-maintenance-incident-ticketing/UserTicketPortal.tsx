@@ -180,31 +180,33 @@ export default function UserTicketPortal() {
   const selectedTicket = tickets.find((t) => t.id === selectedId);
   const firstName = user?.fullName?.split(" ")[0] ?? "there";
 
-  return (
-    <div
-      className={`min-h-[calc(100svh-57px)] bg-[#f7f8f8] transition-all duration-150 ${fadeIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}
-    >
-      <div className="mx-auto max-w-3xl px-4 py-8">
+    const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
-        {/* ── LIST VIEW ─────────────────────────────────── */}
-        {view === "list" && (
-          <>
-            {/* Page header */}
-            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <Breadcrumb className="mb-2">
-                  <BreadcrumbList>
-                    <BreadcrumbItem>
-                      <BreadcrumbLink asChild>
-                        <Link to="/dashboard">Dashboard</Link>
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Tickets</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
+    return (
+      <div
+        className={`min-h-[calc(100svh-57px)] bg-[#f7f8f8] transition-all duration-150 ${fadeIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}
+      >
+        <div className="mx-auto max-w-3xl px-4 py-8">
+  
+          {/* ── LIST VIEW ─────────────────────────────────── */}
+          {view === "list" && (
+            <>
+              {/* Page header */}
+              <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <Breadcrumb className="mb-2">
+                    <BreadcrumbList>
+                      <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                          <Link to="/dashboard">Dashboard</Link>
+                        </BreadcrumbLink>
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem>
+                        <BreadcrumbPage>{isAdmin ? "Ticket Admin" : "Tickets"}</BreadcrumbPage>
+                      </BreadcrumbItem>
+                    </BreadcrumbList>
+                  </Breadcrumb>
                 <h1 className="mt-1 text-2xl font-[590] tracking-[-0.44px] text-[#191a1b]">
                   Hello, {firstName} 👋
                 </h1>
@@ -361,7 +363,7 @@ export default function UserTicketPortal() {
               onClick={() => navigate("list")}
               className="mb-6 flex items-center gap-1.5 text-sm text-[#62666d] transition-colors hover:text-[#191a1b]"
             >
-              ← Back to my tickets
+              ← Back to {isAdmin ? "ticket management" : "my tickets"}
             </button>
             <CreateTicket
               onSubmit={(partial) => { handleCreate(partial); navigate("list"); }}
