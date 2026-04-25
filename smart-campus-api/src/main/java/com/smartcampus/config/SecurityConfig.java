@@ -65,7 +65,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/oauth2/**", "/login/oauth2/**", "/error").permitAll()
                 .requestMatchers("/api/auth/dummy-login").permitAll()
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/register-admin", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/register-admin", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/emailTester").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/bookings/qr/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/bookings/resource/*/upcoming").authenticated()
                 .requestMatchers("/api/bookings/**").authenticated()

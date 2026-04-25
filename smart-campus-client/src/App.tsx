@@ -31,6 +31,7 @@ import ResourceListPage from "@/pages/resource/ResourceListPage";
 import ResourceStatsPage from "@/pages/resource/ResourceStatsPage";
 import UserTicketPortal from "@/pages/module-c-maintenance-incident-ticketing/UserTicketPortal";
 import AdminTicketPortal from "@/pages/module-c-maintenance-incident-ticketing/AdminTicketPortal";
+import { EmailTesterPage } from "@/pages/admin/EmailTesterPage";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -173,6 +174,18 @@ function AuthenticatedLayout() {
                   Ticket Admin
                 </NavLink>
               )}
+              {isResourceAdmin && (
+                <NavLink
+                  to="/email-tester"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                      : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                  }
+                >
+                  Email Tester
+                </NavLink>
+              )}
             </nav>
           </div>
 
@@ -291,6 +304,7 @@ export default function App() {
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route path="/qr/:token" element={<QrCheckInPage />} />
       <Route path="/" element={<LandingPage />} />
+      <Route path="/email-tester" element={<EmailTesterPage />} />
       <Route
         path="/dashboard"
         element={
