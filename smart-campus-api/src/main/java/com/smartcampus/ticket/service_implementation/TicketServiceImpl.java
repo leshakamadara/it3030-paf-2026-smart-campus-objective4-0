@@ -126,7 +126,14 @@ public class TicketServiceImpl implements TicketService {
 
 
     @Override
-    public List<TicketResponseDTO> getAllTickets() {
+    public List<TicketResponseDTO> getAllTickets(String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user != null && user.getRole() == com.smartcampus.common.entity.Role.TECHNICIAN) {
+            return ticketRepository.findByTechnicianEmail(userEmail).stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+        }
+
         return ticketRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());

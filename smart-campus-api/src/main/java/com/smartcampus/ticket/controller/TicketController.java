@@ -61,7 +61,7 @@ public class TicketController {
 
     @GetMapping
     public ResponseEntity<List<TicketResponseDTO>> getAllTickets() {
-        return ResponseEntity.ok(ticketService.getAllTickets());
+        return ResponseEntity.ok(ticketService.getAllTickets(getCurrentUserEmail()));
     }
 
     @GetMapping("/{id}")

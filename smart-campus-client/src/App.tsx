@@ -62,6 +62,15 @@ function AdminRoute({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function StaffRoute({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && user.role !== "TECHNICIAN")) {
+    return <Navigate to="/dashboard/resources" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function AuthenticatedLayout() {
   const { user, clearSession } = useAuth();
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
@@ -349,9 +358,9 @@ export default function App() {
         <Route
           path="admin/tickets"
           element={
-            <AdminRoute>
+            <StaffRoute>
               <AdminTicketPortal />
-            </AdminRoute>
+            </StaffRoute>
           }
         />
         <Route path="email-tester" element={<EmailTesterPage />} />

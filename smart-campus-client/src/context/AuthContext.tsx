@@ -1,4 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
+
+import { getMyProfile } from "@/services/users"
 
 import { clearStoredToken, getStoredToken, setStoredToken, type AuthUser } from "@/services/auth"
 
@@ -59,6 +61,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(STORED_USER_KEY)
     }
   }, [])
+
+  // Automatically sync the user's role/profile from the backend on load
+  // if they have an active token, so role changes reflect without re-login.
+  useEffect(() => {
+    if (token && user) {
+      getMyProfile()
+        .then((profile) => {
+          if (profile && (profile.role !== user.role || profile.active !== user.active)) {
+            // Keep the JWT string, but update the user payload in context and local storage
+            setUser({ ...user, role: profile.role, active: profile.active, fullName: profile.fullName, avatarUrl: profile.avatarUrl });
+          }
+        })
+        .catch((err) => console.error("Failed to sync profile on load:", err));
+    }
+  }, [token]); // Only run once when token is initialized or changes
 
   const value = useMemo<AuthContextValue>(() => {
     return {

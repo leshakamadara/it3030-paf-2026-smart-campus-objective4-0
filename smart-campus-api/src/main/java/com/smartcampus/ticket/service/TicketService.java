@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface TicketService {
     TicketResponseDTO createTicket(TicketRequestDTO request, String userEmail) throws IOException;
     TicketResponseDTO getTicketById(Long id);
-    List<TicketResponseDTO> getAllTickets();
+    List<TicketResponseDTO> getAllTickets(String userEmail);
     TicketResponseDTO updateTicketStatus(Long id, Status newStatus, String technicianEmail, String notes);
     TicketResponseDTO assignTechnician(Long id, String technicianEmail, String assignedByEmail);
     CommentDTO addComment(Long ticketId, String userEmail, String commentText);
