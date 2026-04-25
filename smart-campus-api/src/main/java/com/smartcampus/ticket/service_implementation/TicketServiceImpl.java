@@ -26,6 +26,7 @@ import com.smartcampus.ticket.repository.TicketAttachmentRepository;
 import com.smartcampus.ticket.repository.TicketCommentRepository;
 import com.smartcampus.ticket.repository.TicketRepository;
 import com.smartcampus.user.repository.UserRepository;
+import com.smartcampus.notification.service.EmailService;
 import com.smartcampus.ticket.service.CloudinaryService;
 import com.smartcampus.ticket.service.TicketService;
 
@@ -43,6 +44,7 @@ public class TicketServiceImpl implements TicketService {
     private final TicketAttachmentRepository attachmentRepository;
     private final CloudinaryService cloudinaryService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     @Override
     public TicketResponseDTO createTicket(TicketRequestDTO request, String userEmail) throws IOException {
@@ -77,6 +79,20 @@ public class TicketServiceImpl implements TicketService {
         } else if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
             // backward compatibility single-file field
             uploadAttachmentInternal(savedTicket, request.getImageFile());
+        }
+
+        // Send styled ticket confirmation email to the submitter
+        try {
+            String ticketRef = "TKT-" + savedTicket.getId();
+            emailService.sendTicketConfirmationEmail(
+                user.getEmail(),
+                ticketRef,
+                savedTicket.getTitle(),
+                savedTicket.getStatus().name(),
+                savedTicket.getDescription()
+            );
+        } catch (Exception ex) {
+            // Email failure must never abort ticket creation
         }
 
         // Convert to DTO and return
@@ -154,6 +170,19 @@ public class TicketServiceImpl implements TicketService {
                     "TICKET",
                     null
             );
+            // Send styled status-update email
+            try {
+                String ticketRef = "TKT-" + updatedTicket.getId();
+                emailService.sendTicketConfirmationEmail(
+                    ticketOwner.getEmail(),
+                    ticketRef,
+                    updatedTicket.getTitle(),
+                    newStatus.name(),
+                    notes != null && !notes.trim().isEmpty() ? notes.trim() : notifMsg
+                );
+            } catch (Exception ex) {
+                // Email failure must never abort status update
+            }
         }
 
         // If a technician was newly assigned, notify them

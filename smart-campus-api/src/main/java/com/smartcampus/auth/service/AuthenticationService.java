@@ -116,7 +116,16 @@ public class AuthenticationService {
         user.setLastLoginAt(Instant.now());
         user.setNotificationPrefs(defaultNotificationPrefs());
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+
+        // Send welcome email asynchronously — failure must not abort registration
+        try {
+            emailService.sendWelcomeEmail(saved.getEmail(), saved.getFullName());
+        } catch (Exception ex) {
+            // log silently; email is best-effort
+        }
+
+        return saved;
     }
 
     public User loginCampusUser(String email, String rawPassword) {
@@ -228,7 +237,16 @@ public class AuthenticationService {
         user.setLastLoginAt(Instant.now());
         user.setNotificationPrefs(defaultNotificationPrefs());
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+
+        // Send welcome email for first-time OAuth sign-ups
+        try {
+            emailService.sendWelcomeEmail(saved.getEmail(), saved.getFullName());
+        } catch (Exception ex) {
+            // log silently; email is best-effort
+        }
+
+        return saved;
     }
 
     private void updateUser(User existingUser, String fullName, String avatarUrl, String googleSub) {

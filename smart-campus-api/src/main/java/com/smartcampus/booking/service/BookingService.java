@@ -23,6 +23,7 @@ import com.smartcampus.booking.entity.BookingStatus;
 import com.smartcampus.booking.exception.ConflictException;
 import com.smartcampus.booking.repository.BookingRepository;
 import com.smartcampus.notification.entity.NotificationType;
+import com.smartcampus.notification.service.EmailService;
 import com.smartcampus.notification.service.NotificationService;
 import com.smartcampus.resource.repository.ResourceRepository;
 import com.smartcampus.user.repository.UserRepository;
@@ -37,6 +38,7 @@ public class BookingService {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final ResourceRepository resourceRepository;
+    private final EmailService emailService;
 
     public BookingService(
             BookingRepository bookingRepository,
@@ -45,7 +47,8 @@ public class BookingService {
             QrCodeService qrCodeService,
             NotificationService notificationService,
             UserRepository userRepository,
-            ResourceRepository resourceRepository
+            ResourceRepository resourceRepository,
+            EmailService emailService
     ) {
         this.bookingRepository = bookingRepository;
         this.conflictCheckService = conflictCheckService;
@@ -54,6 +57,7 @@ public class BookingService {
         this.notificationService = notificationService;
         this.userRepository = userRepository;
         this.resourceRepository = resourceRepository;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -178,6 +182,21 @@ public class BookingService {
                 saved.getId()
         );
 
+        // Send styled approval confirmation email
+        userRepository.findById(saved.getUserId()).ifPresent(user -> {
+            try {
+                emailService.sendTicketConfirmationEmail(
+                    user.getEmail(),
+                    "BKG-" + saved.getId().toString().substring(0, 8).toUpperCase(),
+                    saved.getPurpose(),
+                    "APPROVED",
+                    "Your booking has been approved. Your QR code for check-in is now available in the app."
+                );
+            } catch (Exception ex) {
+                // Email failure must not abort booking approval
+            }
+        });
+
         return toResponse(saved, true);
     }
 
@@ -211,6 +230,21 @@ public class BookingService {
                 "BOOKING",
                 saved.getId()
         );
+
+        // Send styled rejection email
+        userRepository.findById(saved.getUserId()).ifPresent(user -> {
+            try {
+                emailService.sendTicketConfirmationEmail(
+                    user.getEmail(),
+                    "BKG-" + saved.getId().toString().substring(0, 8).toUpperCase(),
+                    saved.getPurpose(),
+                    "REJECTED",
+                    "Your booking request was not approved. Reason: " + request.reason().trim()
+                );
+            } catch (Exception ex) {
+                // Email failure must not abort booking rejection
+            }
+        });
 
         return toResponse(saved, false);
     }
