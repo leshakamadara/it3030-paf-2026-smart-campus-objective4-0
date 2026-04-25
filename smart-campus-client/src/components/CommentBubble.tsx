@@ -124,10 +124,10 @@ export default function CommentBubble(props: Props) {
               </div>
             </div>
 
-            {/* Edit / Delete actions — shown on hover */}
-            {hovered && !isTech && (onEdit || onDelete) && (
+            {/* Edit / Delete actions — shown on hover if it's the user's own comment */}
+            {hovered && isOwn && (onEdit || onDelete) && (
               <div
-                className={`flex gap-3 mt-1 ${isTech ? 'justify-end' : 'justify-start'}`}
+                className={`flex gap-3 mt-1 ${isTech ? 'justify-start' : 'justify-end'}`}
               >
                 {onEdit && (
                   <button

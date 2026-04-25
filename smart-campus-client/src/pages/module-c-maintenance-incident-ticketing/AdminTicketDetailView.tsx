@@ -347,8 +347,8 @@ export const AdminTicketDetailView = ({
                     .join("")
                     .slice(0, 2)
                     .toUpperCase() || "??";
-                  const userIdentifier = (currentUserData?.username || currentUserData?.email || currentUserData?.id || null);
-                  const isOwn = !!(c.createdBy && userIdentifier && (c.createdBy === userIdentifier));
+                  const userIdentifier = user?.email || null;
+                  const isOwn = !!(c.createdBy && userIdentifier && c.createdBy === userIdentifier);
 
                   const isStaffComment = c.createdByRole === "ADMIN" || c.createdByRole === "TECHNICIAN";
 

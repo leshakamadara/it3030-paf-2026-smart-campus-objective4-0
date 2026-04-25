@@ -17,6 +17,7 @@ import com.smartcampus.ticket.dto.TicketRequestDTO;
 import com.smartcampus.ticket.dto.TicketResponseDTO;
 import com.smartcampus.ticket.enums.Status;
 import com.smartcampus.ticket.exception.TicketNotFoundException;
+import com.smartcampus.ticket.exception.TicketUpdateNotAllowedException;
 import com.smartcampus.ticket.exception.UserNotFoundException;
 import com.smartcampus.ticket.model.Ticket;
 import com.smartcampus.ticket.model.TicketAttachment;
@@ -258,6 +259,10 @@ public class TicketServiceImpl implements TicketService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found. Only existing users can edit comments."));
 
+        if (!existingComment.getCreatedBy().getEmail().equalsIgnoreCase(userEmail)) {
+            throw new TicketUpdateNotAllowedException("You can only edit your own comments.");
+        }
+
         existingComment.setComment(commentText);
         existingComment.setUpdatedAt(LocalDateTime.now());
         TicketComment updatedComment = commentRepository.save(existingComment);
@@ -281,6 +286,10 @@ public class TicketServiceImpl implements TicketService {
 
         userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("User with email " + userEmail + " not found. Only existing users can delete comments."));
+
+        if (!existingComment.getCreatedBy().getEmail().equalsIgnoreCase(userEmail)) {
+            throw new TicketUpdateNotAllowedException("You can only delete your own comments.");
+        }
 
         commentRepository.delete(existingComment);
         return true;
