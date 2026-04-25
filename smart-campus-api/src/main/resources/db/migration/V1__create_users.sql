@@ -4,7 +4,7 @@
 -- CREATE TYPE user_role AS ENUM ('USER', 'TECHNICIAN', 'ADMIN', 'SUPER_ADMIN');
 
 CREATE TABLE IF NOT EXISTS users (
-    id VARCHAR(36) PRIMARY KEY,
+    id UUID PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     full_name VARCHAR(200) NOT NULL,
     avatar_url TEXT,

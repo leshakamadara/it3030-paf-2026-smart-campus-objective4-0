@@ -10,7 +10,7 @@ $$;
 
 CREATE TABLE IF NOT EXISTS bookings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    resource_id UUID NOT NULL,
+    resource_id BIGINT NOT NULL,
     user_id UUID NOT NULL,
     status booking_status NOT NULL DEFAULT 'PENDING',
     start_time TIMESTAMPTZ NOT NULL,
