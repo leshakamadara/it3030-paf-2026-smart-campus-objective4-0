@@ -125,7 +125,8 @@ export function EmailTesterPage() {
 
     setLoading(true);
     try {
-      const response = await fetch("/api/emailTester", {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+      const response = await fetch(`${API_BASE_URL}/api/emailTester`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
