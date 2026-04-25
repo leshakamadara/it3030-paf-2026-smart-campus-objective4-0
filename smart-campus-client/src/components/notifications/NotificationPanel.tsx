@@ -215,7 +215,7 @@ export function NotificationPanel() {
               </Button>
             )}
             <button
-              onClick={() => { setOpen(false); navigate("/notifications"); }}
+              onClick={() => { setOpen(false); navigate("/dashboard/notifications"); }}
               className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-[#d0d6e0] bg-[#f7f8f8] text-[#62666d] hover:bg-[#f3f4f5] text-[10px]"
               title="See all notifications"
             >
@@ -256,7 +256,7 @@ export function NotificationPanel() {
         {items.length > 0 && (
           <div className="border-t border-[#e8eaed] px-4 py-2.5">
             <button
-              onClick={() => { setOpen(false); navigate("/notifications"); }}
+              onClick={() => { setOpen(false); navigate("/dashboard/notifications"); }}
               className="w-full text-center text-xs text-[#5e6ad2] hover:text-[#7170ff] hover:underline"
             >
               View all notifications →

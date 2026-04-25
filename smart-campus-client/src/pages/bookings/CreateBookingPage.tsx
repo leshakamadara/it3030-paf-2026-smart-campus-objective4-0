@@ -148,7 +148,7 @@ export function CreateBookingPage() {
         attendeeCount: attendeeCount === "" ? undefined : Number(attendeeCount),
       });
       toast.success("Booking submitted — status is now PENDING.");
-      navigate(`/bookings/${created.id}`);
+      navigate(`/dashboard/bookings/${created.id}`);
     } catch (submitError) {
       const status = (submitError as { status?: number }).status;
       const message = submitError instanceof Error ? submitError.message : "Failed to create booking";

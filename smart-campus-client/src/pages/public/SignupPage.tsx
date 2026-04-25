@@ -13,7 +13,7 @@ export function SignupPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     }
   }, [isAuthenticated, navigate])
 
@@ -33,7 +33,7 @@ export function SignupPage() {
       }
 
       setSession(response.token.replace(/^Bearer\s+/i, ""), response.user)
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     } catch (error) {
       const message = error instanceof Error ? error.message : "Campus registration failed"
       setErrorMessage(message)

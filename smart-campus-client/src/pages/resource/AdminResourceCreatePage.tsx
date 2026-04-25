@@ -23,7 +23,7 @@ export default function AdminResourceCreatePage() {
       setFormError("");
       const created = await resourceService.createResource(values);
       toast.success("Resource created!", `"${created.name}" has been added.`);
-      navigate(`/resources/${created.id}`);
+      navigate(`/dashboard/resources/${created.id}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to create resource.";
       toast.error("Creation failed", message);

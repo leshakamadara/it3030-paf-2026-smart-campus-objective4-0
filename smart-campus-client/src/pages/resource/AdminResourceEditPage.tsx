@@ -76,7 +76,7 @@ export default function AdminResourceEditPage() {
       setFormError("");
       const updated = await resourceService.updateResource(Number(id), values);
       toast.success("Changes saved!", `"${updated.name}" has been updated.`);
-      navigate(`/resources/${updated.id}`);
+      navigate(`/dashboard/resources/${updated.id}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to update resource.";
       toast.error("Update failed", message);

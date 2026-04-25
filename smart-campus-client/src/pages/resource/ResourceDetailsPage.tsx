@@ -162,7 +162,7 @@ export default function ResourceDetailsPage() {
       await resourceService.deleteResource(Number(id));
       setShowDeleteConfirm(false);
       toast.success("Resource deleted", `The resource has been permanently removed.`);
-      navigate("/resources");
+      navigate("/dashboard/resources");
     } catch (err) {
       setDeleting(false);
       setShowDeleteConfirm(false);

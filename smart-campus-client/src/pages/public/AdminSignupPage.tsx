@@ -28,7 +28,7 @@ export function AdminSignupPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     }
   }, [isAuthenticated, navigate])
 
@@ -51,7 +51,7 @@ export function AdminSignupPage() {
       }
 
       setSession(response.token.replace(/^Bearer\s+/i, ""), response.user)
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     } catch (error) {
       const message = error instanceof Error ? error.message : "Admin registration failed"
       setErrorMessage(message)

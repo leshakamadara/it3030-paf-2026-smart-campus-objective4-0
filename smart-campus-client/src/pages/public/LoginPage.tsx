@@ -22,7 +22,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     }
   }, [isAuthenticated, navigate])
 
@@ -51,7 +51,7 @@ export function LoginPage() {
       }
 
       setSession(response.token.replace(/^Bearer\s+/i, ""), response.user)
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     } catch (error) {
       const message = error instanceof Error ? error.message : "Campus sign-in failed"
       setCampusError(message)
