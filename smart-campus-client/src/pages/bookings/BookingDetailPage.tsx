@@ -134,7 +134,7 @@ export function BookingDetailPage() {
             </p>
             <p className="text-xs text-[#8a8f98]">{resource?.type ?? "General resource"}</p>
             <Link
-              to={`/resources/${booking.resourceId}`}
+              to={`/dashboard/resources/${booking.resourceId}`}
               className="mt-1 inline-block text-xs text-[#5e6ad2] hover:underline"
             >
               View resource →
@@ -198,7 +198,7 @@ export function BookingDetailPage() {
             ← Back to bookings
           </Button>
         </Link>
-        <Link to={`/resources/${booking.resourceId}`}>
+        <Link to={`/dashboard/resources/${booking.resourceId}`}>
           <Button className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5]">
             View resource
           </Button>

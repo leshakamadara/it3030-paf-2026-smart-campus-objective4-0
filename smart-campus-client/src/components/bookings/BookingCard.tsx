@@ -73,7 +73,7 @@ export function BookingCard({ booking, resource, onCancel, onError }: BookingCar
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Link to={`/bookings/${booking.id}`}>
+        <Link to={`/dashboard/bookings/${booking.id}`}>
           <Button className="h-8 border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-xs text-[#43464b] hover:bg-[#f3f4f5]">
             View details
           </Button>

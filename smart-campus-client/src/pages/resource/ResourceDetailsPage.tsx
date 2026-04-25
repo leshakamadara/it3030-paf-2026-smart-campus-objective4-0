@@ -245,7 +245,7 @@ export default function ResourceDetailsPage() {
               <ResourceStatusBadge resource={resource} />
               {admin && (
                 <Button asChild className="transition-all hover:scale-105 hover:shadow-md">
-                  <Link to={`/admin/resources/edit/${resource.id}`}>
+                  <Link to={`/dashboard/admin/resources/edit/${resource.id}`}>
                     <Pencil className="mr-2 h-4 w-4" />
                     Edit
                   </Link>
@@ -479,7 +479,7 @@ export default function ResourceDetailsPage() {
                   asChild
                   className="bg-[#5e6ad2] text-white transition-all hover:bg-[#7170ff] hover:scale-105 hover:shadow-md"
                 >
-                  <Link to={`/bookings/new?resourceId=${resource.id}`}>
+                  <Link to={`/dashboard/bookings/new?resourceId=${resource.id}`}>
                     <CalendarPlus className="mr-2 h-4 w-4" />
                     Create Booking
                   </Link>

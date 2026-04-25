@@ -153,7 +153,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
             className={`mt-3 w-full h-8 text-xs transition-all duration-300 ${cfg.viewBtn} group-hover:border-primary group-hover:bg-primary/10`} 
             asChild
           >
-            <Link to={`/resources/${resource.id}`}>View Details</Link>
+            <Link to={`/dashboard/resources/${resource.id}`}>View Details</Link>
           </Button>
         </CardContent>
       </Card>

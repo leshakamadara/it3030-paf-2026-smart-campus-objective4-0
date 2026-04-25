@@ -99,7 +99,7 @@ export default function AdminResourceEditPage() {
             {id && (
               <>
                 <Button variant="ghost" asChild className="px-2">
-                  <Link to={`/resources/${id}`}>#{id}</Link>
+                  <Link to={`/dashboard/resources/${id}`}>#{id}</Link>
                 </Button>
                 <span className="text-muted-foreground">/</span>
               </>
