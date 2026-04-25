@@ -338,7 +338,6 @@ export const AdminTicketDetailView = ({
               <div className="mb-4">
                 <div ref={commentsContainerRef} className="bg-white border border-slate-200 rounded-2xl p-4 max-h-80 overflow-y-auto space-y-6">
                 {(ticket.comments || []).slice().sort((a: CommentDTO, b: CommentDTO) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((c: CommentDTO) => {
-                  const currentUserData = user;
                   const authorLabel = c.createdByName ?? c.createdBy ?? "Unknown User";
                   const initials = authorLabel
                     .split(/\s+/)
