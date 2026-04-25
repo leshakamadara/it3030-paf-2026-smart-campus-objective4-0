@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { Search, Plus, BarChart3, ChevronLeft, ChevronRight, X, Loader2, Info } from "lucide-react";
 import ResourceFilters from "../../components/ui/resource/ResourceFilters";
 import ResourceTable from "../../components/ui/resource/ResourceTable";

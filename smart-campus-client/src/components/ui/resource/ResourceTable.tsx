@@ -1,7 +1,5 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Users, Clock, MapPin, AlertCircle } from "lucide-react";
 import ResourceStatusBadge from "./ResourceStatusBadge";
 import type { Resource } from "../../../types/resource";
