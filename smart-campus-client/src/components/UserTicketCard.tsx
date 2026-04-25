@@ -66,7 +66,11 @@ export default function TicketCard({
           <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{ticket.category}</span>
           {ticket.assignedToName && (
             <span className="bg-violet-50 text-violet-500 px-2 py-0.5 rounded-full">
-              👤 {ticket.assignedToName.split(" ")[0]}
+              👤 {
+                (ticket.assignedToName.startsWith("http") || ticket.assignedToName.includes("googleusercontent.com"))
+                  ? "Staff" 
+                  : ticket.assignedToName.split(" ")[0]
+              }
             </span>
           )}
         </div>

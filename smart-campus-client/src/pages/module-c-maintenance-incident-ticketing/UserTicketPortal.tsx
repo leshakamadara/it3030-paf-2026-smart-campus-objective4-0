@@ -170,7 +170,11 @@ export default function UserTicketPortal() {
   };
 
   const selectedTicket = tickets.find((t) => t.id === selectedId);
-  const firstName = user?.fullName?.split(" ")[0] ?? "there";
+  const rawName = user?.fullName || "";
+  const displayName = (rawName.startsWith("http") || rawName.includes("googleusercontent.com")) 
+    ? (user?.email?.split("@")[0] || "User")
+    : rawName;
+  const firstName = displayName.split(" ")[0] || "there";
 
     const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 

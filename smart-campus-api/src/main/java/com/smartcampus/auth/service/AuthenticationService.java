@@ -45,9 +45,21 @@ public class AuthenticationService {
 
     public User processOAuth2User(OAuth2User oAuth2User) {
         String email = oAuth2User.getAttribute("email");
-        String fullName = oAuth2User.getAttribute("name");
-        String avatarUrl = oAuth2User.getAttribute("picture");
         String googleSub = oAuth2User.getAttribute("sub");
+        String avatarUrl = oAuth2User.getAttribute("picture");
+
+        // Robust name extraction
+        String fullName = oAuth2User.getAttribute("name");
+        if (!StringUtils.hasText(fullName) || fullName.startsWith("http")) {
+            String givenName = oAuth2User.getAttribute("given_name");
+            String familyName = oAuth2User.getAttribute("family_name");
+            if (StringUtils.hasText(givenName)) {
+                fullName = givenName + (StringUtils.hasText(familyName) ? " " + familyName : "");
+            }
+        }
+
+        // Final fallback and sanitization
+        fullName = sanitizeFullName(fullName, email);
 
         if (!StringUtils.hasText(email)) {
             throw new IllegalArgumentException("OAuth2 email claim is missing");
@@ -229,7 +241,7 @@ public class AuthenticationService {
     private User registerNewUser(String email, String fullName, String avatarUrl, String googleSub) {
         User user = new User();
         user.setEmail(email);
-        user.setFullName(StringUtils.hasText(fullName) ? fullName : email);
+        user.setFullName(sanitizeFullName(fullName, email));
         user.setAvatarUrl(avatarUrl);
         user.setGoogleSub(googleSub);
         user.setRole(Role.USER);
@@ -249,8 +261,19 @@ public class AuthenticationService {
         return saved;
     }
 
+    private String sanitizeFullName(String fullName, String email) {
+        if (!StringUtils.hasText(fullName) || fullName.startsWith("http") || fullName.contains("googleusercontent.com")) {
+            if (StringUtils.hasText(email)) {
+                return email.split("@")[0];
+            }
+            return "Campus User";
+        }
+        return fullName;
+    }
+
     private void updateUser(User existingUser, String fullName, String avatarUrl, String googleSub) {
-        existingUser.setFullName(StringUtils.hasText(fullName) ? fullName : existingUser.getEmail());
+        String sanitizedName = sanitizeFullName(fullName, existingUser.getEmail());
+        existingUser.setFullName(sanitizedName);
         existingUser.setAvatarUrl(avatarUrl);
         if (existingUser.getRole() == null) {
             existingUser.setRole(Role.USER);

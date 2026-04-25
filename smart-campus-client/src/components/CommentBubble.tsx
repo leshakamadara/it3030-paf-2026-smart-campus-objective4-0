@@ -40,7 +40,9 @@ export default function CommentBubble(props: Props) {
 
   const [hovered, setHovered] = useState(false);
 
-  const computedAuthorName = authorName?.trim() ? authorName : 'Unknown User';
+  const isUrl = (authorName: string) => authorName.startsWith('http') || authorName.includes('googleusercontent.com');
+  const safeAuthorName = authorName && isUrl(authorName) ? null : authorName;
+  const computedAuthorName = safeAuthorName?.trim() ? safeAuthorName : 'Campus User';
   const computedInitials = initials?.trim()
     ? initials
     : computedAuthorName
