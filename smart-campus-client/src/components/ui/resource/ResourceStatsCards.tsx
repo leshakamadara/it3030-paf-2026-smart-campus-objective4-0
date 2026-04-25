@@ -1,7 +1,4 @@
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Package, CheckCircle, AlertCircle, Wrench, Calendar, CalendarX, MapPin } from "lucide-react";
 import type { ResourceStats } from "../../../types/resource";
 
@@ -12,222 +9,140 @@ interface ResourceStatsCardsProps {
 interface StatConfig {
   label: string;
   icon: React.ReactNode;
-  gradientFrom: string;
-  gradientTo: string;
-  iconBg: string;
+  bg: string;
+  accent: string;
   textColor: string;
-  progressColor: string;
 }
 
 const STAT_CONFIGS: StatConfig[] = [
-  {
-    label: "Total Resources",
-    icon: <Package className="h-5 w-5" />,
-    gradientFrom: "from-primary/10",
-    gradientTo: "to-background",
-    iconBg: "bg-primary/10 text-primary",
-    textColor: "text-primary",
-    progressColor: "bg-primary",
-  },
-  {
-    label: "Active",
-    icon: <CheckCircle className="h-5 w-5" />,
-    gradientFrom: "from-emerald-500/10",
-    gradientTo: "to-background",
-    iconBg: "bg-emerald-500/10 text-emerald-600",
-    textColor: "text-emerald-700",
-    progressColor: "bg-emerald-500",
-  },
-  {
-    label: "Out of Service",
-    icon: <AlertCircle className="h-5 w-5" />,
-    gradientFrom: "from-destructive/10",
-    gradientTo: "to-background",
-    iconBg: "bg-destructive/10 text-destructive",
-    textColor: "text-destructive",
-    progressColor: "bg-destructive",
-  },
-  {
-    label: "Under Maintenance",
-    icon: <Wrench className="h-5 w-5" />,
-    gradientFrom: "from-amber-500/10",
-    gradientTo: "to-background",
-    iconBg: "bg-amber-500/10 text-amber-600",
-    textColor: "text-amber-700",
-    progressColor: "bg-amber-500",
-  },
-  {
-    label: "Bookable",
-    icon: <Calendar className="h-5 w-5" />,
-    gradientFrom: "from-sky-500/10",
-    gradientTo: "to-background",
-    iconBg: "bg-sky-500/10 text-sky-600",
-    textColor: "text-sky-700",
-    progressColor: "bg-sky-500",
-  },
-  {
-    label: "Non-Bookable",
-    icon: <CalendarX className="h-5 w-5" />,
-    gradientFrom: "from-muted",
-    gradientTo: "to-background",
-    iconBg: "bg-muted text-muted-foreground",
-    textColor: "text-muted-foreground",
-    progressColor: "bg-muted-foreground",
-  },
+  { label: "Total Resources", icon: <Package className="h-5 w-5" />, bg: "#ede9ff", accent: "#5e6ad2", textColor: "#5b21b6" },
+  { label: "Active", icon: <CheckCircle className="h-5 w-5" />, bg: "#f0fdf4", accent: "#10b981", textColor: "#166534" },
+  { label: "Out of Service", icon: <AlertCircle className="h-5 w-5" />, bg: "#fff1f2", accent: "#f43f5e", textColor: "#9f1239" },
+  { label: "Under Maintenance", icon: <Wrench className="h-5 w-5" />, bg: "#fffbeb", accent: "#f59e0b", textColor: "#92400e" },
+  { label: "Bookable", icon: <Calendar className="h-5 w-5" />, bg: "#e0f2fe", accent: "#0ea5e9", textColor: "#075985" },
+  { label: "Non-Bookable", icon: <CalendarX className="h-5 w-5" />, bg: "#f3f4f6", accent: "#9ca3af", textColor: "#4b5563" },
 ];
 
 const STAT_KEYS: Array<keyof ResourceStats> = [
-  "total",
-  "active",
-  "outOfService",
-  "underMaintenance",
-  "bookable",
-  "nonBookable",
+  "total", "active", "outOfService", "underMaintenance", "bookable", "nonBookable",
 ];
 
-const TYPE_COLORS: Record<string, { bar: string; badge: string }> = {
-  LECTURE_HALL: {
-    bar: "bg-violet-500",
-    badge: "bg-violet-500/10 text-violet-700 border-violet-200",
-  },
-  LAB: {
-    bar: "bg-blue-500",
-    badge: "bg-blue-500/10 text-blue-700 border-blue-200",
-  },
-  MEETING_ROOM: {
-    bar: "bg-teal-500",
-    badge: "bg-teal-500/10 text-teal-700 border-teal-200",
-  },
-  PROJECTOR: {
-    bar: "bg-amber-500",
-    badge: "bg-amber-500/10 text-amber-700 border-amber-200",
-  },
-  CAMERA: {
-    bar: "bg-rose-500",
-    badge: "bg-rose-500/10 text-rose-700 border-rose-200",
-  },
+const TYPE_COLORS: Record<string, { bar: string; badgeBg: string; badgeText: string }> = {
+  LECTURE_HALL: { bar: "#8b5cf6", badgeBg: "#ede9ff", badgeText: "#6d28d9" },
+  LAB: { bar: "#3b82f6", badgeBg: "#dbeafe", badgeText: "#1d4ed8" },
+  MEETING_ROOM: { bar: "#14b8a6", badgeBg: "#ccfbf1", badgeText: "#0f766e" },
+  PROJECTOR: { bar: "#f59e0b", badgeBg: "#fef3c7", badgeText: "#b45309" },
+  CAMERA: { bar: "#f43f5e", badgeBg: "#ffe4e6", badgeText: "#be123c" },
 };
 
 const BUILDING_COLORS = [
-  { bar: "bg-primary", badge: "bg-primary/10 text-primary border-primary/20" },
-  { bar: "bg-sky-500", badge: "bg-sky-500/10 text-sky-700 border-sky-200" },
-  { bar: "bg-emerald-500", badge: "bg-emerald-500/10 text-emerald-700 border-emerald-200" },
-  { bar: "bg-violet-500", badge: "bg-violet-500/10 text-violet-700 border-violet-200" },
-  { bar: "bg-amber-500", badge: "bg-amber-500/10 text-amber-700 border-amber-200" },
-  { bar: "bg-rose-500", badge: "bg-rose-500/10 text-rose-700 border-rose-200" },
+  { bar: "#5e6ad2", badgeBg: "#ede9ff", badgeText: "#5b21b6" },
+  { bar: "#0ea5e9", badgeBg: "#e0f2fe", badgeText: "#0369a1" },
+  { bar: "#10b981", badgeBg: "#d1fae5", badgeText: "#047857" },
+  { bar: "#8b5cf6", badgeBg: "#ede9ff", badgeText: "#6d28d9" },
+  { bar: "#f59e0b", badgeBg: "#fef3c7", badgeText: "#b45309" },
+  { bar: "#f43f5e", badgeBg: "#ffe4e6", badgeText: "#be123c" },
 ];
 
 function StatCard({ config, value, total }: { config: StatConfig; value: number; total: number }) {
   const pct = total > 0 ? (value / total) * 100 : 0;
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 300 }}
-    >
-      <Card className={`bg-gradient-to-br ${config.gradientFrom} ${config.gradientTo} shadow-sm transition-all hover:shadow-lg`}>
-        <CardHeader className="pb-2">
-          <div className="flex items-start justify-between">
-            <div className={`rounded-lg p-2 ${config.iconBg} transition-transform group-hover:scale-110`}>
-              {config.icon}
-            </div>
-            <Badge variant="secondary" className="animate-pulse">
-              {Math.round(pct)}%
-            </Badge>
+    <motion.div whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+      <div className="rounded-lg p-5 flex flex-col h-full shadow-sm"
+        style={{ backgroundColor: "#ffffff", border: "1px solid #e6e6e6" }}>
+        
+        <div className="flex items-start justify-between mb-4">
+          <div className="p-2.5 rounded-lg" style={{ backgroundColor: config.bg, color: config.accent }}>
+            {config.icon}
           </div>
-        </CardHeader>
-        <CardContent>
-          <p className={`text-3xl font-bold ${config.textColor}`}>{value.toLocaleString()}</p>
-          <p className="text-sm text-muted-foreground">{config.label}</p>
-          <Progress
-            value={pct}
-            className={`mt-3 h-1.5 ${config.progressColor} transition-all duration-700 ease-out`}
-          />
-        </CardContent>
-      </Card>
+          <div className="px-2 py-0.5 rounded-full text-xs font-bold"
+            style={{ backgroundColor: "#f3f4f5", color: "#43464b" }}>
+            {Math.round(pct)}%
+          </div>
+        </div>
+
+        <div className="mt-auto">
+          <p className="text-3xl font-bold mb-1" style={{ color: config.textColor }}>
+            {value.toLocaleString()}
+          </p>
+          <p className="text-sm font-medium" style={{ color: "#8a8f98" }}>{config.label}</p>
+          
+          <div className="w-full h-1.5 mt-3 rounded-full overflow-hidden" style={{ backgroundColor: "#f3f4f5" }}>
+            <div className="h-full rounded-full transition-all duration-1000 ease-out"
+              style={{ width: `${pct}%`, backgroundColor: config.accent }} />
+          </div>
+        </div>
+
+      </div>
     </motion.div>
   );
 }
 
 function GroupCard({
-  title,
-  icon,
-  data,
-  total,
-  colorMap,
-  colorCycle,
+  title, icon, data, total, colorMap, colorCycle,
 }: {
-  title: string;
-  icon: React.ReactNode;
-  data: Record<string, number>;
-  total: number;
-  colorMap?: Record<string, { bar: string; badge: string }>;
-  colorCycle?: Array<{ bar: string; badge: string }>;
+  title: string; icon: React.ReactNode; data: Record<string, number>; total: number;
+  colorMap?: Record<string, { bar: string; badgeBg: string; badgeText: string }>;
+  colorCycle?: Array<{ bar: string; badgeBg: string; badgeText: string }>;
 }) {
   const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
-      <Card className="transition-shadow hover:shadow-lg">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="text-muted-foreground">{icon}</div>
-            <CardTitle className="text-base">{title}</CardTitle>
-            <Badge variant="outline" className="ml-auto">
-              {entries.length} {entries.length === 1 ? "type" : "types"}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {entries.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">No data available</p>
-          ) : (
-            entries.map(([key, value], idx) => {
-              const pct = total > 0 ? (value / total) * 100 : 0;
-              const colors =
-                colorMap?.[key] ?? colorCycle?.[idx % (colorCycle?.length ?? 1)] ?? {
-                  bar: "bg-muted-foreground",
-                  badge: "bg-muted text-muted-foreground border-border",
-                };
+    <div className="rounded-lg flex flex-col shadow-sm"
+      style={{ backgroundColor: "#ffffff", border: "1px solid #e6e6e6" }}>
+      
+      <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: "#f3f4f5" }}>
+        <div className="flex items-center gap-2">
+          <span style={{ color: "#8a8f98" }}>{icon}</span>
+          <h3 className="font-semibold text-base" style={{ color: "#191a1b" }}>{title}</h3>
+        </div>
+        <span className="text-xs font-semibold px-2 py-0.5 rounded-md"
+          style={{ backgroundColor: "#f3f4f5", color: "#43464b" }}>
+          {entries.length} items
+        </span>
+      </div>
 
-              return (
-                <div key={key} className="group">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="font-medium group-hover:text-primary transition-colors">
-                      {key.replaceAll("_", " ")}
+      <div className="p-5 space-y-5">
+        {entries.length === 0 ? (
+          <p className="text-center py-4 text-sm" style={{ color: "#8a8f98" }}>No data available</p>
+        ) : (
+          entries.map(([key, value], idx) => {
+            const pct = total > 0 ? (value / total) * 100 : 0;
+            const colors = colorMap?.[key] ?? colorCycle?.[idx % (colorCycle?.length ?? 1)] ?? {
+              bar: "#9ca3af", badgeBg: "#f3f4f6", badgeText: "#4b5563"
+            };
+
+            return (
+              <div key={key}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm font-medium" style={{ color: "#43464b" }}>
+                    {key.replaceAll("_", " ")}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-medium" style={{ color: "#8a8f98" }}>{Math.round(pct)}%</span>
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: colors.badgeBg, color: colors.badgeText }}>
+                      {value}
                     </span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-muted-foreground">{Math.round(pct)}%</span>
-                      <Badge
-                        variant="outline"
-                        className={`${colors.badge} transition-all group-hover:scale-105`}
-                      >
-                        {value}
-                      </Badge>
-                    </div>
                   </div>
-                  <Progress
-                    value={pct}
-                    className={`h-2 ${colors.bar} transition-all duration-700 ease-out`}
-                  />
                 </div>
-              );
-            })
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
+                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#f3f4f5" }}>
+                  <div className="h-full rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${pct}%`, backgroundColor: colors.bar }} />
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
   );
 }
 
 export default function ResourceStatsCards({ stats }: ResourceStatsCardsProps) {
   return (
     <div className="space-y-6">
-      {/* KPI Row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {STAT_CONFIGS.map((config, i) => {
           const key = STAT_KEYS[i];
@@ -236,7 +151,6 @@ export default function ResourceStatsCards({ stats }: ResourceStatsCardsProps) {
         })}
       </div>
 
-      {/* Breakdown Row */}
       <div className="grid gap-6 lg:grid-cols-2">
         <GroupCard
           title="By Resource Type"

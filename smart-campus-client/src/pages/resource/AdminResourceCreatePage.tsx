@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft, Lock } from "lucide-react";
 import ResourceForm from "../../components/ui/resource/ResourceForm";
 import { useToast } from "../../components/ui/toast-system";
@@ -32,18 +31,24 @@ export default function AdminResourceCreatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link to="/dashboard/resources">
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Resources
-              </Link>
-            </Button>
-            <span className="text-muted-foreground">/</span>
-            <span className="font-medium">Create New</span>
+    <div className="min-h-screen" style={{ backgroundColor: "#f7f8f8" }}>
+      {/* Brand accent stripe */}
+      <div className="h-0.5 w-full" style={{ backgroundColor: "#5e6ad2" }} />
+
+      {/* Sticky header */}
+      <div className="sticky top-0 z-20 border-b" style={{ backgroundColor: "#ffffff", borderColor: "#e6e6e6" }}>
+        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2 text-sm">
+            <Link
+              to="/dashboard/resources"
+              className="inline-flex items-center gap-1 font-medium transition-colors hover:text-indigo-600"
+              style={{ color: "#43464b" }}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Resources
+            </Link>
+            <span style={{ color: "#d0d6e0" }}>/</span>
+            <span className="font-medium" style={{ color: "#191a1b" }}>Create New</span>
           </div>
         </div>
       </div>
@@ -62,29 +67,31 @@ export default function AdminResourceCreatePage() {
 
 function AccessDenied() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b">
-        <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6">
-          <Button variant="ghost" asChild>
-            <Link to="/dashboard/resources">
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Back to Resources
-            </Link>
-          </Button>
+    <div className="min-h-screen" style={{ backgroundColor: "#f7f8f8" }}>
+      <div className="h-0.5 w-full" style={{ backgroundColor: "#5e6ad2" }} />
+      <div className="border-b" style={{ backgroundColor: "#ffffff", borderColor: "#e6e6e6" }}>
+        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
+          <Link
+            to="/dashboard/resources"
+            className="inline-flex items-center gap-1 text-sm font-medium transition-colors hover:text-indigo-600"
+            style={{ color: "#43464b" }}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back to Resources
+          </Link>
         </div>
       </div>
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <Card className="border-amber-200 bg-amber-500/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-amber-800">
-              <Lock className="h-5 w-5" />
-              Admin Access Required
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-amber-700">Only administrators can create new resources.</p>
-          </CardContent>
-        </Card>
+      <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="rounded-lg border p-6 flex items-start gap-4"
+          style={{ backgroundColor: "#fffbeb", borderColor: "#fde68a" }}>
+          <Lock className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: "#d97706" }} />
+          <div>
+            <p className="font-semibold text-sm" style={{ color: "#92400e" }}>Admin Access Required</p>
+            <p className="text-sm mt-1" style={{ color: "#b45309" }}>
+              Only administrators can create new resources.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

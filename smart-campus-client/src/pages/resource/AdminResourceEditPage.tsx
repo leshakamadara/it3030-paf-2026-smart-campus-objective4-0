@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft, Lock, Loader2, AlertCircle } from "lucide-react";
 import ResourceForm from "../../components/ui/resource/ResourceForm";
 import { useToast } from "../../components/ui/toast-system";
@@ -63,9 +61,7 @@ export default function AdminResourceEditPage() {
       }
     };
     fetchResource();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [id, admin]);
 
   if (!admin) return <AccessDenied />;
@@ -85,46 +81,55 @@ export default function AdminResourceEditPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link to="/dashboard/resources">
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Resources
-              </Link>
-            </Button>
-            <span className="text-muted-foreground">/</span>
+    <div className="min-h-screen" style={{ backgroundColor: "#f7f8f8" }}>
+      {/* Brand accent stripe */}
+      <div className="h-0.5 w-full" style={{ backgroundColor: "#5e6ad2" }} />
+
+      {/* Sticky header */}
+      <div className="sticky top-0 z-20 border-b" style={{ backgroundColor: "#ffffff", borderColor: "#e6e6e6" }}>
+        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2 text-sm">
+            <Link
+              to="/dashboard/resources"
+              className="inline-flex items-center gap-1 font-medium transition-colors hover:text-indigo-600"
+              style={{ color: "#43464b" }}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Resources
+            </Link>
+            <span style={{ color: "#d0d6e0" }}>/</span>
             {id && (
               <>
-                <Button variant="ghost" asChild className="px-2">
-                  <Link to={`/dashboard/resources/${id}`}>#{id}</Link>
-                </Button>
-                <span className="text-muted-foreground">/</span>
+                <Link
+                  to={`/dashboard/resources/${id}`}
+                  className="font-medium transition-colors hover:text-indigo-600"
+                  style={{ color: "#43464b" }}
+                >
+                  #{id}
+                </Link>
+                <span style={{ color: "#d0d6e0" }}>/</span>
               </>
             )}
-            <span className="font-medium">Edit</span>
+            <span className="font-medium" style={{ color: "#191a1b" }}>Edit</span>
           </div>
         </div>
       </div>
 
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            <span className="ml-3 text-muted-foreground">Loading resource...</span>
+          <div className="flex items-center justify-center py-16 gap-3">
+            <Loader2 className="h-6 w-6 animate-spin" style={{ color: "#8a8f98" }} />
+            <span className="text-sm" style={{ color: "#8a8f98" }}>Loading resource…</span>
           </div>
         ) : pageError || !resource ? (
-          <Card className="border-destructive/50 bg-destructive/10">
-            <CardContent className="flex items-start gap-4 py-6">
-              <AlertCircle className="h-5 w-5 text-destructive" />
-              <div>
-                <h2 className="font-semibold text-destructive">Failed to load</h2>
-                <p className="text-sm text-destructive">{pageError || "Resource not found."}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="rounded-lg border p-5 flex items-start gap-3"
+            style={{ backgroundColor: "#fff1f2", borderColor: "#fecdd3" }}>
+            <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: "#f43f5e" }} />
+            <div>
+              <p className="font-semibold text-sm" style={{ color: "#9f1239" }}>Failed to load</p>
+              <p className="text-sm" style={{ color: "#be123c" }}>{pageError || "Resource not found."}</p>
+            </div>
+          </div>
         ) : (
           <ResourceForm
             mode="edit"
@@ -141,29 +146,31 @@ export default function AdminResourceEditPage() {
 
 function AccessDenied() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b">
-        <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6">
-          <Button variant="ghost" asChild>
-            <Link to="/dashboard/resources">
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Back to Resources
-            </Link>
-          </Button>
+    <div className="min-h-screen" style={{ backgroundColor: "#f7f8f8" }}>
+      <div className="h-0.5 w-full" style={{ backgroundColor: "#5e6ad2" }} />
+      <div className="border-b" style={{ backgroundColor: "#ffffff", borderColor: "#e6e6e6" }}>
+        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
+          <Link
+            to="/dashboard/resources"
+            className="inline-flex items-center gap-1 text-sm font-medium transition-colors hover:text-indigo-600"
+            style={{ color: "#43464b" }}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back to Resources
+          </Link>
         </div>
       </div>
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <Card className="border-amber-200 bg-amber-500/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-amber-800">
-              <Lock className="h-5 w-5" />
-              Admin Access Required
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-amber-700">Only administrators can edit resources.</p>
-          </CardContent>
-        </Card>
+      <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="rounded-lg border p-6 flex items-start gap-4"
+          style={{ backgroundColor: "#fffbeb", borderColor: "#fde68a" }}>
+          <Lock className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: "#d97706" }} />
+          <div>
+            <p className="font-semibold text-sm" style={{ color: "#92400e" }}>Admin Access Required</p>
+            <p className="text-sm mt-1" style={{ color: "#b45309" }}>
+              Only administrators can edit resources.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
