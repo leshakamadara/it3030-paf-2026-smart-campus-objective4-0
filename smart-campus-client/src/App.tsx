@@ -75,6 +75,7 @@ function AuthenticatedLayout() {
   const { user, clearSession } = useAuth();
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const isResourceAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
+  const isTechnician = user?.role === "TECHNICIAN";
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     isActive
@@ -110,11 +111,20 @@ function AuthenticatedLayout() {
             {/* Navigation links */}
             <nav className="flex items-center gap-0.5">
               {/* User links */}
-              {!isResourceAdmin && (
+              {(!isResourceAdmin && !isTechnician) && (
                 <>
                   <NavLink to="/dashboard/bookings" className={navLinkClass}>Bookings</NavLink>
                   <NavLink to="/dashboard/resources" className={navLinkClass}>Resources</NavLink>
                   <NavLink to="/dashboard/tickets" className={navLinkClass}>My Tickets</NavLink>
+
+                  {/* Separator before common links */}
+                  <div className="mx-1.5 h-4 w-px bg-[#e6e6e6]" />
+                </>
+              )}
+              {isTechnician && (
+                <>
+                  <NavLink to="/dashboard/bookings" className={navLinkClass}>Bookings</NavLink>
+                  <NavLink to="/dashboard/resources" className={navLinkClass}>Resources</NavLink>
 
                   {/* Separator before common links */}
                   <div className="mx-1.5 h-4 w-px bg-[#e6e6e6]" />
@@ -125,16 +135,22 @@ function AuthenticatedLayout() {
               <NavLink to="/dashboard/notifications" className={navLinkClass}>Notifications</NavLink>
 
               {/* Admin links — visually grouped with separator */}
-              {isResourceAdmin && (
+              {(isResourceAdmin || isTechnician) && (
                 <>
                   <div className="mx-1.5 h-4 w-px bg-[#e6e6e6]" />
                   {isSuperAdmin && (
                     <NavLink to="/dashboard/admin/users" className={adminNavLinkClass}>Users</NavLink>
                   )}
-                  <NavLink to="/dashboard/admin/resources/stats" className={adminNavLinkClass}>Resources</NavLink>
-                  <NavLink to="/dashboard/admin/bookings" className={adminNavLinkClass}>Bookings</NavLink>
+                  {isResourceAdmin && (
+                    <>
+                      <NavLink to="/dashboard/admin/resources/stats" className={adminNavLinkClass}>Resources</NavLink>
+                      <NavLink to="/dashboard/admin/bookings" className={adminNavLinkClass}>Bookings</NavLink>
+                    </>
+                  )}
                   <NavLink to="/dashboard/admin/tickets" className={adminNavLinkClass}>Tickets</NavLink>
-                  <NavLink to="/dashboard/email-tester" className={adminNavLinkClass}>Email</NavLink>
+                  {isResourceAdmin && (
+                    <NavLink to="/dashboard/email-tester" className={adminNavLinkClass}>Email</NavLink>
+                  )}
                 </>
               )}
 
@@ -180,6 +196,8 @@ function AuthenticatedLayout() {
 function HomePage() {
   const { user } = useAuth();
   const isResourceAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
+  const isTechnician = user?.role === "TECHNICIAN";
+  const showAdminTickets = isResourceAdmin || isTechnician;
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-4 px-4 py-8">
@@ -245,19 +263,19 @@ function HomePage() {
 
         <Card className="border-[#d0d6e0] bg-[#ffffff]">
           <CardHeader>
-            <CardTitle className="text-base">{isResourceAdmin ? "Maintenance & Incident Management" : "Maintenance Tickets"}</CardTitle>
+            <CardTitle className="text-base">{showAdminTickets ? "Maintenance & Incident Management" : "Maintenance Tickets"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-[#62666d]">
-              {isResourceAdmin ? "Track and resolve campus incident reports and maintenance requests." : "Report campus incidents and track their resolution progress."}
+              {showAdminTickets ? "Track and resolve campus incident reports and maintenance requests." : "Report campus incidents and track their resolution progress."}
             </p>
             <div className="flex flex-wrap gap-2">
-              {!isResourceAdmin && (
+              {!showAdminTickets && (
                 <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#43464b] font-[450] shadow-sm transition-all hover:border-[#5e6ad2] hover:bg-[#f5f6ff] hover:text-[#5e6ad2]">
                   <Link to="/dashboard/tickets">My Tickets</Link>
                 </Button>
               )}
-              {isResourceAdmin && (
+              {showAdminTickets && (
                 <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#43464b] font-[450] shadow-sm transition-all hover:border-[#5e6ad2] hover:bg-[#f5f6ff] hover:text-[#5e6ad2]">
                   <Link to="/dashboard/admin/tickets">Ticket Admin</Link>
                 </Button>
