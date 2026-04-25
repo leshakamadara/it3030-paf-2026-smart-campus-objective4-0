@@ -16,13 +16,7 @@ public class EmailService {
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
     // ── Brand assets ──────────────────────────────────────────────────────────
-    private static final String LOGO_SVG =
-        "<svg width=\"36\" height=\"36\" viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\">" +
-        "<circle cx=\"34\" cy=\"34\" r=\"27\" fill=\"#5e6ad2\"/>" +
-        "<circle cx=\"66\" cy=\"34\" r=\"27\" fill=\"#dde0f5\"/>" +
-        "<circle cx=\"34\" cy=\"66\" r=\"27\" fill=\"#dde0f5\"/>" +
-        "<circle cx=\"66\" cy=\"66\" r=\"27\" fill=\"#5e6ad2\"/>" +
-        "</svg>";
+    private static final String LOGO_URL = "https://res.cloudinary.com/dckoipgrs/image/upload/v1777130122/HelaUni_o2xzdp.png";
 
     // ── Palette (DESIGN.md light theme) ───────────────────────────────────────
     private static final String C_BG         = "#f3f4f5";
@@ -233,7 +227,9 @@ public class EmailService {
             // ── Logo header ─────────────────────────────────────────────────
             "<tr><td align=\"center\" style=\"padding-bottom:28px;\">" +
             "<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
-            "<td style=\"padding-right:10px;vertical-align:middle;line-height:1;\">" + LOGO_SVG + "</td>" +
+            "<td style=\"padding-right:12px;vertical-align:middle;line-height:1;\">" +
+            "<img src=\"" + LOGO_URL + "\" width=\"36\" height=\"36\" alt=\"HelaUni\" style=\"display:block;border:0;\">" +
+            "</td>" +
             "<td style=\"vertical-align:middle;\">" +
             "<span style=\"font-size:20px;font-weight:700;color:" + C_TEXT_PRI + ";letter-spacing:-0.4px;\">HelaUni</span>" +
             "</td></tr></table>" +
