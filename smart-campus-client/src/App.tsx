@@ -142,15 +142,13 @@ function AuthenticatedLayout() {
           <div className="flex items-center gap-2">
             <NotificationPanel />
             {user?.role && <RoleBadge role={user.role} />}
-            <div className="flex items-center gap-2 rounded-full border border-[#d0d6e0] bg-[#f7f8f8] px-2.5 py-1">
-              <UserAvatar
-                name={user?.fullName ?? "Campus User"}
-                avatarUrl={user?.avatarUrl as string | null | undefined}
-              />
-              <span className="hidden text-xs font-[510] text-[#43464b] sm:inline">
-                {user?.fullName ?? "User"}
-              </span>
-            </div>
+            <UserAvatar
+              name={user?.fullName ?? "Campus User"}
+              avatarUrl={user?.avatarUrl as string | null | undefined}
+            />
+            <span className="hidden text-xs font-[510] text-[#43464b] sm:inline">
+              {user?.fullName ?? "User"}
+            </span>
             <Button
               onClick={clearSession}
               className="h-8 rounded-md border border-[#f0b8c4] bg-[#fff1f4] px-3 text-xs text-[#8f3346] hover:bg-[#ffe6ec] shadow-none"
