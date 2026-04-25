@@ -182,10 +182,10 @@ function HomePage() {
         </p>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 md:grid-cols-3">
         <Card className="border-[#d0d6e0] bg-[#ffffff]">
           <CardHeader>
-            <CardTitle className="text-base">{isResourceAdmin ? "Booking Management" : "Module B: Bookings"}</CardTitle>
+            <CardTitle className="text-base">{isResourceAdmin ? "Booking Management" : "Bookings"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-[#62666d]">
@@ -194,16 +194,16 @@ function HomePage() {
             <div className="flex flex-wrap gap-2">
               {!isResourceAdmin && (
                 <>
-                  <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                  <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
                     <Link to="/dashboard/bookings">My Bookings</Link>
                   </Button>
-                  <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                  <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
                     <Link to="/dashboard/bookings/new">Create Booking</Link>
                   </Button>
                 </>
               )}
               {isResourceAdmin && (
-                <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
                   <Link to="/dashboard/admin/bookings">Admin Bookings</Link>
                 </Button>
               )}
@@ -213,7 +213,7 @@ function HomePage() {
 
         <Card className="border-[#d0d6e0] bg-[#ffffff]">
           <CardHeader>
-            <CardTitle className="text-base">{isResourceAdmin ? "Resource Management" : "Module A: Facilities Catalogue"}</CardTitle>
+            <CardTitle className="text-base">{isResourceAdmin ? "Resource Management" : "Facilities Catalogue"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-[#62666d]">
@@ -221,45 +221,41 @@ function HomePage() {
             </p>
             <div className="flex flex-wrap gap-2">
               {!isResourceAdmin && (
-                <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
                   <Link to="/dashboard/resources">Browse Resources</Link>
                 </Button>
               )}
               {isResourceAdmin && (
-                <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
+                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
                   <Link to="/dashboard/admin/resources/stats">Resource Admin</Link>
                 </Button>
               )}
             </div>
           </CardContent>
         </Card>
-      </section>
 
-      <section className="rounded-xl border border-[#d0d6e0] bg-[#f3f4f5] p-4 text-sm text-[#43464b]">
-        Notification overlay UI is implemented here for integration, while full notification APIs remain part of
-        Module D backend scope.
-      </section>
-
-      <section className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-6">
-        <p className="text-xs font-[510] uppercase tracking-[0.18em] text-[#5e6ad2] mb-1">Module C</p>
-        <h2 className="text-base font-[590] tracking-tight text-[#191a1b] mb-1">
-          {isResourceAdmin ? "Maintenance & Incident Management" : "Maintenance & Incident Tickets"}
-        </h2>
-        <p className="text-sm text-[#62666d] mb-4">
-          {isResourceAdmin ? "Track and resolve campus incident reports and maintenance requests." : "Report campus incidents and track their resolution progress."}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {!isResourceAdmin && (
-            <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-              <Link to="/dashboard/tickets">My Tickets</Link>
-            </Button>
-          )}
-          {isResourceAdmin && (
-            <Button asChild variant="outline" className="border-[#d0d6e0] bg-[#f7f8f8]">
-              <Link to="/dashboard/admin/tickets">Ticket Admin</Link>
-            </Button>
-          )}
-        </div>
+        <Card className="border-[#d0d6e0] bg-[#ffffff]">
+          <CardHeader>
+            <CardTitle className="text-base">{isResourceAdmin ? "Maintenance & Incident Management" : "Maintenance Tickets"}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-[#62666d]">
+              {isResourceAdmin ? "Track and resolve campus incident reports and maintenance requests." : "Report campus incidents and track their resolution progress."}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {!isResourceAdmin && (
+                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
+                  <Link to="/dashboard/tickets">My Tickets</Link>
+                </Button>
+              )}
+              {isResourceAdmin && (
+                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
+                  <Link to="/dashboard/admin/tickets">Ticket Admin</Link>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </section>
     </main>
   );
