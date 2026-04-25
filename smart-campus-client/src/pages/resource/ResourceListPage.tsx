@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Plus, BarChart3, ChevronLeft, ChevronRight, X, Loader2, Info } from "lucide-react";
 import ResourceFilters from "../../components/ui/resource/ResourceFilters";
 import ResourceTable from "../../components/ui/resource/ResourceTable";
+import { PageHeader } from "@/components/layout/PageHeader";
 import resourceService from "../../services/resourceService";
 import { useAuth } from "@/context/AuthContext";
 import type {
@@ -86,66 +87,50 @@ export default function ResourceListPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f7f8f8" }}>
-      {/* Brand accent stripe */}
-      <div className="h-0.5 w-full" style={{ backgroundColor: "#5e6ad2" }} />
+      <PageHeader
+        title="Campus Resources"
+        description="Browse and filter all campus facilities and assets."
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Resources", href: "/dashboard/resources" },
+          { label: "Campus Resources" }
+        ]}
+        action={
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: 0.08 }}
+            className="flex items-center gap-2"
+          >
+            {/* Role pill */}
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+              style={{ backgroundColor: "#ede9ff", color: "#5e6ad2", border: "1px solid #c4b5fd" }}>
+              {user?.role ?? "USER"}
+            </span>
 
-      {/* Page header */}
-      <div className="border-b" style={{ backgroundColor: "#ffffff", borderColor: "#e6e6e6" }}>
-        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-            >
-              <p className="text-xs font-semibold uppercase tracking-widest mb-1"
-                style={{ color: "#5e6ad2", letterSpacing: "0.6px" }}>
-                Facilities Catalogue
-              </p>
-              <h1 className="text-2xl font-bold" style={{ color: "#191a1b", letterSpacing: "-0.4px" }}>
-                Campus Resources
-              </h1>
-              <p className="text-sm mt-0.5" style={{ color: "#8a8f98" }}>
-                Browse and filter all campus facilities and assets.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25, delay: 0.08 }}
-              className="flex items-center gap-2"
-            >
-              {/* Role pill */}
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
-                style={{ backgroundColor: "#ede9ff", color: "#5e6ad2", border: "1px solid #c4b5fd" }}>
-                {user?.role ?? "USER"}
-              </span>
-
-              {isResourceAdmin && (
-                <>
-                  <Button asChild size="sm"
-                    className="text-white font-semibold shadow-none hover:opacity-90 transition-opacity"
-                    style={{ backgroundColor: "#5e6ad2", borderRadius: "6px" }}>
-                    <Link to="/dashboard/admin/resources/create">
-                      <Plus className="mr-1.5 h-3.5 w-3.5" />
-                      Add Resource
-                    </Link>
-                  </Button>
-                  <Button variant="outline" asChild size="sm"
-                    className="font-medium transition-colors"
-                    style={{ borderColor: "#d0d6e0", color: "#43464b", borderRadius: "6px" }}>
-                    <Link to="/dashboard/admin/resources/stats">
-                      <BarChart3 className="mr-1.5 h-3.5 w-3.5" />
-                      Stats
-                    </Link>
-                  </Button>
-                </>
-              )}
-            </motion.div>
-          </div>
-        </div>
-      </div>
+            {isResourceAdmin && (
+              <>
+                <Button asChild size="sm"
+                  className="text-white font-semibold shadow-none hover:opacity-90 transition-opacity"
+                  style={{ backgroundColor: "#5e6ad2", borderRadius: "6px" }}>
+                  <Link to="/dashboard/admin/resources/create">
+                    <Plus className="mr-1.5 h-3.5 w-3.5" />
+                    Add Resource
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild size="sm"
+                  className="font-medium transition-colors"
+                  style={{ borderColor: "#d0d6e0", color: "#43464b", borderRadius: "6px" }}>
+                  <Link to="/dashboard/admin/resources/stats">
+                    <BarChart3 className="mr-1.5 h-3.5 w-3.5" />
+                    Stats
+                  </Link>
+                </Button>
+              </>
+            )}
+          </motion.div>
+        }
+      />
 
       {/* Body */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

@@ -3,6 +3,14 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { BookingCard } from "@/components/bookings/BookingCard";
 import { ConflictAlert } from "@/components/bookings/ConflictAlert";
 import { StatusTabs, isMatchingStatus, type BookingStatusTab } from "@/components/bookings/StatusTabs";
@@ -77,6 +85,19 @@ export function MyBookingsPage() {
     <div className="space-y-5">
       <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-4">
         <div>
+          <Breadcrumb className="mb-1">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to="/dashboard">Dashboard</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>My Bookings</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <h2 className="text-lg font-[590] tracking-tight text-[#191a1b]">My Bookings</h2>
           <p className="text-sm text-[#8a8f98]">Track booking requests, approvals, and check-in QR codes.</p>
         </div>

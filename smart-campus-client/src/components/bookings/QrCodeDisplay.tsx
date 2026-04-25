@@ -22,7 +22,7 @@ export function QrCodeDisplay({ token, base64Image }: QrCodeDisplayProps) {
       <h3 className="text-sm font-[510] tracking-tight text-[#191a1b]">QR Check-in Token</h3>
       <p className="mt-1 break-all font-mono text-xs text-[#8a8f98]">{token}</p>
       {base64Image && (
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="inline-flex rounded-lg border border-[#d0d6e0] bg-[#f7f8f8] p-2">
             <img
               src={`data:image/png;base64,${base64Image}`}
@@ -32,7 +32,7 @@ export function QrCodeDisplay({ token, base64Image }: QrCodeDisplayProps) {
           </div>
           <Button
             onClick={() => downloadQr(base64Image, token)}
-            className="border border-[#1f4d33] bg-[#163623] text-[#9af0bc] hover:bg-[#1e442d]"
+            className="border border-[#d0d6e0] bg-[#ffffff] text-[#43464b] hover:bg-[#f3f4f5]"
           >
             Download QR
           </Button>

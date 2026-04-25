@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/toast-system";
+import { Link } from "react-router-dom";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 import { NotifToggleRow } from "@/components/settings/NotifToggleRow";
 import { SettingsCard } from "@/components/settings/SettingsCard";
@@ -50,6 +59,27 @@ export function NotificationPrefsPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-4 px-4 py-8">
+      <header className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-5">
+        <Breadcrumb className="mb-2">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Notifications</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <h1 className="text-2xl font-[590] tracking-[-0.44px] text-[#191a1b]">
+          Notification Settings
+        </h1>
+        <p className="mt-1 text-sm text-[#62666d]">
+          Manage your email and push notification preferences.
+        </p>
+      </header>
       <SettingsCard
         title="Notification Preferences"
         description="Control which booking and ticket events notify you."

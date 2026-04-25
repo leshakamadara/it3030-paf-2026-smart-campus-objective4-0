@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Plus, Lock, Loader2, AlertCircle, BarChart3 } from "lucide-react";
+import { ChevronLeft, Plus, Lock, Loader2, AlertCircle } from "lucide-react";
 import ResourceStatsCards from "../../components/ui/resource/ResourceStatsCards";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useAuth } from "@/context/AuthContext";
 import resourceService from "../../services/resourceService";
 import type { ResourceStats } from "../../types/resource";
@@ -63,56 +63,27 @@ export default function ResourceStatsPage() {
   /* ── Main page ─────────────────────────────────────────────── */
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f7f8f8" }}>
-      {/* Brand accent stripe */}
-      <div className="h-0.5 w-full" style={{ backgroundColor: "#5e6ad2" }} />
-
-      {/* Sticky header */}
-      <div className="sticky top-0 z-20 border-b" style={{ backgroundColor: "#ffffff", borderColor: "#e6e6e6" }}>
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-wrap items-center justify-between gap-4"
+      <PageHeader
+        title="Resource Insights"
+        description="Real‑time overview of campus resources — status, availability, and distribution across types and buildings."
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Resources", href: "/dashboard/resources" },
+          { label: "Analytics" }
+        ]}
+        action={
+          <Button
+            asChild size="sm"
+            className="font-semibold shadow-none hover:opacity-90"
+            style={{ backgroundColor: "#5e6ad2", color: "#ffffff", borderRadius: "6px" }}
           >
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm">
-              <BackLink />
-              <span style={{ color: "#d0d6e0" }}>/</span>
-              <span className="font-medium" style={{ color: "#191a1b" }}>Analytics</span>
-            </div>
-
-            <Button
-              asChild size="sm"
-              className="font-semibold shadow-none hover:opacity-90"
-              style={{ backgroundColor: "#5e6ad2", color: "#ffffff", borderRadius: "6px" }}
-            >
-              <Link to="/dashboard/admin/resources/create">
-                <Plus className="mr-1.5 h-3.5 w-3.5" />
-                Add Resource
-              </Link>
-            </Button>
-          </motion.div>
-        </div>
-
-        {/* Title row */}
-        <div className="mx-auto max-w-7xl px-4 pb-5 sm:px-6 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
-            <p className="text-xs font-semibold uppercase tracking-widest mb-1"
-              style={{ color: "#5e6ad2", letterSpacing: "0.6px" }}>
-              Admin Analytics
-            </p>
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" style={{ color: "#5e6ad2" }} />
-              <h1 className="text-2xl font-bold" style={{ color: "#191a1b", letterSpacing: "-0.4px" }}>
-                Resource Insights
-              </h1>
-            </div>
-            <p className="text-sm mt-1" style={{ color: "#8a8f98" }}>
-              Real‑time overview of campus resources — status, availability, and distribution across types and buildings.
-            </p>
-          </motion.div>
-        </div>
-      </div>
+            <Link to="/dashboard/admin/resources/create">
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Add Resource
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Content */}
       <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">

@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { Link } from "react-router-dom";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { SettingsCard } from "@/components/settings/SettingsCard";
 import { UserTable } from "@/components/settings/UserTable";
 import { Button } from "@/components/ui/button";
@@ -93,9 +102,30 @@ export function AdminUsersPage() {
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-4 px-4 py-8">
+      <header className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-5">
+        <Breadcrumb className="mb-2">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Admin Users</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <h1 className="text-2xl font-[590] tracking-[-0.44px] text-[#191a1b]">
+          Admin Users
+        </h1>
+        <p className="mt-1 text-sm text-[#62666d]">
+          SUPER_ADMIN controls for role management and account activation.
+        </p>
+      </header>
       <SettingsCard
-        title="Admin Users"
-        description="SUPER_ADMIN controls for role management and account activation."
+        title="User Management"
+        description="Search, filter, and manage user accounts."
       >
         <div className="space-y-4">
           <div className="rounded-md border border-[#d0d6e0] bg-[#f7f8f8] p-3">

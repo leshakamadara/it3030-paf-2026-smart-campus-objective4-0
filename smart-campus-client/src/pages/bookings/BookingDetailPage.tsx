@@ -6,6 +6,14 @@ import { BookingStatusBadge } from "@/components/bookings/BookingStatusBadge";
 import { QrCodeDisplay } from "@/components/bookings/QrCodeDisplay";
 import { WorkflowTimeline } from "@/components/bookings/WorkflowTimeline";
 import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { cancelBooking, getBooking, getResources } from "@/services/bookings";
 import type { Booking, ResourceSummary } from "@/types/booking";
 
@@ -101,9 +109,27 @@ export function BookingDetailPage() {
     <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-6">
       {/* Header */}
       <header className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-5">
+        <Breadcrumb className="mb-2">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/dashboard/bookings">Bookings</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{booking.id.split('-')[0]}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-[510] uppercase tracking-[0.18em] text-[#5e6ad2]">Booking Detail</p>
             <h1 className="mt-1 text-2xl font-[590] tracking-[-0.44px] text-[#191a1b]">
               {resource?.name ?? `Resource #${booking.resourceId}`}
             </h1>

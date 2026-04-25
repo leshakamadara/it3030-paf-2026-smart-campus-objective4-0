@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, Lock } from "lucide-react";
 import ResourceForm from "../../components/ui/resource/ResourceForm";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useToast } from "../../components/ui/toast-system";
 import { useAuth } from "@/context/AuthContext";
 import resourceService from "../../services/resourceService";
@@ -31,26 +32,14 @@ export default function AdminResourceCreatePage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f7f8f8" }}>
-      {/* Brand accent stripe */}
-      <div className="h-0.5 w-full" style={{ backgroundColor: "#5e6ad2" }} />
-
-      {/* Sticky header */}
-      <div className="sticky top-0 z-20 border-b" style={{ backgroundColor: "#ffffff", borderColor: "#e6e6e6" }}>
-        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2 text-sm">
-            <Link
-              to="/dashboard/resources"
-              className="inline-flex items-center gap-1 font-medium transition-colors hover:text-indigo-600"
-              style={{ color: "#43464b" }}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Resources
-            </Link>
-            <span style={{ color: "#d0d6e0" }}>/</span>
-            <span className="font-medium" style={{ color: "#191a1b" }}>Create New</span>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Create Resource"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Resources", href: "/dashboard/resources" },
+          { label: "Create" }
+        ]}
+      />
 
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <ResourceForm

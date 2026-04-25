@@ -6,6 +6,15 @@ import {
   PRIORITY_META,
   STATUS_META,
 } from "../../../constants/Ticket_constants/constants";
+import { Link } from "react-router-dom";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { TicketCard } from "@/components/AdminTicketCard";
 import { WorkflowPipeline } from "@/components/WorkflowPipeline";
 import { AdminTicketDetailView } from "./AdminTicketDetailView";
@@ -89,11 +98,27 @@ export default function AdminTicketPortal() {
       <div className="mx-auto max-w-7xl px-4 py-8">
 
         {/* ── Page header ───────────────────────────────── */}
-        <div className="mb-8 flex items-start justify-between gap-4">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-[510] uppercase tracking-[0.18em] text-[#5e6ad2]">
-              Module C · Admin
-            </p>
+            <Breadcrumb className="mb-2">
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to="/dashboard">Dashboard</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to="/dashboard/admin/users">Admin</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Tickets</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
             <h1 className="mt-1 text-2xl font-[590] tracking-[-0.44px] text-[#191a1b]">
               Maintenance Portal
             </h1>

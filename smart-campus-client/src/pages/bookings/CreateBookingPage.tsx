@@ -7,6 +7,14 @@ import { ConflictAlert } from "@/components/bookings/ConflictAlert";
 import { ResourceSelector } from "@/components/bookings/ResourceSelector";
 import { Button } from "@/components/ui/button";
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import {
   createBooking,
   getResourceUpcomingBookings,
   getResources,
@@ -166,8 +174,26 @@ export function CreateBookingPage() {
     <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-6">
       {/* Page header */}
       <header className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-5">
-        <p className="text-xs font-[510] uppercase tracking-[0.18em] text-[#5e6ad2]">Module B</p>
-        <h1 className="mt-1 text-2xl font-[590] tracking-[-0.44px] text-[#191a1b]">
+        <Breadcrumb className="mb-2">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/dashboard/bookings">Bookings</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Create</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <h1 className="text-2xl font-[590] tracking-[-0.44px] text-[#191a1b]">
           Create Booking
         </h1>
         <p className="mt-1 text-sm text-[#62666d]">

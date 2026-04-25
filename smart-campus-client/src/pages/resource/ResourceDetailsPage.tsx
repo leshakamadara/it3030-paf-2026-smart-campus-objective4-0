@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Pencil, Trash2, MapPin, Users, Clock, Calendar, Loader2, AlertCircle, ChevronLeft } from "lucide-react";
 import ResourceStatusBadge from "../../components/ui/resource/ResourceStatusBadge";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useToast } from "../../components/ui/toast-system";
 import { useAuth } from "@/context/AuthContext";
 import resourceService from "../../services/resourceService";
@@ -161,43 +162,30 @@ export default function ResourceDetailsPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f7f8f8" }}>
-      {/* Brand accent stripe */}
-      <div className="h-0.5 w-full" style={{ backgroundColor: "#5e6ad2" }} />
-
-      {/* Sticky header */}
-      <div className="sticky top-0 z-20 border-b bg-white/90 backdrop-blur-md"
-        style={{ borderColor: "#e6e6e6" }}>
-        <div className="mx-auto max-w-5xl px-4 py-4 sm:px-6 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-            className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-sm">
-              <Link
-                to="/dashboard/resources"
-                className="inline-flex items-center gap-1 font-medium transition-colors hover:text-indigo-600"
-                style={{ color: "#43464b" }}
+      <PageHeader
+        title={resource.resourceCode}
+        description={resource.name}
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Resources", href: "/dashboard/resources" },
+          { label: resource.resourceCode }
+        ]}
+        action={
+          <div className="flex items-center gap-3">
+            <ResourceStatusBadge resource={resource} />
+            {admin && (
+              <Button asChild size="sm"
+                className="font-semibold shadow-none transition-opacity hover:opacity-90"
+                style={{ backgroundColor: "#5e6ad2", color: "#ffffff", borderRadius: "6px" }}
               >
-                <ChevronLeft className="h-4 w-4" /> Resources
-              </Link>
-              <span style={{ color: "#d0d6e0" }}>/</span>
-              <span className="font-medium" style={{ color: "#191a1b" }}>{resource.resourceCode}</span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <ResourceStatusBadge resource={resource} />
-              {admin && (
-                <Button asChild size="sm"
-                  className="font-semibold shadow-none transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "#5e6ad2", color: "#ffffff", borderRadius: "6px" }}
-                >
-                  <Link to={`/dashboard/admin/resources/edit/${resource.id}`}>
-                    <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
-                  </Link>
-                </Button>
-              )}
-            </div>
-          </motion.div>
-        </div>
-      </div>
+                <Link to={`/dashboard/admin/resources/edit/${resource.id}`}>
+                  <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
+                </Link>
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       {/* Main Content */}
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">

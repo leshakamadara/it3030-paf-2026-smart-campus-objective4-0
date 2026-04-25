@@ -8,6 +8,7 @@ import { BookingFilters, type BookingFilterState } from "@/components/bookings/B
 import { BookingTable } from "@/components/bookings/BookingTable";
 import { approveBooking, getAllBookings, getResources, rejectBooking } from "@/services/bookings";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/PageHeader";
 import type { Booking, ResourceSummary } from "@/types/booking";
 
 function downloadCsv(bookings: Booking[]) {
@@ -119,37 +120,30 @@ export function AdminBookingsPage() {
   return (
     <div className="min-h-screen bg-[#f7f8f8]">
       {/* Header */}
-      <div className="border-b bg-[#ffffff] border-[#e6e6e6]">
-        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-1 text-[#5e6ad2]" style={{ letterSpacing: "0.6px" }}>
-                Moderation Hub
-              </p>
-              <h1 className="text-2xl font-bold text-[#191a1b]" style={{ letterSpacing: "-0.4px" }}>
-                Admin Booking Management
-              </h1>
-              <p className="text-sm mt-0.5 text-[#8a8f98]">
-                Filter, inspect, and review campus booking requests.
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#ede9ff] text-[#5e6ad2] border border-[#c4b5fd]">
-                ADMIN
-              </span>
-              <Button
-                onClick={() => downloadCsv(sortedItems)}
-                size="sm"
-                className="font-semibold shadow-none transition-opacity hover:opacity-90 bg-[#ffffff] text-[#43464b] border border-[#d0d6e0] hover:bg-[#f3f4f5]"
-              >
-                <Download className="mr-1.5 h-3.5 w-3.5" />
-                Export CSV
-              </Button>
-            </div>
+      <PageHeader
+        title="Admin Booking Management"
+        description="Filter, inspect, and review campus booking requests."
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Admin", href: "/dashboard/admin/users" },
+          { label: "Bookings" }
+        ]}
+        action={
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#ede9ff] text-[#5e6ad2] border border-[#c4b5fd]">
+              ADMIN
+            </span>
+            <Button
+              onClick={() => downloadCsv(sortedItems)}
+              size="sm"
+              className="font-semibold shadow-none transition-opacity hover:opacity-90 bg-[#ffffff] text-[#43464b] border border-[#d0d6e0] hover:bg-[#f3f4f5]"
+            >
+              <Download className="mr-1.5 h-3.5 w-3.5" />
+              Export CSV
+            </Button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
         <BookingFilters value={filters} resources={resources} onChange={setFilters} onApply={() => void load()} />

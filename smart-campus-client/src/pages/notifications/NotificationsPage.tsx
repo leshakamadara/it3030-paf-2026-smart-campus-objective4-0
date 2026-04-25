@@ -11,6 +11,15 @@ import {
   Ticket,
   Trash2,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -285,9 +294,21 @@ export function NotificationsPage() {
     <main className="mx-auto w-full max-w-3xl space-y-4 px-4 py-8">
       {/* Page header */}
       <section className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-6">
-        <div className="flex items-start justify-between gap-4">
+        <Breadcrumb className="mb-2">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Notifications</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-[510] uppercase tracking-[0.2em] text-[#5e6ad2]">Activity</p>
             <h1 className="mt-1 text-2xl font-[590] tracking-tight text-[#191a1b]">Notifications</h1>
             <p className="mt-1 text-sm text-[#62666d]">
               Booking updates and ticket activity across all your campus interactions.
