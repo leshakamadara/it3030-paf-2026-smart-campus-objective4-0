@@ -475,7 +475,6 @@ export const AdminTicketDetailView = ({
                       </button>
                     )}
                   </div>
-                  </div>
                 </div>
               )}
 
