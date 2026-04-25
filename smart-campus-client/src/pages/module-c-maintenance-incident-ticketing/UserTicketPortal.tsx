@@ -2,15 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ticketService } from "@/services/ticketService";
 import type { Ticket, TicketStatus, TicketRequestDTO, TicketResponseDTO } from "@/types/ticketTypes";
-import { Link } from "react-router-dom";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { PageHeader } from "@/components/layout/PageHeader";
 import TicketCard from "@/components/UserTicketCard";
 import CreateTicket from "./CreateTicket";
 import TicketDetailView from "./UserTicketDetailView";
@@ -186,42 +178,32 @@ export default function UserTicketPortal() {
       <div
         className={`min-h-[calc(100svh-57px)] bg-[#f7f8f8] transition-all duration-150 ${fadeIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}
       >
-        <div className="mx-auto max-w-3xl px-4 py-8">
-  
-          {/* ── LIST VIEW ─────────────────────────────────── */}
-          {view === "list" && (
-            <>
-              {/* Page header */}
-              <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <Breadcrumb className="mb-2">
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbLink asChild>
-                          <Link to="/dashboard">Dashboard</Link>
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                        <BreadcrumbPage>{isAdmin ? "Ticket Admin" : "Tickets"}</BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                <h1 className="mt-1 text-2xl font-[590] tracking-[-0.44px] text-[#191a1b]">
-                  Hello, {firstName} 👋
-                </h1>
-                <p className="mt-1 text-sm text-[#62666d]">
-                  Track and manage your maintenance requests below.
-                </p>
-              </div>
-              <button
-                id="btn-new-ticket"
-                onClick={() => navigate("create")}
-                className="shrink-0 rounded-md bg-[#5e6ad2] px-4 py-2 text-xs font-[510] text-white transition-colors hover:bg-[#7170ff]"
-              >
-                + New Ticket
-              </button>
-            </div>
+        {/* ── LIST VIEW ─────────────────────────────────── */}
+        {view === "list" && (
+          <>
+            {/* Page header — full-width strip */}
+            <PageHeader
+              label={isAdmin ? "ADMIN" : "HELAUNI.APP"}
+              title={isAdmin ? "Ticket Management" : `Hello, ${firstName} 👋`}
+              description={isAdmin ? "Manage and resolve campus maintenance requests." : "Track and manage your maintenance requests below."}
+              breadcrumbs={[
+                { label: "Dashboard", href: "/dashboard" },
+                { label: isAdmin ? "Ticket Admin" : "My Tickets" },
+              ]}
+              action={
+                !isAdmin ? (
+                  <button
+                    id="btn-new-ticket"
+                    onClick={() => navigate("create")}
+                    className="shrink-0 rounded-md bg-[#5e6ad2] px-4 py-2 text-xs font-[510] text-white transition-colors hover:bg-[#7170ff]"
+                  >
+                    + New Ticket
+                  </button>
+                ) : undefined
+              }
+            />
+
+            <div className="mx-auto max-w-3xl px-4 py-6">
 
             {/* Error */}
             {error && (
@@ -353,34 +335,38 @@ export default function UserTicketPortal() {
                 ))}
               </div>
             )}
+            </div>{/* close mx-auto content container */}
           </>
         )}
 
         {/* ── CREATE VIEW ───────────────────────────────── */}
         {view === "create" && (
           <>
-            <button
-              onClick={() => navigate("list")}
-              className="mb-6 flex items-center gap-1.5 text-sm text-[#62666d] transition-colors hover:text-[#191a1b]"
-            >
-              ← Back to {isAdmin ? "ticket management" : "my tickets"}
-            </button>
-            <CreateTicket
-              onSubmit={(partial) => { handleCreate(partial); navigate("list"); }}
-              onCancel={() => navigate("list")}
-            />
+            <div className="mx-auto max-w-3xl px-4 py-6">
+              <button
+                onClick={() => navigate("list")}
+                className="mb-6 flex items-center gap-1.5 text-sm text-[#62666d] transition-colors hover:text-[#191a1b]"
+              >
+                ← Back to {isAdmin ? "ticket management" : "my tickets"}
+              </button>
+              <CreateTicket
+                onSubmit={(partial) => { handleCreate(partial); navigate("list"); }}
+                onCancel={() => navigate("list")}
+              />
+            </div>
           </>
         )}
 
         {/* ── DETAIL VIEW ───────────────────────────────── */}
         {view === "detail" && selectedTicket && (
-          <TicketDetailView
-            ticket={selectedTicket}
-            onBack={() => navigate("list")}
-            onUpdate={(updated) => { handleUpdate(updated); setSelectedId(updated.id); }}
-          />
+          <div className="mx-auto max-w-3xl px-4 py-6">
+            <TicketDetailView
+              ticket={selectedTicket}
+              onBack={() => navigate("list")}
+              onUpdate={(updated) => { handleUpdate(updated); setSelectedId(updated.id); }}
+            />
+          </div>
         )}
       </div>
-    </div>
-  );
-}
+    );
+  }

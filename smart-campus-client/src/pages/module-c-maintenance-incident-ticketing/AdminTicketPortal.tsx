@@ -6,15 +6,7 @@ import {
   PRIORITY_META,
   STATUS_META,
 } from "../../../constants/Ticket_constants/constants";
-import { Link } from "react-router-dom";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { TicketCard } from "@/components/AdminTicketCard";
 import { WorkflowPipeline } from "@/components/WorkflowPipeline";
 import { AdminTicketDetailView } from "./AdminTicketDetailView";
@@ -95,37 +87,16 @@ export default function AdminTicketPortal() {
 
   return (
     <div className="min-h-[calc(100svh-57px)] bg-[#f7f8f8]">
-      <div className="mx-auto max-w-7xl px-4 py-8">
-
-        {/* ── Page header ───────────────────────────────── */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <Breadcrumb className="mb-2">
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to="/dashboard">Dashboard</Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to="/dashboard/admin/users">Admin</Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Tickets</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-            <h1 className="mt-1 text-2xl font-[590] tracking-[-0.44px] text-[#191a1b]">
-              Maintenance Portal
-            </h1>
-            <p className="mt-1 text-sm text-[#62666d]">
-              Incident Ticketing System — manage and resolve campus maintenance requests.
-            </p>
-          </div>
+      {/* Full-width page header */}
+      <PageHeader
+        label="ADMIN"
+        title="Maintenance Portal"
+        description="Incident Ticketing System — manage and resolve campus maintenance requests."
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Ticket Admin" },
+        ]}
+        action={
           <div className="flex items-center gap-2 rounded-full border border-[#d0d6e0] bg-white px-3 py-1.5">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#eef0fb] text-[11px] font-[590] text-[#5e6ad2]">
               {roleInitials}
@@ -135,8 +106,10 @@ export default function AdminTicketPortal() {
               {user?.role}
             </span>
           </div>
-        </div>
+        }
+      />
 
+      <div className="mx-auto max-w-7xl px-4 py-6">
         {/* Error */}
         {error && (
           <div className="mb-6 rounded-lg border border-[#f0b8c4] bg-[#fff1f4] px-4 py-3 text-sm text-[#8f3346]">

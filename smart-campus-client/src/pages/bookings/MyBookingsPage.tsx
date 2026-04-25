@@ -3,17 +3,10 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { BookingCard } from "@/components/bookings/BookingCard";
 import { ConflictAlert } from "@/components/bookings/ConflictAlert";
 import { StatusTabs, isMatchingStatus, type BookingStatusTab } from "@/components/bookings/StatusTabs";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { cancelBooking, getMyBookings } from "@/services/bookings";
 import type { Booking } from "@/types/booking";
 
@@ -82,103 +75,98 @@ export function MyBookingsPage() {
   }, [items, tab, fromTime, toTime]);
 
   return (
-    <div className="space-y-5">
-      <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-4">
-        <div>
-          <Breadcrumb className="mb-1">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link to="/dashboard">Dashboard</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>My Bookings</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <h2 className="text-lg font-[590] tracking-tight text-[#191a1b]">My Bookings</h2>
-          <p className="text-sm text-[#8a8f98]">Track booking requests, approvals, and check-in QR codes.</p>
+    <div className="min-h-screen bg-[#f7f8f8]">
+      <PageHeader
+        label="HELAUNI.APP"
+        title="My Bookings"
+        description="Track booking requests, approvals, and check-in QR codes."
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "My Bookings" },
+        ]}
+        action={
+          <Link to="/dashboard/bookings/new">
+            <Button className="bg-[#5e6ad2] text-white hover:bg-[#7170ff] shadow-none rounded-md text-xs font-[510] h-9 px-4">
+              + New Booking
+            </Button>
+          </Link>
+        }
+      />
+
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-5">
+        <StatusTabs value={tab} counts={counts} onChange={setTab} />
+
+        <div className="grid gap-3 rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-4 md:grid-cols-2">
+          <label className="space-y-1 text-xs text-[#8a8f98]">
+            <span className="font-[510] text-[#43464b]">From</span>
+            <input
+              type="datetime-local"
+              value={fromTime}
+              onChange={(event) => setFromTime(event.target.value)}
+              className="h-10 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b] focus:border-[#7170ff] focus:outline-none"
+            />
+          </label>
+          <label className="space-y-1 text-xs text-[#8a8f98]">
+            <span className="font-[510] text-[#43464b]">To</span>
+            <input
+              type="datetime-local"
+              value={toTime}
+              onChange={(event) => setToTime(event.target.value)}
+              className="h-10 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b] focus:border-[#7170ff] focus:outline-none"
+            />
+          </label>
         </div>
 
-        <Link to="/dashboard/bookings/new">
-          <Button className="bg-[#5e6ad2] text-white hover:bg-[#7170ff]">New Booking</Button>
-        </Link>
-      </header>
+        {conflict && <ConflictAlert message={conflict} onClose={() => setConflict(null)} />}
+        {error && (
+          <p className="rounded-lg border border-[#f0b8c4] bg-[#fff1f4] p-3 text-sm text-[#8f3346]">{error}</p>
+        )}
 
-      <StatusTabs value={tab} counts={counts} onChange={setTab} />
+        {loading && <p className="text-sm text-[#8a8f98]">Loading bookings...</p>}
 
-      <div className="grid gap-3 rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-4 md:grid-cols-2">
-        <label className="space-y-1 text-xs text-[#8a8f98]">
-          <span className="font-[510] text-[#43464b]">From</span>
-          <input
-            type="datetime-local"
-            value={fromTime}
-            onChange={(event) => setFromTime(event.target.value)}
-            className="h-10 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b] focus:border-[#7170ff] focus:outline-none"
-          />
-        </label>
-        <label className="space-y-1 text-xs text-[#8a8f98]">
-          <span className="font-[510] text-[#43464b]">To</span>
-          <input
-            type="datetime-local"
-            value={toTime}
-            onChange={(event) => setToTime(event.target.value)}
-            className="h-10 w-full rounded-md border border-[#d0d6e0] bg-[#f7f8f8] px-3 text-sm text-[#43464b] focus:border-[#7170ff] focus:outline-none"
-          />
-        </label>
-      </div>
+        {!loading && filteredItems.length === 0 && (
+          <p className="rounded-xl border border-dashed border-[#d0d6e0] bg-[#ffffff] p-5 text-sm text-[#8a8f98]">
+            {tab === "ALL" ? "No bookings found for the selected date range." : `No ${tab.toLowerCase()} bookings found for the selected range.`}
+          </p>
+        )}
 
-      {conflict && <ConflictAlert message={conflict} onClose={() => setConflict(null)} />}
-      {error && (
-        <p className="rounded-lg border border-[#f0b8c4] bg-[#fff1f4] p-3 text-sm text-[#8f3346]">{error}</p>
-      )}
+        <div className="space-y-3">
+          {filteredItems.map((booking) => (
+            <BookingCard
+              key={booking.id}
+              booking={booking}
+              resource={{ id: String(booking.resourceId), name: `Resource #${booking.resourceId}` }}
+              onCancel={(bookingId) =>
+                void cancelBooking(bookingId)
+                  .then(() => {
+                    toast.success("Booking cancelled successfully");
+                    return load(page);
+                  })
+                  .catch((err: unknown) =>
+                    setError(err instanceof Error ? err.message : "Failed to cancel booking"),
+                  )
+              }
+              onError={(message) => setError(message)}
+            />
+          ))}
+        </div>
 
-      {loading && <p className="text-sm text-[#8a8f98]">Loading bookings...</p>}
-
-      {!loading && filteredItems.length === 0 && (
-        <p className="rounded-xl border border-dashed border-[#d0d6e0] bg-[#ffffff] p-5 text-sm text-[#8a8f98]">
-          {tab === "ALL" ? "No bookings found for the selected date range." : `No ${tab.toLowerCase()} bookings found for the selected range.`}
-        </p>
-      )}
-
-      <div className="space-y-3">
-        {filteredItems.map((booking) => (
-          <BookingCard
-            key={booking.id}
-            booking={booking}
-            resource={{ id: String(booking.resourceId), name: `Resource #${booking.resourceId}` }}
-            onCancel={(bookingId) =>
-              void cancelBooking(bookingId)
-                .then(() => {
-                  toast.success("Booking cancelled successfully");
-                  return load(page);
-                })
-                .catch((err: unknown) =>
-                  setError(err instanceof Error ? err.message : "Failed to cancel booking"),
-                )
-            }
-            onError={(message) => setError(message)}
-          />
-        ))}
-      </div>
-
-      <div className="flex gap-2">
-        <Button
-          disabled={page === 0 || loading}
-          onClick={() => void load(Math.max(page - 1, 0))}
-          className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#e6e6e6]"
-        >
-          Previous
-        </Button>
-        <Button
-          disabled={last || loading}
-          onClick={() => void load(page + 1)}
-          className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#e6e6e6]"
-        >
-          Next
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            disabled={page === 0 || loading}
+            onClick={() => void load(Math.max(page - 1, 0))}
+            className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#e6e6e6]"
+          >
+            Previous
+          </Button>
+          <Button
+            disabled={last || loading}
+            onClick={() => void load(page + 1)}
+            className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#e6e6e6]"
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );

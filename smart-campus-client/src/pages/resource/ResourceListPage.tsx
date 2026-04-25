@@ -88,12 +88,12 @@ export default function ResourceListPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f7f8f8" }}>
       <PageHeader
+        label={isResourceAdmin ? "ADMIN" : "HELAUNI.APP"}
         title="Campus Resources"
         description="Browse and filter all campus facilities and assets."
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
-          { label: "Resources", href: "/dashboard/resources" },
-          { label: "Campus Resources" }
+          { label: "Resources" },
         ]}
         action={
           <motion.div

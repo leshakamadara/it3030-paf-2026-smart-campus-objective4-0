@@ -121,12 +121,12 @@ export function AdminBookingsPage() {
     <div className="min-h-screen bg-[#f7f8f8]">
       {/* Header */}
       <PageHeader
+        label="ADMIN"
         title="Admin Booking Management"
         description="Filter, inspect, and review campus booking requests."
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
-          { label: "Admin", href: "/dashboard/admin/users" },
-          { label: "Bookings" }
+          { label: "Booking Admin" },
         ]}
         action={
           <div className="flex items-center gap-2">

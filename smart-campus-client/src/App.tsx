@@ -66,144 +66,94 @@ function AuthenticatedLayout() {
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const isResourceAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    isActive
+      ? "rounded-md bg-[#eef0fb] px-3 py-1.5 text-xs font-[510] text-[#5e6ad2] transition-colors"
+      : "rounded-md px-3 py-1.5 text-xs font-[400] text-[#62666d] transition-colors hover:bg-[#f3f4f5] hover:text-[#191a1b]";
+
+  const adminNavLinkClass = ({ isActive }: { isActive: boolean }) =>
+    isActive
+      ? "rounded-md bg-[#eef0fb] border border-[#c5c9f0] px-3 py-1.5 text-xs font-[510] text-[#5e6ad2] transition-colors"
+      : "rounded-md border border-transparent px-3 py-1.5 text-xs font-[400] text-[#62666d] transition-colors hover:border-[#d0d6e0] hover:bg-[#f3f4f5] hover:text-[#191a1b]";
+
   return (
     <div className="min-h-svh bg-[#f7f8f8] text-[#191a1b]">
-      <header className="sticky top-0 z-30 border-b border-[#d0d6e0] bg-[#ffffff]/90 backdrop-blur">
-        <div className="h-0.5 w-full bg-[#5e6ad2]" />
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3">
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard" className="flex items-center gap-2 text-sm font-[590] tracking-[0.02em] text-[#191a1b]">
+      <header className="sticky top-0 z-30 bg-[#ffffff]/95 backdrop-blur-sm border-b border-[#d0d6e0]">
+        {/* Brand accent line */}
+        <div className="h-[2px] w-full bg-gradient-to-r from-[#5e6ad2] via-[#7170ff] to-[#5e6ad2]" />
+
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-2.5">
+          {/* Left: Logo + Nav */}
+          <div className="flex items-center gap-0">
+            {/* Logo */}
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-2 pr-4 text-sm font-[590] tracking-[0.02em] text-[#191a1b] hover:text-[#5e6ad2] transition-colors"
+            >
               <img src="/HelaUni.png" alt="HelaUni Logo" className="h-6 w-auto object-contain" />
               HelaUni.app
             </Link>
-            <nav className="flex items-center gap-2">
+
+            {/* Separator */}
+            <div className="h-5 w-px bg-[#d0d6e0] mr-3" />
+
+            {/* Navigation links */}
+            <nav className="flex items-center gap-0.5">
+              {/* User links */}
               {!isResourceAdmin && (
                 <>
-                  <NavLink
-                    to="/dashboard/bookings"
-                    className={({ isActive }) =>
-                      isActive
-                        ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                        : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                    }
-                  >
-                    Bookings
-                  </NavLink>
-                  <NavLink
-                    to="/dashboard/resources"
-                    className={({ isActive }) =>
-                      isActive
-                        ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                        : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                    }
-                  >
-                    Resources
-                  </NavLink>
-                  <NavLink
-                    to="/dashboard/tickets"
-                    className={({ isActive }) =>
-                      isActive
-                        ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                        : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                    }
-                  >
-                    My Tickets
-                  </NavLink>
+                  <NavLink to="/dashboard/bookings" className={navLinkClass}>Bookings</NavLink>
+                  <NavLink to="/dashboard/resources" className={navLinkClass}>Resources</NavLink>
+                  <NavLink to="/dashboard/tickets" className={navLinkClass}>My Tickets</NavLink>
+
+                  {/* Separator before common links */}
+                  <div className="mx-1.5 h-4 w-px bg-[#e6e6e6]" />
                 </>
               )}
-              <NavLink
-                to="/dashboard/settings/profile"
-                className={({ isActive }) =>
-                  isActive
-                    ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                    : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                }
-              >
-                Profile
-              </NavLink>
-              <NavLink
-                to="/dashboard/notifications"
-                className={({ isActive }) =>
-                  isActive
-                    ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                    : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                }
-              >
-                Notifications
-              </NavLink>
-              {isSuperAdmin && (
-                <NavLink
-                  to="/dashboard/admin/users"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                      : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                  }
-                >
-                  Admin Users
-                </NavLink>
-              )}
+
+              <NavLink to="/dashboard/settings/profile" className={navLinkClass}>Profile</NavLink>
+              <NavLink to="/dashboard/notifications" className={navLinkClass}>Notifications</NavLink>
+
+              {/* Admin links — visually grouped with separator */}
               {isResourceAdmin && (
-                <NavLink
-                  to="/dashboard/admin/resources/stats"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                      : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                  }
-                >
-                  Resource Admin
-                </NavLink>
+                <>
+                  <div className="mx-1.5 h-4 w-px bg-[#e6e6e6]" />
+                  {isSuperAdmin && (
+                    <NavLink to="/dashboard/admin/users" className={adminNavLinkClass}>Users</NavLink>
+                  )}
+                  <NavLink to="/dashboard/admin/resources/stats" className={adminNavLinkClass}>Resources</NavLink>
+                  <NavLink to="/dashboard/admin/bookings" className={adminNavLinkClass}>Bookings</NavLink>
+                  <NavLink to="/dashboard/admin/tickets" className={adminNavLinkClass}>Tickets</NavLink>
+                  <NavLink to="/dashboard/email-tester" className={adminNavLinkClass}>Email</NavLink>
+                </>
               )}
-              {isResourceAdmin && (
-                <NavLink
-                  to="/dashboard/admin/bookings"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                      : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                  }
-                >
-                  Booking Admin
-                </NavLink>
-              )}
-              {isResourceAdmin && (
-                <NavLink
-                  to="/dashboard/admin/tickets"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                      : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                  }
-                >
-                  Ticket Admin
-                </NavLink>
-              )}
-              {isResourceAdmin && (
-                <NavLink
-                  to="/dashboard/email-tester"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
-                      : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
-                  }
-                >
-                  Email Tester
-                </NavLink>
+
+              {/* SuperAdmin users link (non-admin) */}
+              {!isResourceAdmin && isSuperAdmin && (
+                <>
+                  <div className="mx-1.5 h-4 w-px bg-[#e6e6e6]" />
+                  <NavLink to="/dashboard/admin/users" className={adminNavLinkClass}>Admin Users</NavLink>
+                </>
               )}
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Right: User info */}
+          <div className="flex items-center gap-2">
             <NotificationPanel />
             {user?.role && <RoleBadge role={user.role} />}
-            <div className="flex items-center gap-2 rounded-full border border-[#d0d6e0] bg-[#f3f4f5] px-2 py-1">
-              <UserAvatar name={user?.fullName ?? "Campus User"} avatarUrl={user?.avatarUrl as string | null | undefined} />
-              <span className="hidden text-xs text-[#43464b] sm:inline">{user?.fullName ?? "User"}</span>
+            <div className="flex items-center gap-2 rounded-full border border-[#d0d6e0] bg-[#f7f8f8] px-2.5 py-1">
+              <UserAvatar
+                name={user?.fullName ?? "Campus User"}
+                avatarUrl={user?.avatarUrl as string | null | undefined}
+              />
+              <span className="hidden text-xs font-[510] text-[#43464b] sm:inline">
+                {user?.fullName ?? "User"}
+              </span>
             </div>
             <Button
               onClick={clearSession}
-              className="h-9 rounded-md border border-[#f0b8c4] bg-[#fff1f4] px-3 text-xs text-[#8f3346] hover:bg-[#ffe6ec]"
+              className="h-8 rounded-md border border-[#f0b8c4] bg-[#fff1f4] px-3 text-xs text-[#8f3346] hover:bg-[#ffe6ec] shadow-none"
             >
               Sign out
             </Button>
