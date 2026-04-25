@@ -64,12 +64,12 @@ export default function ResourceStatsPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f7f8f8" }}>
       <PageHeader
+        label="ADMIN"
         title="Resource Insights"
         description="Real‑time overview of campus resources — status, availability, and distribution across types and buildings."
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
-          { label: "Resource Admin", href: "/dashboard/admin/resources/stats" },
-          { label: "Analytics" }
+          { label: "Resource Admin" },
         ]}
         action={
           <Button
