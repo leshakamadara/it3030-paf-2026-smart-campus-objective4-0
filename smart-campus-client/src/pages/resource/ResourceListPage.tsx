@@ -136,7 +136,7 @@ export default function ResourceListPage() {
               {isResourceAdmin && (
                 <>
                   <Button asChild className="transition-all hover:scale-105 hover:shadow-md">
-                    <Link to="/admin/resources/create">
+                    <Link to="/dashboard/admin/resources/create">
                       <Plus className="mr-2 h-4 w-4" />
                       Add Resource
                     </Link>
@@ -146,7 +146,7 @@ export default function ResourceListPage() {
                     asChild
                     className="transition-all hover:scale-105 hover:shadow-md"
                   >
-                    <Link to="/admin/resources/stats">
+                    <Link to="/dashboard/admin/resources/stats">
                       <BarChart3 className="mr-2 h-4 w-4" />
                       Dashboard
                     </Link>

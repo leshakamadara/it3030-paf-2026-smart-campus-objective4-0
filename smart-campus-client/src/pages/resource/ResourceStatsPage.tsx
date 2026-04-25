@@ -51,7 +51,7 @@ export default function ResourceStatsPage() {
         <div className="border-b">
           <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
             <Button variant="ghost" asChild className="transition-all hover:bg-muted">
-              <Link to="/resources">
+              <Link to="/dashboard/resources">
                 <ChevronLeft className="mr-2 h-4 w-4" />
                 Resources
               </Link>
@@ -93,7 +93,7 @@ export default function ResourceStatsPage() {
           >
             <div className="flex items-center gap-4">
               <Button variant="ghost" asChild className="transition-all hover:bg-muted">
-                <Link to="/resources">
+                <Link to="/dashboard/resources">
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   Resources
                 </Link>
@@ -103,7 +103,7 @@ export default function ResourceStatsPage() {
             </div>
 
             <Button asChild className="transition-all hover:scale-105 hover:shadow-md">
-              <Link to="/admin/resources/create">
+              <Link to="/dashboard/admin/resources/create">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Resource
               </Link>

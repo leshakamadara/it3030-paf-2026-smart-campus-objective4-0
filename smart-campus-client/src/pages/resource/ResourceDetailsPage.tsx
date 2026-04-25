@@ -187,7 +187,7 @@ export default function ResourceDetailsPage() {
         <div className="border-b">
           <div className="mx-auto max-w-5xl px-4 py-5 sm:px-6">
             <Button variant="ghost" asChild className="transition-all hover:bg-muted">
-              <Link to="/resources">
+              <Link to="/dashboard/resources">
                 <ChevronLeft className="mr-2 h-4 w-4" />
                 Resources
               </Link>
@@ -233,7 +233,7 @@ export default function ResourceDetailsPage() {
           >
             <div className="flex items-center gap-4">
               <Button variant="ghost" asChild className="transition-all hover:bg-muted">
-                <Link to="/resources">
+                <Link to="/dashboard/resources">
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   Resources
                 </Link>

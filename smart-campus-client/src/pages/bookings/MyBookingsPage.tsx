@@ -81,7 +81,7 @@ export function MyBookingsPage() {
           <p className="text-sm text-[#8a8f98]">Track booking requests, approvals, and check-in QR codes.</p>
         </div>
 
-        <Link to="/bookings/new">
+        <Link to="/dashboard/bookings/new">
           <Button className="bg-[#5e6ad2] text-white hover:bg-[#7170ff]">New Booking</Button>
         </Link>
       </header>

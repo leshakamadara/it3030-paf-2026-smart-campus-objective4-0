@@ -86,7 +86,7 @@ export function BookingDetailPage() {
         <div className="rounded-xl border border-[#f0b8c4] bg-[#fff1f4] p-4">
           <p className="text-sm font-[510] text-[#8f3346]">{error ?? "Booking not found"}</p>
         </div>
-        <Link to="/bookings">
+        <Link to="/dashboard/bookings">
           <Button className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5]">
             ← Back to bookings
           </Button>
@@ -193,7 +193,7 @@ export function BookingDetailPage() {
             Cancel Booking
           </Button>
         )}
-        <Link to="/bookings">
+        <Link to="/dashboard/bookings">
           <Button className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5]">
             ← Back to bookings
           </Button>

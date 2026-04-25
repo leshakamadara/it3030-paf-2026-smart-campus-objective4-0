@@ -260,7 +260,7 @@ export function CreateBookingPage() {
           >
             {submitting ? "Submitting…" : "Submit Booking"}
           </Button>
-          <Link to="/bookings">
+          <Link to="/dashboard/bookings">
             <Button
               type="button"
               className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5]"
@@ -268,7 +268,7 @@ export function CreateBookingPage() {
               Back to list
             </Button>
           </Link>
-          <Link to="/resources">
+          <Link to="/dashboard/resources">
             <Button
               type="button"
               className="border border-[#d0d6e0] bg-[#f7f8f8] text-[#43464b] hover:bg-[#f3f4f5]"

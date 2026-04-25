@@ -37,7 +37,7 @@ export default function AdminResourceCreatePage() {
         <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
             <Button variant="ghost" asChild>
-              <Link to="/resources">
+              <Link to="/dashboard/resources">
                 <ChevronLeft className="mr-2 h-4 w-4" />
                 Resources
               </Link>
@@ -66,7 +66,7 @@ function AccessDenied() {
       <div className="border-b">
         <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6">
           <Button variant="ghost" asChild>
-            <Link to="/resources">
+            <Link to="/dashboard/resources">
               <ChevronLeft className="mr-2 h-4 w-4" />
               Back to Resources
             </Link>

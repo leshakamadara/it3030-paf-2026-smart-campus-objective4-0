@@ -46,7 +46,7 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 function SuperAdminRoute({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   if (user?.role !== "SUPER_ADMIN") {
-    return <Navigate to="/settings/profile" replace />;
+    return <Navigate to="/dashboard/settings/profile" replace />;
   }
 
   return <>{children}</>;
@@ -55,7 +55,7 @@ function SuperAdminRoute({ children }: { children: ReactNode }) {
 function AdminRoute({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
-    return <Navigate to="/resources" replace />;
+    return <Navigate to="/dashboard/resources" replace />;
   }
 
   return <>{children}</>;
