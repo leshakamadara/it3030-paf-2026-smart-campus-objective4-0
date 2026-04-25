@@ -304,6 +304,7 @@ export default function App() {
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route path="/qr/:token" element={<QrCheckInPage />} />
       <Route path="/" element={<LandingPage />} />
+      <Route path="/email-tester" element={<EmailTesterPage />} />
       <Route
         path="/dashboard"
         element={
