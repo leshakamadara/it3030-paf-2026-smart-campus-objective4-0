@@ -55,7 +55,7 @@ export function QrCheckInPage() {
     if ("resourceName" in booking && typeof booking.resourceName === "string" && booking.resourceName) {
       return booking.resourceName;
     }
-    return booking?.resourceId ?? "Unknown resource";
+    return String(booking?.resourceId ?? "Unknown resource");
   };
 
   const getBookerLabel = (): string => {

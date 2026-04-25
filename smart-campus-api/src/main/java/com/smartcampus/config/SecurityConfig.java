@@ -10,6 +10,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import jakarta.servlet.DispatcherType;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
@@ -60,10 +61,11 @@ public class SecurityConfig {
             .cors(cors -> {})
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/oauth2/**", "/login/oauth2/**", "/error").permitAll()
                 .requestMatchers("/api/auth/dummy-login").permitAll()
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/register-admin").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/register-admin", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/emailTester").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/bookings/qr/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/bookings/resource/*/upcoming").authenticated()
                 .requestMatchers("/api/bookings/**").authenticated()

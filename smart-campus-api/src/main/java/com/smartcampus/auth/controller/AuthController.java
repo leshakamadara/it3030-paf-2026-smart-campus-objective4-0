@@ -32,6 +32,9 @@ public class AuthController {
     @Value("${app.auth.allow-dummy-login:false}")
     private boolean allowDummyLogin;
 
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
+
     public AuthController(AuthenticationService authenticationService, JwtService jwtService, UserService userService) {
         this.authenticationService = authenticationService;
         this.jwtService = jwtService;
@@ -141,6 +144,31 @@ public class AuthController {
         String token = jwtService.generateToken(user);
         UserResponse userResponse = UserResponse.from(user);
         return ResponseEntity.ok().header("Authorization", "Bearer " + token).body(new AuthResponse(token, userResponse));
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Forgot Password", description = "Generates a password reset token and sends it via email")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            return ResponseEntity.badRequest().body("Email is required");
+        }
+        
+        authenticationService.generatePasswordResetToken(request.getEmail(), frontendUrl);
+        return ResponseEntity.ok().body("If an account with that email exists, a reset link has been sent.");
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset Password", description = "Resets the user's password using a valid token")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        if (request.getToken() == null || request.getToken().isBlank()) {
+            return ResponseEntity.badRequest().body("Token is required");
+        }
+        if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+            return ResponseEntity.badRequest().body("New password is required");
+        }
+        
+        authenticationService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok().body("Password successfully reset");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -279,6 +307,39 @@ public class AuthController {
 
         public void setAdminSignupKey(String adminSignupKey) {
             this.adminSignupKey = adminSignupKey;
+        }
+    }
+
+    public static class ForgotPasswordRequest {
+        private String email;
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+    }
+
+    public static class ResetPasswordRequest {
+        private String token;
+        private String newPassword;
+
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
+        }
+
+        public String getNewPassword() {
+            return newPassword;
+        }
+
+        public void setNewPassword(String newPassword) {
+            this.newPassword = newPassword;
         }
     }
 }

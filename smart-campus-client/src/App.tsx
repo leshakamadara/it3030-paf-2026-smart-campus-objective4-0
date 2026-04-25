@@ -17,6 +17,9 @@ import { NotFoundPage } from "@/pages/public/NotFoundPage";
 import { OAuthCallbackPage } from "@/pages/public/OAuthCallbackPage";
 import { QrCheckInPage } from "@/pages/public/QrCheckInPage";
 import { SignupPage } from "@/pages/public/SignupPage";
+import { ForgotPasswordPage } from "@/pages/public/ForgotPasswordPage";
+import { ResetPasswordPage } from "@/pages/public/ResetPasswordPage";
+import { LandingPage } from "@/pages/public/LandingPage";
 import { AdminUsersPage } from "@/pages/settings/AdminUsersPage";
 import { NotificationPrefsPage } from "@/pages/settings/NotificationPrefsPage";
 import { NotificationsPage } from "@/pages/notifications/NotificationsPage";
@@ -28,6 +31,7 @@ import ResourceListPage from "@/pages/resource/ResourceListPage";
 import ResourceStatsPage from "@/pages/resource/ResourceStatsPage";
 import UserTicketPortal from "@/pages/module-c-maintenance-incident-ticketing/UserTicketPortal";
 import AdminTicketPortal from "@/pages/module-c-maintenance-incident-ticketing/AdminTicketPortal";
+import { EmailTesterPage } from "@/pages/admin/EmailTesterPage";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -67,8 +71,9 @@ function AuthenticatedLayout() {
       <header className="sticky top-0 z-30 border-b border-[#d0d6e0] bg-[#ffffff]/90 backdrop-blur">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-4">
-            <Link to="/" className="text-sm font-[590] tracking-[0.02em] text-[#191a1b]">
-              Smart Campus
+            <Link to="/dashboard" className="flex items-center gap-2 text-sm font-[590] tracking-[0.02em] text-[#191a1b]">
+              <img src="/HelaUni.png" alt="HelaUni Logo" className="h-6 w-auto object-contain" />
+              HelaUni.app
             </Link>
             <nav className="flex items-center gap-2">
               <NavLink
@@ -169,6 +174,18 @@ function AuthenticatedLayout() {
                   Ticket Admin
                 </NavLink>
               )}
+              {isResourceAdmin && (
+                <NavLink
+                  to="/email-tester"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "rounded-md border border-[#d0d6e0] bg-[#f3f4f5] px-3 py-1 text-xs text-[#191a1b]"
+                      : "rounded-md px-3 py-1 text-xs text-[#62666d] hover:text-[#43464b]"
+                  }
+                >
+                  Email Tester
+                </NavLink>
+              )}
             </nav>
           </div>
 
@@ -201,7 +218,7 @@ function HomePage() {
   return (
     <main className="mx-auto w-full max-w-5xl space-y-4 px-4 py-8">
       <section className="rounded-xl border border-[#d0d6e0] bg-[#ffffff] p-8">
-        <p className="text-xs font-[510] uppercase tracking-[0.2em] text-[#7170ff]">Smart Campus</p>
+        <p className="text-xs font-[510] uppercase tracking-[0.2em] text-[#7170ff]">HelaUni.app</p>
         <h1 className="mt-2 text-3xl font-[590] tracking-[-0.044em]">Modules Dashboard</h1>
         <p className="mt-2 max-w-2xl text-sm text-[#62666d]">
           Welcome {user?.fullName ?? user?.email ?? "User"}. Access bookings, facilities catalogue, and account tools
@@ -282,10 +299,14 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/signup/admin" element={<AdminSignupPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
       <Route path="/qr/:token" element={<QrCheckInPage />} />
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/email-tester" element={<EmailTesterPage />} />
       <Route
-        path="/"
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <AuthenticatedLayout />

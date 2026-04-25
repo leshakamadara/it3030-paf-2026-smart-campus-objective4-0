@@ -5,6 +5,8 @@ import com.smartcampus.notification.dto.NotificationResponse;
 import com.smartcampus.notification.entity.Notification;
 import com.smartcampus.notification.entity.NotificationType;
 import com.smartcampus.notification.repository.NotificationRepository;
+import com.smartcampus.user.repository.UserRepository;
+import com.smartcampus.user.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -28,9 +30,16 @@ public class NotificationService {
     private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
 
     private final NotificationRepository notificationRepository;
+    private final EmailService emailService;
+    private final UserRepository userRepository;
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(
+            NotificationRepository notificationRepository,
+            EmailService emailService,
+            UserRepository userRepository) {
         this.notificationRepository = notificationRepository;
+        this.emailService = emailService;
+        this.userRepository = userRepository;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -55,6 +64,16 @@ public class NotificationService {
             notification.setEntityType(entityType);
             notification.setEntityId(entityId);
             notificationRepository.save(notification);
+
+            // Send email for bookings and tickets
+            if (type.name().contains("BOOKING") || type.name().contains("TICKET")) {
+                
+                userRepository.findById(userId).ifPresent(user -> {
+                    // Note: In the future, we could check user.getNotificationPrefs() here.
+                    // For now, we send emails for all booking/ticket updates.
+                    emailService.sendNotificationEmail(user.getEmail(), title, message);
+                });
+            }
         } catch (Exception ex) {
             log.error("Failed to persist notification for userId={} type={}: {}", userId, type, ex.getMessage(), ex);
         }

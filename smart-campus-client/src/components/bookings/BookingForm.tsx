@@ -24,7 +24,7 @@ export function BookingForm({ onCreated, onConflict, onError }: BookingFormProps
 
     try {
       const created = await createBooking({
-        resourceId,
+        resourceId: Number(resourceId),
         startTime: new Date(startTime).toISOString(),
         endTime: new Date(endTime).toISOString(),
         purpose,

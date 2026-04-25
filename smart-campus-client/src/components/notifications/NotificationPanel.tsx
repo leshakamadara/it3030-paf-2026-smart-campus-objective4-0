@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, BookOpen, CalendarCheck2, CalendarX2, MessageSquare, Ticket, CheckCheck, Trash2, X } from "lucide-react";
+import { Bell, BookOpen, CalendarCheck2, CalendarX2, MessageSquare, Ticket, CheckCheck, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
