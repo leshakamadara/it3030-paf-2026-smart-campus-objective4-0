@@ -57,18 +57,18 @@ export default function CommentBubble(props: Props) {
 
   return (
     <div
-      className={`flex items-start gap-3 ${isTech ? 'justify-start' : 'justify-end'}`}
+      className={`flex items-start gap-3 ${!isTech ? 'justify-start' : 'justify-end'}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Avatar — for tech on left, for user on right */}
-      {isTech && (
+      {/* Avatar — for user on left */}
+      {!isTech && (
         <Avatar src={authorAvatar} initials={computedInitials} size="sm" />
       )}
 
-      <div className={`max-w-[75%] flex flex-col ${isTech ? 'items-start' : 'items-end'}`}>
+      <div className={`max-w-[75%] flex flex-col ${!isTech ? 'items-start' : 'items-end'}`}>
         {/* Author name row */}
-        <div className={`flex items-center gap-2 mb-1 ${isTech ? 'flex-row' : 'flex-row-reverse'}`}>
+        <div className={`flex items-center gap-2 mb-1 ${!isTech ? 'flex-row' : 'flex-row-reverse'}`}>
           <span className="text-[13px] font-semibold text-slate-800">
             {isOwn ? 'You' : computedAuthorName}
           </span>
@@ -108,8 +108,8 @@ export default function CommentBubble(props: Props) {
             <div
               className={`p-3 text-sm leading-relaxed ${
                 isTech
-                  ? 'bg-violet-100 text-violet-900 rounded-tr-2xl rounded-tl-sm rounded-br-2xl rounded-bl-2xl'
-                  : 'bg-slate-100 text-slate-900 rounded-tl-2xl rounded-tr-sm rounded-br-2xl rounded-bl-2xl'
+                  ? 'bg-violet-100 text-violet-900 rounded-tl-2xl rounded-tr-sm rounded-br-2xl rounded-bl-2xl'
+                  : 'bg-slate-100 text-slate-900 rounded-tr-2xl rounded-tl-sm rounded-br-2xl rounded-bl-2xl'
               }`}
             >
               <div className="wrap-break-word">{content}</div>
@@ -126,7 +126,7 @@ export default function CommentBubble(props: Props) {
             {/* Edit / Delete actions — shown on hover if it's the user's own comment */}
             {hovered && isOwn && (onEdit || onDelete) && (
               <div
-                className={`flex gap-3 mt-1 ${isTech ? 'justify-start' : 'justify-end'}`}
+                className={`flex gap-3 mt-1 ${!isTech ? 'justify-start' : 'justify-end'}`}
               >
                 {onEdit && (
                   <button
@@ -150,8 +150,8 @@ export default function CommentBubble(props: Props) {
         )}
       </div>
 
-      {/* Avatar — for user on right */}
-      {!isTech && (
+      {/* Avatar — for tech on right */}
+      {isTech && (
         <Avatar src={authorAvatar} initials={computedInitials} size="sm" />
       )}
     </div>
