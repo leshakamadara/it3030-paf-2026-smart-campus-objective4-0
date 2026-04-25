@@ -194,16 +194,16 @@ function HomePage() {
             <div className="flex flex-wrap gap-2">
               {!isResourceAdmin && (
                 <>
-                  <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
+                  <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#43464b] font-[450] shadow-sm transition-all hover:border-[#5e6ad2] hover:bg-[#f5f6ff] hover:text-[#5e6ad2]">
                     <Link to="/dashboard/bookings">My Bookings</Link>
                   </Button>
-                  <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
+                  <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#43464b] font-[450] shadow-sm transition-all hover:border-[#5e6ad2] hover:bg-[#f5f6ff] hover:text-[#5e6ad2]">
                     <Link to="/dashboard/bookings/new">Create Booking</Link>
                   </Button>
                 </>
               )}
               {isResourceAdmin && (
-                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
+                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#43464b] font-[450] shadow-sm transition-all hover:border-[#5e6ad2] hover:bg-[#f5f6ff] hover:text-[#5e6ad2]">
                   <Link to="/dashboard/admin/bookings">Admin Bookings</Link>
                 </Button>
               )}
@@ -221,12 +221,12 @@ function HomePage() {
             </p>
             <div className="flex flex-wrap gap-2">
               {!isResourceAdmin && (
-                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
+                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#43464b] font-[450] shadow-sm transition-all hover:border-[#5e6ad2] hover:bg-[#f5f6ff] hover:text-[#5e6ad2]">
                   <Link to="/dashboard/resources">Browse Resources</Link>
                 </Button>
               )}
               {isResourceAdmin && (
-                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
+                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#43464b] font-[450] shadow-sm transition-all hover:border-[#5e6ad2] hover:bg-[#f5f6ff] hover:text-[#5e6ad2]">
                   <Link to="/dashboard/admin/resources/stats">Resource Admin</Link>
                 </Button>
               )}
@@ -244,12 +244,12 @@ function HomePage() {
             </p>
             <div className="flex flex-wrap gap-2">
               {!isResourceAdmin && (
-                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
+                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#43464b] font-[450] shadow-sm transition-all hover:border-[#5e6ad2] hover:bg-[#f5f6ff] hover:text-[#5e6ad2]">
                   <Link to="/dashboard/tickets">My Tickets</Link>
                 </Button>
               )}
               {isResourceAdmin && (
-                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#191a1b] hover:bg-[#f3f4f5] hover:text-[#191a1b] shadow-sm">
+                <Button asChild className="border border-[#d0d6e0] bg-[#ffffff] text-[#43464b] font-[450] shadow-sm transition-all hover:border-[#5e6ad2] hover:bg-[#f5f6ff] hover:text-[#5e6ad2]">
                   <Link to="/dashboard/admin/tickets">Ticket Admin</Link>
                 </Button>
               )}
