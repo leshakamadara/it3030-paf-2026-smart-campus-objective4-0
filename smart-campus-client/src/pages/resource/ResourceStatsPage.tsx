@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Plus, Lock, Loader2, AlertCircle } from "lucide-react";
+import { ChevronLeft, Plus, Lock, Loader2, AlertCircle, LayoutList } from "lucide-react";
 import ResourceStatsCards from "../../components/ui/resource/ResourceStatsCards";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useAuth } from "@/context/AuthContext";
@@ -72,16 +72,28 @@ export default function ResourceStatsPage() {
           { label: "Resource Admin" },
         ]}
         action={
-          <Button
-            asChild size="sm"
-            className="font-semibold shadow-none hover:opacity-90"
-            style={{ backgroundColor: "#5e6ad2", color: "#ffffff", borderRadius: "6px" }}
-          >
-            <Link to="/dashboard/admin/resources/create">
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
-              Add Resource
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              asChild size="sm" variant="outline"
+              className="font-medium transition-colors"
+              style={{ borderColor: "#d0d6e0", color: "#43464b", borderRadius: "6px" }}
+            >
+              <Link to="/dashboard/resources">
+                <LayoutList className="mr-1.5 h-3.5 w-3.5" />
+                Resource List
+              </Link>
+            </Button>
+            <Button
+              asChild size="sm"
+              className="font-semibold shadow-none hover:opacity-90"
+              style={{ backgroundColor: "#5e6ad2", color: "#ffffff", borderRadius: "6px" }}
+            >
+              <Link to="/dashboard/admin/resources/create">
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Add Resource
+              </Link>
+            </Button>
+          </div>
         }
       />
 
